@@ -1,7 +1,9 @@
 help:
 	@echo "HELP"
 build:
-	@gcc ./project/src/controller/main.c -std=gnu90 -o ./project/bin/controller
+	@mkdir -p bin
+	@gcc src/controller/main.c -std=gnu90 -o bin/controller
 	#	TODO: gcc per ogni dispositivo
 clean:
+	@rm bin
 	@echo "TODO"

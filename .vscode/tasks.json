@@ -17,8 +17,9 @@
                     "quoting" : "weak"
                 }
             ],*/
-            "args" :[
-                "-c" , "make -f ./project/MakeFile.mk build"
+            "args": [
+                "-c",
+                "cd ./project && make build"
             ],
             "group": {
                 "kind": "build",
