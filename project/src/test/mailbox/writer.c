@@ -2,6 +2,12 @@
 #include <stdio.h> 
 #include <sys/ipc.h> 
 #include <sys/msg.h> 
+#include <errno.h>
+
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
   
 // structure for message queue 
 struct mesg_buffer { 
@@ -22,12 +28,21 @@ int main()
     // and returns identifier 
     msgid = msgget(key, 0666 | IPC_CREAT); 
     message.mesg_type = 1; 
-  
+
+    if(msgid == -1){
+    	perror("Error ");
+    	//printf("Errore 1 %d \n",errno);
+    }
+
     printf("Write Data : "); 
     gets(message.mesg_text); 
   
     // msgsnd to send message 
-    msgsnd(msgid, &message, sizeof(message), 0); 
+    int ret = msgsnd(msgid, &message, sizeof(message), 0); 
+
+    if(ret == -1){
+    	printf("Errore 2 %s \n",strerror(errno));
+    }
   
     // display the message 
     printf("Data send is : %s \n", message.mesg_text); 

@@ -23,8 +23,12 @@ int main()
     msgid = msgget(key, 0666 | IPC_CREAT); 
   
     // msgrcv to receive message 
-    msgrcv(msgid, &message, sizeof(message), 1, 0); 
+    int ret = msgrcv(msgid, &message, sizeof(message), 1, 0); 
   
+    if(ret == -1){
+    	printf("Errore %d",ret);
+    }
+
     // display the message 
     printf("Data Received is : %s \n",  
                     message.mesg_text); 

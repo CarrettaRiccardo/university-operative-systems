@@ -7,31 +7,32 @@
 struct mesg_buffer { 
     long mesg_type; 
     char mesg_text[10]; 
-    key_t reponse_key;
+    time_t session;
 } message; 
   
-int main() 
+int main(int argc, char **argv) 
 { 
     key_t key; 
+    //int sessione = (int) atoi(argv[0]);
     int msgid; 
   
     // ftok to generate unique key 
     key = ftok("progfile", 65); 
   
-    // msgget creates a message queue 
-    // and returns identifier 
+    
     msgid = msgget(key, 0666 | IPC_CREAT); 
-  
+    //printf("La sessione è %d\n",sessione);
     // msgrcv to receive message 
-    int ret = msgrcv(msgid, &message, sizeof(message), 1, 0); 
-  
-    if(ret == -1){
-    	printf("Errore %d",ret);
-    }
+    while(1){
+	    int ret = msgrcv(msgid, &message, sizeof(message), 1, 0); 
 
-    // display the message 
-    printf("Data Received is : %s \n",  
-                    message.mesg_text); 
+	    if(ret == -1){
+	    	printf("Errore %d",ret);
+	    }
+
+	    // display the message 
+	    printf("Data Received is : %s con sessione = %d \n", message.mesg_text,message.session); 
+    }
   
     // to destroy the message queue 
     msgctl(msgid, IPC_RMID, NULL); 
