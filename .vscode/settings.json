@@ -1,0 +1,6 @@
+{
+    "terminal.integrated.shell.windows": "C:\\WINDOWS\\System32\\bash.exe",
+    "files.associations": {
+        "timer.h": "c"
+    }
+}
