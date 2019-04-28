@@ -3,14 +3,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-list list_init() {
-    list head = malloc(sizeof(node **));
+list_t list_init() {
+    list_t head = malloc(sizeof(node_t **));
     *head = NULL;
     return head;
 }
 
-int list_push(list head, int value) {
-    node *new_node = (node *)malloc(sizeof(node));
+int list_push(list_t head, int value) {
+    node_t *new_node = (node_t *)malloc(sizeof(node_t));
     if (new_node == NULL) return 0;
     new_node->value = value;
     new_node->next = *head;
@@ -18,9 +18,9 @@ int list_push(list head, int value) {
     return 1;
 }
 
-int list_remove(list head, int value) {
+int list_remove(list_t head, int value) {
     if (*head == NULL) return 0;
-    node *p = *head;
+    node_t *p = *head;
     //  Se il valore da eliminare è il primo
     if (p->value == value) {
         *head = p->next;
@@ -29,7 +29,7 @@ int list_remove(list head, int value) {
     }
     while (p->next != NULL) {
         if (p->next->value == value) {
-            node *tmp = p->next;
+            node_t *tmp = p->next;
             p->next = p->next->next;
             free(tmp);
             return 1;
@@ -39,11 +39,11 @@ int list_remove(list head, int value) {
     return 0;
 }
 
-void list_print(list head) {
+void list_print(list_t head) {
     if (*head == NULL) {
         printf("[]\n");
     } else {
-        node *p = *head;
+        node_t *p = *head;
         printf("[");
         while (p != NULL) {
             printf("%d, ", p->value);
