@@ -21,7 +21,6 @@ typedef struct msg {
     long mesg_type; 
     char text[MAXMSG];
     short int valore;
-    bool attivo; 
     time_t session;
 }Message;
 
@@ -72,7 +71,7 @@ key_t getKey(){
 }
 
 int getMq(){
-        const key_t key = getKey();  //creo id per mailbox
+	const key_t key = getKey();  //creo id per mailbox
 	int ret = msgget(key, 0666 | IPC_CREAT); //mi "collego" alla mq
 	if(ret == -1){ //TODO :da verirficare
 		printf("Errore connessione mq");
