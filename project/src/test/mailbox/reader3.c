@@ -16,7 +16,6 @@ typedef struct msg {
     long mesg_type; 
     char text[MAXMSG]; 
     short int valore;
-    bool attivo;
     time_t session;
 }Message;
 

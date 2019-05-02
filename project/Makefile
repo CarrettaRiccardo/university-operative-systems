@@ -12,7 +12,7 @@ OBJ_DIR = ./obj
 BIN_DIR = ./bin
 
 # File da compilare
-LIB = list									# Librerie
+LIB = list								# Librerie
 BIN = bulb fridge hub timer window		# Eseguibili (tranne "controller" che deve essere compilato con il main)
 
 # Lista file oggetto librerie. Necessario per linkare le libreri agli eseguibili

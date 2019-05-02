@@ -1,29 +1,19 @@
 #include <stdio.h>
 #include <string.h>
 
-#define MAX_LEN 256
-#define MAX_LEN_PARAMETER 70
-
-#define N_PARAMETERS_ADD 1
-#define N_PARAMETERS_DEL 1
-#define N_PARAMETERS_LINK 3
-#define N_PARAMETERS_SWITCH 3
-#define N_PARAMETERS_INFO 1
+#define MAX_CMD 256
 
 int main(int argc, char **argv) {
-    // run program until exit is called
+    //  Per uscire dal while nel caso si scriva "quit"
     short run = 1;
-    // char defined to split the command input string (must be array [])
-    char splitChar[] = " ";
-    // up to 256 characters in input supported
-    char input[MAX_LEN];
-    // always listen for a command
+    printf("Type \"help\" for more information.");
     while (run) {
-        printf("\nInserire Comando: ");
-        fgets(input, sizeof(input), stdin);
+        printf("> ");
 
-        // lettura primo parametro (nome comando)
-        char *ptr = strtok(input, splitChar);
+        char cmd[100];
+        scanf("%s", &cmd);
+        if (strcmp(cmd, "add")) {
+                }
 
         // per poter tener traccia di quale eventuale parametro si sta leggendo e non leggerne oltre se ce ne sono
         int parameter = 0;
