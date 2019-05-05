@@ -11,6 +11,8 @@ TODO: Remove not-allowed libraries
 #include <unistd.h>
 #include <fcntl.h>
 
+#include "../include/constants.h"
+
 #define MAXMSG 20 
 #define KEYFILE "progfile"
 
@@ -50,12 +52,26 @@ int main(int argc, char **argv) {
             Message m = {.to = getppid(), .session = sessione, .value = tempo, .state = stato};
             sendMessage( mqid, m );
         }
-        else if (strcmp(msg.text, "DIE") == 0){
-            exit(0);
-        }
-        else if (strcmp(msg.text, "INFO") == 0){
+        else if (strcmp(msg.text, INFO_REQUEST) == 0){
             Message m = buildInfoResponse(id,sessione,tempo,stato,msg.sender);
             sendMessage(mqid,m);
+        }
+        else if (strcmp(msg.text, SWITCH_ON) == 0){
+            // accensione
+        }
+        else if (strcmp(msg.text, SWITCH_OFF) == 0){
+            // spegnimento
+        }
+        else if (strcmp(msg.text, MSG_LINK) == 0){
+            // link
+            // (value = id a cui linkare)
+        }
+        else if (strcmp(msg.text, MSG_SWITCH) == 0){
+            // switch
+            // da gestire
+        }
+        else if (strcmp(msg.text, MSG_DELETE) == 0){
+            exit(0);
         }
         else if (strcmp(msg.text, "TRANSLATE") == 0){
             Message m = buildTranslateResponse(id, sessione, msg.value, msg.sender);
