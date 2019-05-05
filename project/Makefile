@@ -12,10 +12,10 @@ OBJ_DIR = ./obj
 BIN_DIR = ./bin
 
 # File da compilare
-LIB = list constants								# Librerie
+LIB = list utils								# Librerie
 BIN = bulb fridge hub timer window		# Eseguibili (tranne "controller" che deve essere compilato con il main)
 
-# Lista file oggetto librerie. Necessario per linkare le libreri agli eseguibili
+# Lista file oggetto librerie. Necessario per linkare le librerie agli eseguibili
 OBJ = $(patsubst %,$(OBJ_DIR)/%.o,$(LIB))
 
 
@@ -40,11 +40,11 @@ prepare:
 
 
 controller:
-	$(CC) $(FLAGS) -o $(BIN_DIR)/controller $(SRC_DIR)/controller/main.c $(SRC_DIR)/controller/controller.c
+	$(CC) $(FLAGS) -o $(BIN_DIR)/controller $(SRC_DIR)/controller/main.c $(SRC_DIR)/controller/controller.c $(OBJ)
 
 
 # Compila le librerie e gli eseguibili utilizzando le macro
-build: prepare controller $(LIB) $(BIN)
+build: prepare $(LIB) controller $(BIN)
 
 
 # Rimuove i file compilati
