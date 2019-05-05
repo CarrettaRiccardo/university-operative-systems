@@ -48,6 +48,15 @@ int list_remove(list_t head, int value) {
     return 0;
 }
 
+int list_contains(list_t head, int value) {
+    node_t *p = *head;
+    while (p != NULL) {
+        if (p->value == value) return 1;
+        p = p->next;
+    }
+    return 0;
+}
+
 void list_print(list_t head) {
     if (*head == NULL) {
         printf("[]\n");

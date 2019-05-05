@@ -20,6 +20,9 @@ int list_push(list_t l, int value);
 /*  Rimuove il primo elemento con valore "value" dalla lista */
 int list_remove(list_t l, int value);
 
+/*  Ritorna 1 se la lista contiene il valore, 0 altrimenti */
+int list_contains(list_t l, int value);
+
 /*  Stampa la lista (per debug) */
 void list_print(list_t l);
 
