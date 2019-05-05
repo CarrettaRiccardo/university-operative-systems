@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
         }
         else if (strcmp(msg.text, "INFO") == 0){
             unsigned long work_time = time(NULL) - start_time;
-            message_t m = buildInfoResponse(id,work_time ,stato,msg.sender," lampadina");
+            message_t m = buildInfoResponse(id,work_time ,stato,msg.sender," bulb");
             sendMessage(m);
         }
         else if (strcmp(msg.text, "TRANSLATE") == 0){

@@ -18,9 +18,22 @@ void ipc_init(){
 
 
 
+/*
+* worker dei metodi
+* Comandi 'do' che implemantano i comandi dell' utente
+*/
+
+void doList(const char* mode){
+
+}
+
+
+
+
+
+
 
 /*
-*
 * builder richieste
 * Metodi di comodo per costrutire le strutture dei messaggi di request
 */
@@ -48,7 +61,6 @@ message_t buildDieRequest(const long to_id)
 
 
 /*
-*
 * builder risposte
 * Metodi di comodo per costrutire le strutture dei messaggi di response
 */
@@ -60,7 +72,7 @@ message_t buildInfoResponse(const long id, const int valore,const short stato, c
     return ret;
 }
 
-//state=1  --> il componente cercato sono io
+//state = 1  --> il componente cercato sono io
 message_t buildTranslateResponse(const long id, const int searching, const int to)
 {
     message_t ret = {.to = to, .session = sessione, .state = 0, .text = "TRANSLATE", .sender = pid()}; //messaggio con risposta negativa
@@ -104,7 +116,6 @@ short int sendMessage(const message_t msg)
 }
 
 
-//TODO: Se leggo DIE... processo morto
 //to = -1 se il messaggio è da ignorare
 message_t receiveMessage(const long reader)
 {
@@ -149,7 +160,7 @@ void closeMq(const int id)
 {
     if (msgctl(id, IPC_RMID, NULL) == -1)
     {
-        printf("Errore chiusclearura mq");
+        printf("Errore chiusura mq");
         exit(1);
     }
 }
@@ -160,7 +171,7 @@ void closeMq(const int id)
 /*
 *
 * tool traduzione da id (interno al sistema) a pid del S.O
-* TODO: gestione cache per ottimizzare la traduzione di componenti già risolte
+* TODO: gestione cache per ottimizzare la traduzione di componenti già risolte (facoltativo)
 *
 */
 
