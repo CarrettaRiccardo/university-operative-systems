@@ -1,4 +1,3 @@
-
 #include "../include/list.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,6 +6,16 @@ list_t list_init() {
     list_t head = malloc(sizeof(node_t **));
     *head = NULL;
     return head;
+}
+
+void list_destroy(list_t head) {
+    node_t *p = *head;
+    while (p != NULL) {
+        node_t *tmp = p->next;
+        free(p);
+        p = tmp;
+    }
+    free(head);
 }
 
 int list_push(list_t head, int value) {

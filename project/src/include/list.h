@@ -11,6 +11,9 @@ typedef node_t **list_t;
 /* Inizializza la lista */
 list_t list_init();
 
+/* Dealloca la lista */
+void list_destroy(list_t l);
+
 /*  Aggiunge "value" all'inizio della lista */
 int list_push(list_t l, int value);
 
