@@ -6,6 +6,7 @@
         "stdio.h": "c",
         "string.h": "c",
         "stdlib.h": "c",
-        "utils.h": "c"
+        "utils.h": "c",
+        "ipc.h": "c"
     }
 }

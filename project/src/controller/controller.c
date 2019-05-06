@@ -34,12 +34,12 @@ void controller_destroy() {
 void list_devices() {
     printf("Elenco componenti:\n");
     /*
-Idea funzionamento (da completare) :
-Itero su ogni mio figlio inviandogli un messagio di COUNT per sapere quanti figli 
-esso possiede. Poi con un for sul numero dei sotto-figli leggo tutti i messaggi    che mi aspetto da questo figlio mostrandoli indentati in base alla profondità (campo value per esempio). La scansione deve essere una DFS così da avere una visualizzazione pulita della rìgerarchia della struttura.
-Dopo il messaggio di count mio figlio prima di inviare i dati a me, deve ricevere un messaggio LIST.
-Per il momento la implemento in IPC, così che tutti i componenti utilizzino questa funzione.
-*/
+    Idea funzionamento (da completare) :
+    Itero su ogni mio figlio inviandogli un messagio di COUNT per sapere quanti figli 
+    esso possiede. Poi con un for sul numero dei sotto-figli leggo tutti i messaggi che mi aspetto da questo figlio mostrandoli indentati in base alla profondità (campo value per esempio). La scansione deve essere una DFS così da avere una visualizzazione pulita della rìgerarchia della struttura.
+    Dopo il messaggio di count mio figlio prima di inviare i dati a me, deve ricevere un messaggio LIST.
+    Per il momento la implemento in IPC, così che tutti i componenti utilizzino questa funzione.
+    */
     doList("CONTROLLER");  //eseguo il comando LIST con comportamento  controller
 }
 

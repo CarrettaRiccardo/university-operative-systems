@@ -1,7 +1,9 @@
 #include <sys/ipc.h>
 #include <sys/msg.h>
 #include <errno.h>
-
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include "../include/ipc.h"
 
 
@@ -67,8 +69,8 @@ message_t buildDieRequest(const long to_id)
 
 message_t buildInfoResponse(const long id, const int valore,const short stato, const int to, const char* tipo_componente)
 {
-    Message ret = {.to = to, .session = sessione, .value = valore, .state = stato, .sender = pid()};
-    strcpy(ret.text, strcat( strcat( strcat("<#", id) , ">"), tipo_componente ));
+    message_t ret = {.to = to, .session = sessione, .value = valore, .state = stato, .sender = pid()};
+    strcpy(ret.text, strcat(strcat(strcat("<#", id) , ">"), tipo_componente ));
     return ret;
 }
 
@@ -83,7 +85,7 @@ message_t buildTranslateResponse(const long id, const int searching, const int t
 
 message_t buildDieResponse(const long to)
 {
-    Message ret = {.to = to, .session = sessione, .text = "DIED", .sender = pid()};
+    message_t ret = {.to = to, .session = sessione, .text = "DIED", .sender = pid()};
     return ret;
 }
 
