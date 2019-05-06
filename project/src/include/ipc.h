@@ -1,6 +1,14 @@
 #ifndef _IPC_
 #define _IPC_
 
+#include <sys/ipc.h>
+#include <sys/msg.h>
+#include <errno.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+#include "../include/list.h"
 #define MAXMSG 20
 #define KEYFILE "progfile"
 
@@ -9,8 +17,12 @@ typedef struct msg
 {
     long to;
     char text[MAXMSG];
-    long value;
-    long state;
+    long value1;
+    long value2;
+    short value3;
+    short value4;
+    short value5;
+    short value6;
     long sender;
     time_t session;
 } message_t;
@@ -19,15 +31,31 @@ typedef struct msg
 /* Inizializza i componenti per comunicare */
 void ipc_init();
 
-message_t buildInfoRequest(const long to_id);
+/* Metodo di comodo per stampare le info del comando LIST */
+void printListMessage(message_t m);
 
-message_t buildDieRequest(const long to_id);
+//############# REQUESTS ###########
 
-message_t buildInfoResponse(const long id, const int valore,const short stato, const int to, const char* tipo_componente);
+message_t buildInfoRequest(list_t figli, const long to_id);
+
+message_t buildDieRequest(list_t figli,const long to_id);
+
+message_t buildListRequest(const long to_pid);
+
+
+//############# RESPONSES ###########
+
+message_t buildInfoResponse(const long id, const short stato, const int to, const char* tipo_componente);
 
 message_t buildTranslateResponse(const long id, const int searching, const int to);
 
 message_t buildDieResponse(const long to);
+
+message_t buildListResponse(const long to_pid, const char* nome, const short stato,const long livello, const short stop, const short id);
+
+
+//############# IPC ###########
+
 
 short int sendMessage(const message_t msg);
 
@@ -43,6 +71,6 @@ int getMq();
 void closeMq(const int id);
 
 /* Traduzione id-pid */
-long getPidById(const int id);
+long getPidById(list_t figli, const int id);
 
 #endif

@@ -33,14 +33,8 @@ void controller_destroy() {
 /**************************************** LIST ********************************************/
 void list_devices() {
     printf("Elenco componenti:\n");
-    /*
-    Idea funzionamento (da completare) :
-    Itero su ogni mio figlio inviandogli un messagio di COUNT per sapere quanti figli 
-    esso possiede. Poi con un for sul numero dei sotto-figli leggo tutti i messaggi che mi aspetto da questo figlio mostrandoli indentati in base alla profondità (campo value per esempio). La scansione deve essere una DFS così da avere una visualizzazione pulita della rìgerarchia della struttura.
-    Dopo il messaggio di count mio figlio prima di inviare i dati a me, deve ricevere un messaggio LIST.
-    Per il momento la implemento in IPC, così che tutti i componenti utilizzino questa funzione.
-    */
-    doList("CONTROLLER");  //eseguo il comando LIST con comportamento  controller
+    
+    doList(children, "CONTROLLER", getpid());  //eseguo il comando LIST con comportamento  controller
 }
 
 /**************************************** ADD ********************************************/
@@ -90,7 +84,7 @@ int del_device(char *id) {
     printf("Elimino  %s ...\n", id);
 
     int id_da_cercare = atoi(id);
-    message_t request = buildDieRequest(id_da_cercare);
+    message_t request = buildDieRequest(children,id_da_cercare);
     if (sendMessage(request) == -1)
         printf("Errore comunicazione, riprova");
 
@@ -120,16 +114,16 @@ int switch_device(char *id, char *label, char *pos) {
 void info_device(char *id) {
     printf("Ottengo le info da %s ...\n", id);
     int id_da_cercare = atoi(id);
-    message_t request = buildInfoRequest(id_da_cercare);
+    message_t request = buildInfoRequest(children, id_da_cercare);
     if (sendMessage(request) == -1)
         printf("Errore comunicazione, riprova");
     message_t response = receiveMessage(getpid());
     if (response.to != -1) {
         printf("%s ", response.text);
-        if (response.state == 1)
+        if (response.value6 == 1)
             printf("accesa ");
         else
             printf("spenta ");
-        printf(". Tempo di funzionamento = %ld", response.value);
+        printf(". Tempo di funzionamento = %ld", response.value1);
     }
 }
