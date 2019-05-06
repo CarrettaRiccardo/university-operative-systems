@@ -130,6 +130,6 @@ void info_device(char *id) {
             printf("accesa ");
         else
             printf("spenta ");
-        printf(". Tempo di funzionamento = %d", response.value);
+        printf(". Tempo di funzionamento = %ld", response.value);
     }
 }

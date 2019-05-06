@@ -2,30 +2,13 @@
 TODO: Remove not-allowed libraries
 */
 #include <stdio.h>
-#include <sys/ipc.h>
-#include <sys/msg.h>
-#include <errno.h>
-
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
 
+#include "../include/ipc.h"
 #include "../include/constants.h"
-
-#define MAXMSG 20 
-#define KEYFILE "progfile"
-
-typedef struct msg { 
-    int to; 
-    char text[MAXMSG];
-    int value;
-    short int state;
-    int sender;
-    time_t session;
-}Message;
-
-
 
 
 int main(int argc, char **argv) {
@@ -44,7 +27,7 @@ int main(int argc, char **argv) {
     }
 
     while (1){
-        Message msg = receiveMessage(mqid,getpid(),sessione);
+        message_t msg = receiveMessage(getpid());
 
         if(msg.to == -1) //messaggio da ignorare (per sessione diversa/altri casi)
             continue;

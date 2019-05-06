@@ -69,15 +69,15 @@ message_t buildDieRequest(const long to_id)
 
 message_t buildInfoResponse(const long id, const int valore,const short stato, const int to, const char* tipo_componente)
 {
-    message_t ret = {.to = to, .session = sessione, .value = valore, .state = stato, .sender = pid()};
-    strcpy(ret.text, strcat(strcat(strcat("<#", id) , ">"), tipo_componente ));
+    message_t ret = {.to = to, .session = sessione, .value = valore, .state = stato, .sender = getpid()};
+    strcpy(ret.text, tipo_componente);
     return ret;
 }
 
 //state = 1  --> il componente cercato sono io
 message_t buildTranslateResponse(const long id, const int searching, const int to)
 {
-    message_t ret = {.to = to, .session = sessione, .state = 0, .text = "TRANSLATE", .sender = pid()}; //messaggio con risposta negativa
+    message_t ret = {.to = to, .session = sessione, .state = 0, .text = "TRANSLATE", .sender = getpid()}; //messaggio con risposta negativa
     if(id == searching)
         ret.state = 1;  //stava cercando me, risposta positiva
     return ret;
@@ -85,7 +85,7 @@ message_t buildTranslateResponse(const long id, const int searching, const int t
 
 message_t buildDieResponse(const long to)
 {
-    message_t ret = {.to = to, .session = sessione, .text = "DIED", .sender = pid()};
+    message_t ret = {.to = to, .session = sessione, .text = "DIED", .sender = getpid()};
     return ret;
 }
 
