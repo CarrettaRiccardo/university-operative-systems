@@ -2,20 +2,18 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include "../include/list.h"
 #include "../include/ipc.h"  //TODO: Destro linkare libreria ipc.c
+#include "../include/list.h"
 
 #define MAX_DEVICE_NAME_LENGTH 20
 
-list_t l;
+list_t children;
 int next_id;
 char *base_dir;
 
-
-
 /*  Inizializza le variabili del controller   */
 void controller_init(char *file) {
-    l = list_init();
+    children = list_init();
     ipc_init();  //inizializzo componenti comunicazione
     next_id = 1;
     //  Uso il percorso relativo al workspace, preso da argv[0] per trovare gli altri eseguibili per i device.
@@ -28,14 +26,14 @@ void controller_init(char *file) {
 
 /*  Dealloca il controller  */
 void controller_destroy() {
-    list_destroy(l);
+    list_destroy(children);
     free(base_dir);
 }
 
 /**************************************** LIST ********************************************/
 void list_devices() {
     printf("Elenco componenti:\n");
-/*
+    /*
 Idea funzionamento (da completare) :
 Itero su ogni mio figlio inviandogli un messagio di COUNT per sapere quanti figli 
 esso possiede. Poi con un for sul numero dei sotto-figli leggo tutti i messaggi    che mi aspetto da questo figlio mostrandoli indentati in base alla profondità (campo value per esempio). La scansione deve essere una DFS così da avere una visualizzazione pulita della rìgerarchia della struttura.
@@ -61,7 +59,7 @@ int _add_device(char *file) {
     else {
         if (pid != -1) {
             next_id++;
-            list_push(l, pid);
+            list_push(children, pid);
         }
         return pid;
     }
@@ -97,13 +95,12 @@ int del_device(char *id) {
         printf("Errore comunicazione, riprova");
 
     message_t response = receiveMessage(getpid());
-    if (response.to != -1 ) {
-        if(strcmp(response.text,"DIED") == 0){    
-	        printf("%d died", id_da_cercare);
-			list_remove(l, id_da_cercare);
-		}
-    else
-		printf("error dying %s", response.text);
+    if (response.to != -1) {
+        if (strcmp(response.text, "DIED") == 0) {
+            printf("%d died", id_da_cercare);
+            list_remove(children, id_da_cercare);
+        } else
+            printf("error dying %s", response.text);
     }
 }
 
