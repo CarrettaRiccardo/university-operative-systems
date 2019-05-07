@@ -52,6 +52,8 @@ message_t buildDieRequest(list_t figli, const long to_id);
 
 message_t buildListRequest(const long to_pid);
 
+message_t buildSwitchRequest(list_t figli, const long to_id, char *label, char *pos);
+
 //############# RESPONSES ###########
 
 message_t buildInfoResponse(const long id, const short stato, const int to, const char* tipo_componente);
