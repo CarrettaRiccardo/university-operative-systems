@@ -116,16 +116,21 @@ int switchDevice(char *id, char *label, char *pos) {
     // se i parametri creano dei valori validi
     if (request.value1 != -1 && request.value2 != -1){
         if (sendMessage(&request) == -1)
-            printf("Errore comunicazione, riprova");
+            printf("Errore comunicazione, riprova\n");
         message_t response;
         if (receiveMessage(getpid(), &response) == -1) {
-            perror("Errore switch");
+            perror("Errore switch\n");
         } else {
-            printf("Modifica effettuata con successo");
+            if (response.value6 != -1){
+                printf("Modifica effettuata con successo\n");
+            }
+            else{
+                printf("Errore nella modifica\n");
+            }
         }
     }
     else{
-        perror("Parametri non corretti o coerenti");
+        perror("Parametri non corretti o coerenti\n");
     }
 }
 

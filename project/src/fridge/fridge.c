@@ -35,10 +35,8 @@ int main(int argc, char **argv) {
             //sendMessage( mqid, m );
         } else if (strcmp(msg.text, INFO_REQUEST) == 0) {
             // ritorna info
-        } else if (strcmp(msg.text, SWITCH_ON) == 0) {
-            // apertura
-        } else if (strcmp(msg.text, SWITCH_OFF) == 0) {
-            // chiusura
+        } else if (strcmp(msg.text, MSG_SWITCH) == 0) {
+            // apertura/chiusura
         } else if (strcmp(msg.text, SET_TIME_DELAY) == 0) {
             // delay chiusura porta
         } else if (strcmp(msg.text, SET_TEMPERATURE) == 0) {

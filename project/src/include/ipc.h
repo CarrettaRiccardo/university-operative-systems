@@ -58,6 +58,8 @@ message_t buildSwitchRequest(list_t figli, const long to_id, char *label, char *
 
 message_t buildInfoResponse(const long id, const short stato, const int to, const char* tipo_componente);
 
+message_t buildSwitchResponse(const int success, const int to);
+
 message_t buildTranslateResponse(const long id, const int searching, const int to);
 
 message_t buildDieResponse(const long to);

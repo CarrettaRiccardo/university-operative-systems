@@ -148,7 +148,7 @@ message_t buildSwitchRequest(list_t figli, const long to_id, char *label, char *
             if (strcmp(pos, SWITCH_POS_OFF) == 0 && label_val == 0){
                 // 0 = spento/chiuso (generico)
                 pos_val = 0;
-            } else { if (strcmp(label, SWITCH_POS_ON) == 0 && label_val == 0){
+            } else { if (strcmp(pos, SWITCH_POS_ON) == 0 && label_val == 0){
                     // 1 = acceso/aperto (generico)
                     pos_val = 1;
                 }
@@ -175,6 +175,11 @@ message_t buildSwitchRequest(list_t figli, const long to_id, char *label, char *
 message_t buildInfoResponse(const long id, const short stato, const int to, const char *tipo_componente) {
     message_t ret = {.to = to, .session = sessione, .value6 = stato, .sender = getpid()};
     strcpy(ret.text, tipo_componente);
+    return ret;
+}
+
+message_t buildSwitchResponse(const int success, const int to) {
+    message_t ret = {.to = to, .session = sessione, .value6 = success, .sender = getpid()};
     return ret;
 }
 

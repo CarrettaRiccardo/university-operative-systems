@@ -41,17 +41,17 @@ int main(int argc, char **argv) {
                 unsigned long work_time = time(NULL) - start_time;
                 int success = -1;
                 if (msg.value1 == 0){// interruttore (generico)
-                    if (msg.value2 == 0){
+                    if (msg.value2 == 0){// spengo
                         stato = 0;
                         success = 0;
                     }
-                    if (msg.value2 == 1){
+                    if (msg.value2 == 1){// accendo
                         stato = 1;
                         success = 0;
                     }
                 }
                 // return success or not
-                message_t m = buildInfoResponseBulb(id, stato, msg.sender, "Bulb", work_time);
+                message_t m = buildSwitchResponse(success, msg.sender);
                 sendMessage(&m);
             } else if (strcmp(msg.text, MSG_TRANSLATE) == 0) {
                 message_t m = buildTranslateResponse(id, msg.value1, msg.sender);
