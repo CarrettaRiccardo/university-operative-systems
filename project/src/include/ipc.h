@@ -29,7 +29,7 @@ typedef struct msg {
 } message_t;
 
 /* Inizializza i componenti per comunicare */
-void ipc_init();
+void ipcInit();
 
 void doList(list_t children, const char* mode, const long responde_to);
 

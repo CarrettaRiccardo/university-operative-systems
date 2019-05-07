@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int is_int(char *str) {
+int isInt(char *str) {
     while (*str != '\0') {
         if (*str < '0' || *str > '9') return 0;
         str++;

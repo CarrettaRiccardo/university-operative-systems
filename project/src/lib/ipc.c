@@ -1,7 +1,7 @@
 #include "../include/ipc.h"
 
 // Inizializza i componenti per comunicare
-void ipc_init() {
+void ipcInit() {
     sessione = time(NULL);
     mqid = getMq();
 }

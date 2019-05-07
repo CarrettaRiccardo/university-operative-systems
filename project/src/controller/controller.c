@@ -12,9 +12,9 @@ int next_id;
 char *base_dir;
 
 /*  Inizializza le variabili del controller   */
-void controller_init(char *file) {
-    children = list_init();
-    ipc_init();  //inizializzo componenti comunicazione
+void controllerInit(char *file) {
+    children = listInit();
+    ipcInit();  //inizializzo componenti comunicazione
     next_id = 1;
     //  Uso il percorso relativo al workspace, preso da argv[0] per trovare gli altri eseguibili per i device.
     //  Rimuovo il nome del file dal percorso
@@ -25,20 +25,20 @@ void controller_init(char *file) {
 }
 
 /*  Dealloca il controller  */
-void controller_destroy() {
-    list_destroy(children);
+void controllerDestroy() {
+    listDestroy(children);
     free(base_dir);
 }
 
 /**************************************** LIST ********************************************/
-void list_devices() {
+void listDevices() {
     printf("Elenco componenti:\n");
     doList(children, "CONTROLLER", getpid());  //eseguo il comando LIST con comportamento  controller
 }
 
 /**************************************** ADD ********************************************/
 /*  (private) Aggiunge un dispositivo al controller in base al tipo specificato   */
-int _add_device(char *file) {
+int _addDevice(char *file) {
     int pid = fork();
     /*  Processo figlio */
     if (pid == 0) {
@@ -52,34 +52,34 @@ int _add_device(char *file) {
     else {
         if (pid != -1) {
             next_id++;
-            list_push(children, pid);
+            listPush(children, pid);
         }
         return pid;
     }
 }
 
-int add_bulb() {
-    return _add_device("bulb");
+int addBulb() {
+    return _addDevice("bulb");
 }
 
-int add_fridge() {
-    return _add_device("fridge");
+int addFridge() {
+    return _addDevice("fridge");
 }
 
-int add_window() {
-    return _add_device("window");
+int addWindow() {
+    return _addDevice("window");
 }
 
-int add_hub() {
-    return _add_device("hub");
+int addHub() {
+    return _addDevice("hub");
 }
 
-int add_timer() {
-    return _add_device("timer");
+int addTimer() {
+    return _addDevice("timer");
 }
 
 /**************************************** DEL ********************************************/
-int del_device(char *id) {
+int delDevice(char *id) {
     printf("Elimino  %s ...\n", id);
 
     int id_da_cercare = atoi(id);
@@ -91,26 +91,26 @@ int del_device(char *id) {
     if (receiveMessage(getpid(), &response) != -1) {
         if (strcmp(response.text, "DIED") == 0) {
             printf("%d died", id_da_cercare);
-            list_remove(children, id_da_cercare);
+            listRemove(children, id_da_cercare);
         } else
             printf("error dying %s", response.text);
     }
 }
 
 /**************************************** LINK ********************************************/
-int link_devices(char *id1, char *id2) {
+int linkDevices(char *id1, char *id2) {
     printf("TODO: link device %s to %s\n", id1, id2);
 }
 
 /**************************************** SWITCH ********************************************/
-int switch_device(char *id, char *label, char *pos) {
+int switchDevice(char *id, char *label, char *pos) {
     printf("TODO: switch id: %s, label: %s, pos: %s\n", id, label, pos);
 }
 
 /**************************************** INFO ********************************************/
 //TODO: Distinguere info in base al tipo di componente
 //TODO: Se id non è un numero valido dare errore
-void info_device(char *id) {
+void infoDevice(char *id) {
     printf("Ottengo le info da %s ...\n", id);
     int id_da_cercare = atoi(id);
     message_t request = buildInfoRequest(children, id_da_cercare);
