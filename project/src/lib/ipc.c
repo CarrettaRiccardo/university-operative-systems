@@ -1,20 +1,7 @@
 #include "../include/ipc.h"
 
-// Inizializza i componenti per comunicare
-void ipcInit() {
-    sessione = time(NULL);
-    mqid = getMq();
-}
-
-/*
-* worker dei metodi
-* Comandi 'do' che implemantano i comandi dell' utente
-*/
-
-/*
-I dispositivi di interazione inoltrano la richiesta a tutti i filgi prima di tornare value5=1 al padre, il quale procede ad inviare la richiesta ad un altro dei suoi figli
-TODO: 
-*/
+////////////////////////////////////////////////////////////////// WORKERS //////////////////////////////////////////////////////////////////
+/*  I dispositivi di interazione inoltrano la richiesta a tutti i filgi prima di tornare value5=1 al padre, il quale procede ad inviare la richiesta ad un altro dei suoi figli   */
 void doList(list_t figli, const char *mode, const long responde_to) {
     if (strcmp(mode, "CONTROLLER") == 0) {
         node_t *p = *figli;
@@ -55,10 +42,6 @@ void doList(list_t figli, const char *mode, const long responde_to) {
     }
 }
 
-void printMsg(const message_t *msg) {
-    printf("to: %ld, sender: %ld, text: %s, v1: %ld, v2: %ld, v3: %d, v4: %d, v5: %d, v6: %d, session: %ld\n", msg->to, msg->sender, msg->text, msg->value1, msg->value2, msg->value3, msg->value4, msg->value5, msg->value6, msg->session);
-}
-
 //Metodo di comodo per stampare le Info da mostrare nel comando LIST
 void printListMessage(const message_t const *msg) {
     if (strcmp(msg->text, "CONTROL") == 0) return;  // Se è un dispositivo di controllo non devo stampare le sue info, indica solo fine scansione di quel sotto_albero
@@ -87,11 +70,12 @@ void printListMessage(const message_t const *msg) {
     }
 }
 
-/*
-* builder richieste
-* Metodi di comodo per costrutire le strutture dei messaggi di request
-*/
+void doLink(list_t figli, int src_id, int dest_id) {
+    long src = getPidById(figli, src_id);
+    long dest = getPidById(figli, dest_id);
+}
 
+////////////////////////////////////////////////////////////////// REQUESTS //////////////////////////////////////////////////////////////////
 message_t buildInfoRequest(list_t figli, const long to_id) {
     long to_pid = getPidById(figli, to_id);
     if (to_pid == -1)
@@ -110,17 +94,17 @@ message_t buildDieRequest(list_t figli, const long to_id) {
     return ret;
 }
 
-//Il PID è già noto (preso dalla lista da lista figli), non occorre la traduzione
 message_t buildListRequest(const long to_pid) {
     message_t ret = {.to = to_pid, .session = sessione, .text = MSG_LIST, .sender = getpid()};
     return ret;
 }
 
-/*
-* builder risposte
-* Metodi di comodo per costrutire le strutture dei messaggi di response
-*/
+message_t buildLinkRequest(const long to_pid) {
+    message_t ret = {.to = to_pid, .session = sessione, .text = MSG_LIST, .sender = getpid()};
+    return ret;
+}
 
+////////////////////////////////////////////////////////////////// RESPONSE //////////////////////////////////////////////////////////////////
 //Metodo generico per info comuni. Ogni componente usa un override del metodo
 message_t buildInfoResponse(const long id, const short stato, const int to, const char *tipo_componente) {
     message_t ret = {.to = to, .session = sessione, .value6 = stato, .sender = getpid()};
@@ -136,8 +120,8 @@ message_t buildTranslateResponse(const long id, const int searching, const int t
     return ret;
 }
 
-message_t buildDieResponse(const long to) {
-    message_t ret = {.to = to, .session = sessione, .text = MSG_DELETE_RESPONSE, .sender = getpid()};
+message_t buildDieResponse(const long to_pid) {
+    message_t ret = {.to = to_pid, .session = sessione, .text = MSG_DELETE_RESPONSE, .sender = getpid()};
     return ret;
 }
 
@@ -148,11 +132,10 @@ message_t buildListResponse(const long to_pid, const char *nome, const short sta
     return ret;
 }
 
-/*
-*
-* Gestori Message Queue
-*
-*/
+message_t buildLinkResponse(const long to_pid, const char *nome, const short stato, const long livello, const short stop, const short id) {
+}
+
+////////////////////////////////////////////////////////////////// SEND/RECEIVE //////////////////////////////////////////////////////////////////
 
 short int sendMessage(const message_t *msg) {
     if (msg->to <= 0) {
@@ -171,6 +154,14 @@ int receiveMessage(const long reader, message_t *msg) {
         return -1;
     }*/
     return ret;
+}
+
+////////////////////////////////////////////////////////////////// INITIALIZERS //////////////////////////////////////////////////////////////////
+
+// Inizializza i componenti per comunicare
+void ipcInit() {
+    sessione = time(NULL);
+    mqid = getMq();
 }
 
 key_t getKey() {
@@ -200,14 +191,8 @@ void closeMq(const int id) {
     }
 }
 
-/*
-*
-* tool traduzione da id (interno al sistema) a pid del S.O
-* TODO: gestione cache per ottimizzare la traduzione di componenti già risolte (facoltativo)
-*
-*/
-
-//traduce un id in un pid
+////////////////////////////////////////////////////////////////// UTILS //////////////////////////////////////////////////////////////////
+// Traduce un id in un pid, TODO: gestione cache per ottimizzare la traduzione di componenti già risolte (facoltativo)
 long getPidById(list_t figli, const int id) {
     long ret = -1;
     node_t *p = *figli;
@@ -234,6 +219,7 @@ long getPidById(list_t figli, const int id) {
     return ret;
 }
 
+////////////////////////////////////////////////////////////////// DEBUG //////////////////////////////////////////////////////////////////
 // stampa nel file con nome della session il messaggio
 int printLog(message_t msg) {
     char f_name[30];
@@ -249,4 +235,8 @@ int printLog(message_t msg) {
         // error opening file
     }
     return ret;
+}
+
+void printMsg(const message_t *msg) {
+    printf("to: %ld, sender: %ld, text: %s, v1: %ld, v2: %ld, v3: %d, v4: %d, v5: %d, v6: %d, session: %ld\n", msg->to, msg->sender, msg->text, msg->value1, msg->value2, msg->value3, msg->value4, msg->value5, msg->value6, msg->session);
 }
