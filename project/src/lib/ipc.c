@@ -155,7 +155,7 @@ message_t buildListResponse(const long to_pid, const char *nome, const short sta
 */
 
 short int sendMessage(const message_t *msg) {
-    if (msg->to == 0) {
+    if (msg->to <= 0) {
         printf("Errore: destinatario invalido\n");
         return -1;
     }
@@ -230,5 +230,6 @@ long getPidById(list_t figli, const int id) {
 
         p = p->next;
     }
+    printf("TRANSLATE = %d", ret);
     return ret;
 }
