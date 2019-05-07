@@ -117,7 +117,9 @@ void info_device(char *id) {
     if (sendMessage(&request) == -1)
         printf("Errore comunicazione, riprova");
     message_t response;
-    if (receiveMessage(getpid(), &response) != -1) {
+    if (receiveMessage(getpid(), &response) == -1) {
+        perror("Errore info device");
+    } else {
         printf("%s ", response.text);
         if (response.value6 == 1)
             printf("accesa ");

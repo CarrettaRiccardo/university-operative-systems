@@ -19,29 +19,30 @@ int main(int argc, char **argv) {
 
     while (1) {
         message_t msg;
-        printf("BULB waiting on %d\n", getpid());
-        if (receiveMessage(getpid(), &msg) == -1) {
+        printf("BULB waiting on %d, mqid: %d\n", getpid(), mqid);
+        int result = receiveMessage(getpid(), &msg);
+        if (result == -1) {
             perror("BULB: Errore ricezione");
-            continue;
-        }
-        printf("BULB: msg received %s\n", msg.text);
+        } else {
+            printf("BULB: msg received %s\n", msg.text);
 
-        if (msg.to == -1) continue;  // Messaggio da ignorare (per sessione diversa/altri casi)
+            if (msg.to == -1) continue;  // Messaggio da ignorare (per sessione diversa/altri casi)
 
-        if (strcmp(msg.text, "DIE") == 0) {
-            message_t msg = buildDieResponse(msg.sender);
-            sendMessage(&msg);
-            exit(0);
-        } else if (strcmp(msg.text, "INFO") == 0) {
-            unsigned long work_time = time(NULL) - start_time;
-            message_t msg = buildInfoResponseBulb(id, stato, msg.sender, "Bulb", work_time);
-            sendMessage(&msg);
-        } else if (strcmp(msg.text, "TRANSLATE") == 0) {
-            message_t m = buildTranslateResponse(id, msg.value1, msg.sender);
-            sendMessage(&msg);
-        } else if (strcmp(msg.text, "LIST") == 0) {  // Caso base per la LIST. value5 = 1 per indicare fine albero
-            message_t m = buildListResponse(msg.sender, "Bulb", stato, msg.value1, 1, id);
-            sendMessage(&msg);
+            if (strcmp(msg.text, "DIE") == 0) {
+                message_t msg = buildDieResponse(msg.sender);
+                sendMessage(&msg);
+                exit(0);
+            } else if (strcmp(msg.text, "INFO") == 0) {
+                unsigned long work_time = time(NULL) - start_time;
+                message_t msg = buildInfoResponseBulb(id, stato, msg.sender, "Bulb", work_time);
+                sendMessage(&msg);
+            } else if (strcmp(msg.text, "TRANSLATE") == 0) {
+                message_t m = buildTranslateResponse(id, msg.value1, msg.sender);
+                sendMessage(&msg);
+            } else if (strcmp(msg.text, "LIST") == 0) {  // Caso base per la LIST. value5 = 1 per indicare fine albero
+                message_t m = buildListResponse(msg.sender, "Bulb", stato, msg.value1, 1, id);
+                sendMessage(&msg);
+            }
         }
     }
     return 0;

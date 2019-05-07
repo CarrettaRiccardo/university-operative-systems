@@ -12,6 +12,9 @@
 #define MAXMSG 20
 #define KEYFILE "progfile"
 
+time_t sessione;
+int mqid;
+
 typedef struct msg {
     long to;
     char text[MAXMSG];
@@ -28,8 +31,13 @@ typedef struct msg {
 /* Inizializza i componenti per comunicare */
 void ipc_init();
 
+void doList(list_t children, const char* mode, const long responde_to);
+
+/*  Print struct (per debug) */
+void printMsg(const message_t* msg);
+
 /* Metodo di comodo per stampare le info del comando LIST */
-void printListMessage(const message_t const* msg);
+void printListMessage(const message_t* msg);
 
 //############# REQUESTS ###########
 
