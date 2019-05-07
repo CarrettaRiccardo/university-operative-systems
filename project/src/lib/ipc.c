@@ -165,7 +165,7 @@ short int sendMessage(const message_t const *msg) {
         perror("Errore invio da controller");
         return -1;
     }
-    return 1;
+    return ret;
 }
 
 // to = -1 se il messaggio è da ignorare
@@ -178,6 +178,7 @@ int receiveMessage(const long reader, message_t *msg) {
     if (msg->session != sessione) {  // Messaggio di una sessione precedente rimasto in memoria
         return -1;
     }
+    return ret;
 }
 
 key_t getKey() {

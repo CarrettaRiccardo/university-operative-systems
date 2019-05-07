@@ -4,6 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "../include/constants.h"
 #include "../include/ipc.h"
 
 /* Override specifico per il metodo definito in IPC */
