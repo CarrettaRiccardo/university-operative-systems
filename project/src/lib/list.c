@@ -57,7 +57,7 @@ int listContains(list_t head, int value) {
     return 0;
 }
 
-int listCount(list_t head, int value) {
+int listCount(list_t head) {
     int count = 0;
     node_t *p = *head;
     while (p != NULL) {

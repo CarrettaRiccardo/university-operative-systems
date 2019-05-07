@@ -24,7 +24,7 @@ int listRemove(list_t l, int value);
 int listContains(list_t l, int value);
 
 /*  Ritorna il numero di elementi nella lista */
-int listCount(list_t l, int value);
+int listCount(list_t l);
 
 /*  Stampa la lista (per debug) */
 void listPrint(list_t l);
