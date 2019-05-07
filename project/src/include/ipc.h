@@ -34,7 +34,7 @@ void ipcInit();
 
 void doList(list_t children, const char* mode, const long responde_to);
 
-void doLink(int src, int dest);
+void doLink(list_t figli, int src_id, int dest_id);
 
 /*  Print struct (per debug) */
 void printMsg(const message_t* msg);

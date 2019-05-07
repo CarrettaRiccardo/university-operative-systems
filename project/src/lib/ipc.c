@@ -174,8 +174,7 @@ key_t getKey() {
 }
 
 int getMq() {
-    const key_t key = getKey();  //creo id per mailbox
-    printf("Key mq: %d\n", key);
+    const key_t key = getKey();               //creo id per mailbox
     int ret = msgget(key, 0666 | IPC_CREAT);  //mi "collego" alla mq
     if (ret == -1) {
         perror("Errore connessione mq");
