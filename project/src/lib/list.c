@@ -2,13 +2,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-list_t list_init() {
+list_t listInit() {
     list_t head = malloc(sizeof(node_t **));
     *head = NULL;
     return head;
 }
 
-void list_destroy(list_t head) {
+void listDestroy(list_t head) {
     node_t *p = *head;
     while (p != NULL) {
         node_t *tmp = p->next;
@@ -18,7 +18,7 @@ void list_destroy(list_t head) {
     free(head);
 }
 
-int list_push(list_t head, int value) {
+int listPush(list_t head, int value) {
     node_t *new_node = (node_t *)malloc(sizeof(node_t));
     if (new_node == NULL) return 0;
     new_node->value = value;
@@ -27,7 +27,7 @@ int list_push(list_t head, int value) {
     return 1;
 }
 
-int list_remove(list_t head, int value) {
+int listRemove(list_t head, int value) {
     if (*head == NULL) return 0;
     node_t *p = *head;
     //  Se il valore da eliminare è il primo
@@ -48,7 +48,7 @@ int list_remove(list_t head, int value) {
     return 0;
 }
 
-int list_contains(list_t head, int value) {
+int listContains(list_t head, int value) {
     node_t *p = *head;
     while (p != NULL) {
         if (p->value == value) return 1;
@@ -57,7 +57,17 @@ int list_contains(list_t head, int value) {
     return 0;
 }
 
-void list_print(list_t head) {
+int listCount(list_t head, int value) {
+    int count = 0;
+    node_t *p = *head;
+    while (p != NULL) {
+        count++;
+        p = p->next;
+    }
+    return count;
+}
+
+void listPrint(list_t head) {
     if (*head == NULL) {
         printf("[]\n");
     } else {

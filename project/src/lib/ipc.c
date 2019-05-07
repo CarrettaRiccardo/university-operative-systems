@@ -1,8 +1,5 @@
 #include "../include/ipc.h"
 
-time_t sessione;
-int mqid;
-
 // Inizializza i componenti per comunicare
 void ipc_init() {
     sessione = time(NULL);
@@ -58,6 +55,10 @@ void doList(list_t figli, const char *mode, const long responde_to) {
         }
         message_t req = buildListResponse(responde_to, "CONTROL", -1, -1, 1, -1);  //Comando di stop dell' HUB o del TIMER
     }
+}
+
+void printMsg(const message_t *msg) {
+    printf("to: %ld, sender: %ld, text: %s, v1: %ld, v2: %ld, v3: %d, v4: %d, v5: %d, v6: %d, session: %ld\n", msg->to, msg->sender, msg->text, msg->value1, msg->value2, msg->value3, msg->value4, msg->value5, msg->value6, msg->session);
 }
 
 //Metodo di comodo per stampare le Info da mostrare nel comando LIST
@@ -155,29 +156,24 @@ message_t buildListResponse(const long to_pid, const char *nome, const short sta
 *
 */
 
-short int sendMessage(const message_t const *msg) {
+short int sendMessage(const message_t *msg) {
     if (msg->to == 0) {
         printf("Errore: destinatario invalido\n");
         return -1;
     }
-    int ret = msgsnd(mqid, msg, sizeof(message_t), 0);
-    if (ret == -1) {
-        perror("Errore invio da controller");
-        return -1;
-    }
+    int ret = msgsnd(mqid, msg, sizeof(message_t) - sizeof(long), 0);
     return ret;
 }
 
 // to = -1 se il messaggio è da ignorare
 int receiveMessage(const long reader, message_t *msg) {
-    int ret = msgrcv(mqid, &msg, sizeof(message_t), reader, 0);
-    if (ret == -1) {
-        perror("Errore ricezione");
+    long old = reader;
+    printf("Listening on reader: %ld, mqid: %d\n", reader, mqid);
+    int ret = msgrcv(mqid, msg, sizeof(message_t) - sizeof(long), reader, 0);
+    printf("Received, reader: %ld,  mqid: %d, ret: %d\n", reader, mqid, ret);
+    /*if (msg->session != sessione) {  // Messaggio di una sessione precedente rimasto in memoria
         return -1;
-    }
-    if (msg->session != sessione) {  // Messaggio di una sessione precedente rimasto in memoria
-        return -1;
-    }
+    }*/
     return ret;
 }
 
@@ -191,7 +187,8 @@ key_t getKey() {
 }
 
 int getMq() {
-    const key_t key = getKey();               //creo id per mailbox
+    const key_t key = getKey();  //creo id per mailbox
+    printf("Key mq: %d\n", key);
     int ret = msgget(key, 0666 | IPC_CREAT);  //mi "collego" alla mq
     if (ret == -1) {
         perror("Errore connessione mq");

@@ -9,21 +9,24 @@ typedef struct node {
 typedef node_t **list_t;
 
 /* Inizializza la lista */
-list_t list_init();
+list_t listInit();
 
 /* Dealloca la lista */
-void list_destroy(list_t l);
+void listDestroy(list_t l);
 
 /*  Aggiunge "value" all'inizio della lista */
-int list_push(list_t l, int value);
+int listPush(list_t l, int value);
 
 /*  Rimuove il primo elemento con valore "value" dalla lista */
-int list_remove(list_t l, int value);
+int listRemove(list_t l, int value);
 
 /*  Ritorna 1 se la lista contiene il valore, 0 altrimenti */
-int list_contains(list_t l, int value);
+int listContains(list_t l, int value);
+
+/*  Ritorna il numero di elementi nella lista */
+int listCount(list_t l, int value);
 
 /*  Stampa la lista (per debug) */
-void list_print(list_t l);
+void listPrint(list_t l);
 
 #endif
