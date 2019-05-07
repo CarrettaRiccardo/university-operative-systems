@@ -7,7 +7,6 @@ TODO: Remove not-allowed libraries
 #include <string.h>
 #include <unistd.h>
 
-#include "../include/constants.h"
 #include "../include/ipc.h"
 
 int main(int argc, char **argv) {
@@ -52,9 +51,9 @@ int main(int argc, char **argv) {
         } else if (strcmp(msg.text, MSG_SWITCH) == 0) {
             // switch
             // da gestire
-        } else if (strcmp(msg.text, MSG_DELETE) == 0) {
+        } else if (strcmp(msg.text, MSG_DELETE_REQUEST) == 0) {
             exit(0);
-        } else if (strcmp(msg.text, "TRANSLATE") == 0) {
+        } else if (strcmp(msg.text, MSG_TRANSLATE) == 0) {
             //Message m = buildTranslateResponse(id, sessione, msg.value, msg.sender);
             //sendMessage(mqid, m);
         }

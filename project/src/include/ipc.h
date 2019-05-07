@@ -9,6 +9,7 @@
 #include <sys/msg.h>
 
 #include "../include/list.h"
+#include "../include/constants.h"
 #define MAXMSG 20
 #define KEYFILE "progfile"
 
@@ -29,7 +30,7 @@ typedef struct msg {
 } message_t;
 
 /* Inizializza i componenti per comunicare */
-void ipc_init();
+void ipcInit();
 
 void doList(list_t children, const char* mode, const long responde_to);
 
@@ -74,5 +75,8 @@ void closeMq(const int id);
 
 /* Traduzione id-pid */
 long getPidById(list_t figli, const int id);
+
+/* Salva nel file con nome di sessione la tipologia del messaggio */
+int printLog(const message_t msg);
 
 #endif

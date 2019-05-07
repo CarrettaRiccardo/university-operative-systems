@@ -16,13 +16,13 @@
 #define ARGC_QUIT 1
 
 /*  Lettura e parse parametri */
-void get_args(char *line, int *argc, char **argv);
+void getArgs(char *line, int *argc, char **argv);
 /*  Print con identazione   */
-void print_help(char *cmd, char *desc);
+void printHelp(char *cmd, char *desc);
 
 /* Main */
 int main(int sargc, char **sargv) {
-    controller_init(sargv[0]);
+    controllerInit(sargv[0]);
 
     short run = 1;  //  Per uscire dal while nel caso si scriva "quit"
     char line[MAX_LEN];
@@ -32,26 +32,26 @@ int main(int sargc, char **sargv) {
 
     while (run) {
         printf("> ");
-        get_args(line, &argc, argv);
+        getArgs(line, &argc, argv);
 
         /**************************************** HELP ********************************************/
         if (strcmp(argv[0], "help") == 0) {
             printf("Available commands:\n");
-            print_help("help", "Print this page.");
-            print_help("list", "List the installed devices.");
-            print_help("add <device>", "Add <device> to the system.");
-            print_help("del <id>", "Remove device <id>. If the device is a control device, remove also the linked devices.");
-            print_help("link <id> to <id>", "Link two devices.");
-            print_help("switch <id> <label> <pos>", "Change the value of the switch <label> of the device <id> to <pos>.");
-            print_help("info <id>", "Print device <id> info.");
-            print_help("quit", "Close the controller and kill all processes.");
+            printHelp("help", "Print this page.");
+            printHelp("list", "List the installed devices.");
+            printHelp("add <device>", "Add <device> to the system.");
+            printHelp("del <id>", "Remove device <id>. If the device is a control device, remove also the linked devices.");
+            printHelp("link <id> to <id>", "Link two devices.");
+            printHelp("switch <id> <label> <pos>", "Change the value of the switch <label> of the device <id> to <pos>.");
+            printHelp("info <id>", "Print device <id> info.");
+            printHelp("quit", "Close the controller and kill all processes.");
         }
         /**************************************** LIST ********************************************/
         else if (strcmp(argv[0], "list") == 0) {
             if (argc != ARGC_LIST) {
                 printf("Unknown parameters, usage: list\n");
             } else {
-                list_devices();
+                listDevices();
                 printf("OK2\n");
             }
         }
@@ -62,15 +62,15 @@ int main(int sargc, char **sargv) {
             } else {
                 int result = 0;
                 if (strcmp(argv[1], "bulb") == 0)
-                    result = add_bulb();
+                    result = addBulb();
                 else if (strcmp(argv[1], "fridge") == 0)
-                    result = add_fridge();
+                    result = addFridge();
                 else if (strcmp(argv[1], "window") == 0)
-                    result = add_window();
+                    result = addWindow();
                 else if (strcmp(argv[1], "hub") == 0)
-                    result = add_hub();
+                    result = addHub();
                 else if (strcmp(argv[1], "timer") == 0)
-                    result = add_timer();
+                    result = addTimer();
                 else
                     printf("Unknown device, supported devices: bulb, fridge, window, hub, timer\n");
 
@@ -84,40 +84,40 @@ int main(int sargc, char **sargv) {
         else if (strcmp(argv[0], "del") == 0) {
             if (argc != ARGC_DEL) {
                 printf("Unknown parameters, usage: del <id>\n");
-            } else if (!is_int(argv[1])) {
+            } else if (!isInt(argv[1])) {
                 printf("Error: <id> must be a positive number\n");
             } else {
-                del_device(argv[1]);
+                delDevice(argv[1]);
             }
         }
         /**************************************** LINK ********************************************/
         else if (strcmp(argv[0], "link") == 0) {
             if (argc != ARGC_LINK || strcmp(argv[2], "to") != 0) {
                 printf("Unknown parameters, usage: link <id> to <id>\n");
-            } else if (!is_int(argv[1]) || !is_int(argv[3])) {
+            } else if (!isInt(argv[1]) || !isInt(argv[3])) {
                 printf("Error: <id> must be a positive number\n");
             } else {
-                link_devices(argv[1], argv[3]);
+                linkDevices(argv[1], argv[3]);
             }
         }
         /**************************************** SWITCH ********************************************/
         else if (strcmp(argv[0], "switch") == 0) {
             if (argc != ARGC_SWITCH) {
                 printf("Unknown parameters, usage: switch <id> <label> <pos>\n");
-            } else if (!is_int(argv[1])) {
+            } else if (!isInt(argv[1])) {
                 printf("Error: <id> must be a positive number\n");
             } else {
-                switch_device(argv[1], argv[2], argv[3]);
+                switchDevice(argv[1], argv[2], argv[3]);
             }
         }
         /**************************************** INFO ********************************************/
         else if (strcmp(argv[0], "info") == 0) {
             if (argc != ARGC_INFO) {
                 printf("Unknown parameters, usage: info <id>\n");
-            } else if (!is_int(argv[1])) {
+            } else if (!isInt(argv[1])) {
                 printf("Error: <id> must be a positive number\n");
             } else {
-                info_device(argv[1]);
+                infoDevice(argv[1]);
             }
         }
         /**************************************** QUIT ********************************************/
@@ -127,11 +127,11 @@ int main(int sargc, char **sargv) {
             printf("Unknown command, type \"help\" to list all the supported commands\n");
         }
     }
-    controller_destroy();
+    controllerDestroy();
     return 0;
 }
 
-void get_args(char *line, int *argc, char **argv) {
+void getArgs(char *line, int *argc, char **argv) {
     /*  Lettura stringa */
     fgets(line, MAX_LEN, stdin);
     line[strcspn(line, "\n")] = '\0';  //  Rimuovo eventuali \n dalla fine della stringa per evitare problemi nel parse
@@ -145,6 +145,6 @@ void get_args(char *line, int *argc, char **argv) {
     *argc = pos;
 }
 
-void print_help(char *cmd, char *desc) {
+void printHelp(char *cmd, char *desc) {
     printf("  %-28s%s\n", cmd, desc);
 }
