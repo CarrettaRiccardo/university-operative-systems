@@ -90,7 +90,7 @@ int delDevice(char *id) {
 
     message_t response;
     if (receiveMessage(getpid(), &response) != -1) {
-        if (strcmp(response.text, "DIED") == 0) {
+        if (strcmp(response.text, MSG_DELETE_RESPONSE) == 0) {
             printf("%d died", id_da_cercare);
             listRemove(children, id_da_cercare);
         } else

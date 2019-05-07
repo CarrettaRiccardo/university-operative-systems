@@ -97,7 +97,7 @@ message_t buildInfoRequest(list_t figli, const long to_id) {
     if (to_pid == -1)
         printf("Id %ld non trovato\n", to_id);
 
-    message_t ret = {.to = to_pid, .session = sessione, .text = "INFO", .sender = getpid()};
+    message_t ret = {.to = to_pid, .session = sessione, .text = INFO_REQUEST, .sender = getpid()};
     return ret;
 }
 
@@ -106,13 +106,13 @@ message_t buildDieRequest(list_t figli, const long to_id) {
     if (to_pid == -1)
         printf("Id %ld non trovato\n", to_id);
 
-    message_t ret = {.to = to_pid, .session = sessione, .text = "DIE", .sender = getpid()};
+    message_t ret = {.to = to_pid, .session = sessione, .text = MSG_DELETE_REQUEST, .sender = getpid()};
     return ret;
 }
 
 //Il PID è già noto (preso dalla lista da lista figli), non occorre la traduzione
 message_t buildListRequest(const long to_pid) {
-    message_t ret = {.to = to_pid, .session = sessione, .text = "LIST", .sender = getpid()};
+    message_t ret = {.to = to_pid, .session = sessione, .text = MSG_LIST, .sender = getpid()};
     return ret;
 }
 
@@ -130,14 +130,14 @@ message_t buildInfoResponse(const long id, const short stato, const int to, cons
 
 //state = 1  --> il componente cercato sono io
 message_t buildTranslateResponse(const long id, const int searching, const int to) {
-    message_t ret = {.to = to, .session = sessione, .value6 = 0, .text = "TRANSLATE", .sender = getpid()};  //messaggio con risposta negativa
+    message_t ret = {.to = to, .session = sessione, .value6 = 0, .text = MSG_TRANSLATE, .sender = getpid()};  //messaggio con risposta negativa
     if (id == searching)
         ret.value6 = 1;  //stava cercando me, risposta positiva
     return ret;
 }
 
 message_t buildDieResponse(const long to) {
-    message_t ret = {.to = to, .session = sessione, .text = "DIED", .sender = getpid()};
+    message_t ret = {.to = to, .session = sessione, .text = MSG_DELETE_RESPONSE, .sender = getpid()};
     return ret;
 }
 
@@ -215,7 +215,7 @@ long getPidById(list_t figli, const int id) {
     //TODO: Destro controlla iterazione lsta
     while (ret == -1 && p != NULL) {
         int id_processo = p->value;
-        message_t msg = {.to = id_processo, .session = sessione, .text = "TRANSLATE"};
+        message_t msg = {.to = id_processo, .session = sessione, .text = MSG_TRANSLATE};
 
         if (sendMessage(&msg) == -1) {
             perror("Errore comunicazione, riprovare");
@@ -225,10 +225,28 @@ long getPidById(list_t figli, const int id) {
         message_t response;
         if (receiveMessage(getpid(), &response) == -1)
             continue;
-        if (response.value6 == 1 && strcmp(response.text, "TRANSLATE") == 0)  //trovato l'id che stavo cercando
+        if (response.value6 == 1 && strcmp(response.text, MSG_TRANSLATE) == 0)  //trovato l'id che stavo cercando
             ret = response.sender;
 
         p = p->next;
+    }
+    return ret;
+}
+
+// stampa nel file con nome della session il messaggio
+int printLog(message_t msg){
+    char f_name[30];
+    int ret = -1;
+    strcpy(f_name,strcat(msg.session,".txt"));
+    FILE* log = fopen(f_name, "a");// crea se non esiste
+    if (log != NULL){
+        fprintf(log, "TYPE:%s | FROM:%ld | TO:%ld | VALUES:%ld, %ld, %ld, %ld, %ld, %ld\n", msg.text, msg.sender, msg.to, msg.value1, msg.value2, msg.value3, msg.value4, msg.value5, msg.value6);
+        // chiudo subito per evitare conflitti di apertura
+        fclose(log);
+        ret = 0;
+    }
+    else{
+        // error opening file
     }
     return ret;
 }

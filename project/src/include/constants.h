@@ -9,6 +9,10 @@
 #define INFO_REQUEST "request_info"
 #define INFO_RESPONSE "response_info"
 
-#define MSG_DELETE "delete"
+#define MSG_DELETE_REQUEST "delete"
+#define MSG_DELETE_RESPONSE "deleted"
 #define MSG_LINK "link"
 #define MSG_SWITCH "switch"
+
+#define MSG_TRANSLATE "TRANSLATE"
+#define MSG_LIST "LIST"
