@@ -18,13 +18,10 @@ int main(int argc, char **argv) {
 
     while (1) {
         message_t msg;
-        printf("BULB waiting on %d, mqid: %d\n", getpid(), mqid);
         int result = receiveMessage(getpid(), &msg);
         if (result == -1) {
             perror("BULB: Errore ricezione");
         } else {
-            printf("BULB: msg received %s\n", msg.text);
-
             if (msg.to == -1) continue;  // Messaggio da ignorare (per sessione diversa/altri casi)
 
         if (strcmp(msg.text, MSG_DELETE_REQUEST) == 0) {
