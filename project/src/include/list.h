@@ -2,7 +2,7 @@
 #define _LIST_
 
 typedef struct node {
-    int value;
+    long value;
     struct node *next;
 } node_t;
 

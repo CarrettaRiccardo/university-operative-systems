@@ -1,20 +1,18 @@
 #ifndef _IPC_
 #define _IPC_
 
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
-#include <errno.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 
 #include "../include/list.h"
 #define MAXMSG 20
 #define KEYFILE "progfile"
 
-
-typedef struct msg
-{
+typedef struct msg {
     long to;
     char text[MAXMSG];
     long value1;
@@ -27,21 +25,19 @@ typedef struct msg
     time_t session;
 } message_t;
 
-
 /* Inizializza i componenti per comunicare */
 void ipc_init();
 
 /* Metodo di comodo per stampare le info del comando LIST */
-void printListMessage(message_t m);
+void printListMessage(const message_t const* msg);
 
 //############# REQUESTS ###########
 
 message_t buildInfoRequest(list_t figli, const long to_id);
 
-message_t buildDieRequest(list_t figli,const long to_id);
+message_t buildDieRequest(list_t figli, const long to_id);
 
 message_t buildListRequest(const long to_pid);
-
 
 //############# RESPONSES ###########
 
@@ -51,15 +47,13 @@ message_t buildTranslateResponse(const long id, const int searching, const int t
 
 message_t buildDieResponse(const long to);
 
-message_t buildListResponse(const long to_pid, const char* nome, const short stato,const long livello, const short stop, const short id);
-
+message_t buildListResponse(const long to_pid, const char* nome, const short stato, const long livello, const short stop, const short id);
 
 //############# IPC ###########
 
-
 short int sendMessage(const message_t msg);
 
-message_t receiveMessage(const long reader);
+int receiveMessage(const long reader, message_t* msg);
 
 /* Get key to create Message queue */
 key_t getKey();

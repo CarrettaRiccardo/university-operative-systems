@@ -33,7 +33,6 @@ void controller_destroy() {
 /**************************************** LIST ********************************************/
 void list_devices() {
     printf("Elenco componenti:\n");
-    
     doList(children, "CONTROLLER", getpid());  //eseguo il comando LIST con comportamento  controller
 }
 
@@ -84,12 +83,12 @@ int del_device(char *id) {
     printf("Elimino  %s ...\n", id);
 
     int id_da_cercare = atoi(id);
-    message_t request = buildDieRequest(children,id_da_cercare);
+    message_t request = buildDieRequest(children, id_da_cercare);
     if (sendMessage(request) == -1)
         printf("Errore comunicazione, riprova");
 
-    message_t response = receiveMessage(getpid());
-    if (response.to != -1) {
+    message_t response;
+    if (receiveMessage(getpid(), &response) != -1) {
         if (strcmp(response.text, "DIED") == 0) {
             printf("%d died", id_da_cercare);
             list_remove(children, id_da_cercare);
@@ -117,8 +116,8 @@ void info_device(char *id) {
     message_t request = buildInfoRequest(children, id_da_cercare);
     if (sendMessage(request) == -1)
         printf("Errore comunicazione, riprova");
-    message_t response = receiveMessage(getpid());
-    if (response.to != -1) {
+    message_t response;
+    if (receiveMessage(getpid(), &response) != -1) {
         printf("%s ", response.text);
         if (response.value6 == 1)
             printf("accesa ");

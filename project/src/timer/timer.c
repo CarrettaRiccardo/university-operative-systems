@@ -1,14 +1,20 @@
 /*
 TODO: Remove not-allowed libraries
 */
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <fcntl.h>
 
-#include "../include/ipc.h"
+int main(int argc, char **argv) {
+    return 0;
+}
+
+/*
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
 #include "../include/constants.h"
+#include "../include/ipc.h"
 
 int main(int argc, char **argv) {
     const int id = 7; //TODO: Leggere id da parametro
@@ -71,3 +77,6 @@ int main(int argc, char **argv) {
 
     return 0;
 }
+
+
+*/

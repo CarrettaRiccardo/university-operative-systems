@@ -16,24 +16,11 @@
 #define ARGC_QUIT 1
 
 /*  Lettura e parse parametri */
-void get_args(char *line, int *argc, char **argv) {
-    /*  Lettura stringa */
-    fgets(line, MAX_LEN, stdin);
-    line[strcspn(line, "\n")] = '\0';  //  Rimuovo eventuali \n dalla fine della stringa per evitare problemi nel parse
-    /*  Parse args  */
-    int pos = 0;
-    char *arg = strtok(line, " ");  //  Parse primo parametro
-    while (arg != NULL && pos < MAX_ARGC) {
-        argv[pos++] = arg;
-        arg = strtok(NULL, " ");  //  Parse parametro successivo
-    }
-    *argc = pos;
-}
+void get_args(char *line, int *argc, char **argv);
+/*  Print con identazione   */
+void print_help(char *cmd, char *desc);
 
-void print_help(char *cmd, char *desc) {
-    printf("  %-28s%s\n", cmd, desc);
-}
-
+/* Main */
 int main(int sargc, char **sargv) {
     controller_init(sargv[0]);
 
@@ -141,4 +128,22 @@ int main(int sargc, char **sargv) {
     }
     controller_destroy();
     return 0;
+}
+
+void get_args(char *line, int *argc, char **argv) {
+    /*  Lettura stringa */
+    fgets(line, MAX_LEN, stdin);
+    line[strcspn(line, "\n")] = '\0';  //  Rimuovo eventuali \n dalla fine della stringa per evitare problemi nel parse
+    /*  Parse args  */
+    int pos = 0;
+    char *arg = strtok(line, " ");  //  Parse primo parametro
+    while (arg != NULL && pos < MAX_ARGC) {
+        argv[pos++] = arg;
+        arg = strtok(NULL, " ");  //  Parse parametro successivo
+    }
+    *argc = pos;
+}
+
+void print_help(char *cmd, char *desc) {
+    printf("  %-28s%s\n", cmd, desc);
 }
