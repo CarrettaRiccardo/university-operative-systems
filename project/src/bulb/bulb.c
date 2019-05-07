@@ -1,3 +1,8 @@
+/*
+TODO: Gestire correttamente il tempo che  rimasta accesa
+TODO: Gestire i vari stati : 0=spenta 1=accesa 2=spenta manually 3=accesa manually
+*/
+
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>

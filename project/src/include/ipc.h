@@ -46,6 +46,8 @@ void printListMessage(const message_t* msg);
 
 message_t buildInfoRequest(list_t figli, const long to_id);
 
+message_t buildTranslateRequest(const long to, const int searching);
+
 message_t buildDieRequest(list_t figli, const long to_id);
 
 message_t buildListRequest(const long to_pid);
