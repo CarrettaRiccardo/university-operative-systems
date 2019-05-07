@@ -91,11 +91,12 @@ int delDevice(char *id) {
     if (sendMessage(&request) == -1)
         printf("Errore comunicazione, riprova");
 
+    int pid_trovato = request.to; //contiene la traduzione id-pid risolta
     message_t response;
     if (receiveMessage(getpid(), &response) != -1) {
         if (strcmp(response.text, MSG_DELETE_RESPONSE) == 0) {
             printf("%d died\n", id_da_cercare);
-            listRemove(children, id_da_cercare);
+            listRemove(children, pid_trovato);
         } else
             printf("error dying %s\n", response.text);
     }

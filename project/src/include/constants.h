@@ -21,4 +21,4 @@
 #define LABEL_LIGHT "light"
 #define LABEL_TERM "therm"
 #define SWITCH_POS_ON "on"
-#define SWITCH__POS_OFF "off"
+#define SWITCH_POS_OFF "off"
