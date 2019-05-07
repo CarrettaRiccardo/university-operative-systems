@@ -8,8 +8,8 @@
 #include <sys/ipc.h>
 #include <sys/msg.h>
 
-#include "../include/list.h"
 #include "../include/constants.h"
+#include "../include/list.h"
 #define MAXMSG 20
 #define KEYFILE "progfile"
 
@@ -33,6 +33,8 @@ typedef struct msg {
 void ipcInit();
 
 void doList(list_t children, const char* mode, const long responde_to);
+
+void doLink(list_t figli, int src_id, int dest_id);
 
 /*  Print struct (per debug) */
 void printMsg(const message_t* msg);

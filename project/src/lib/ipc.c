@@ -93,6 +93,7 @@ void printListMessage(const message_t const *msg) {
 */
 
 message_t buildInfoRequest(list_t figli, const long to_id) {
+    printf("SASAA\n");
     long to_pid = getPidById(figli, to_id);
     if (to_pid == -1)
         printf("Id %ld non trovato\n", to_id);
@@ -197,8 +198,9 @@ message_t buildListResponse(const long to_pid, const char *nome, const short sta
 */
 
 short int sendMessage(const message_t *msg) {
+    printf("Vedo %d per %s\n",msg->to,msg->text);
     if (msg->to <= 0) {
-        printf("Errore: destinatario invalido\n");
+        printf("Errore: destinatario invalido %d\n",msg->to);
         return -1;
     }
     int ret = msgsnd(mqid, msg, sizeof(message_t) - sizeof(long), 0);
@@ -207,11 +209,14 @@ short int sendMessage(const message_t *msg) {
 
 // to = -1 se il messaggio è da ignorare
 int receiveMessage(const long reader, message_t *msg) {
-    long old = reader;
+    printf("Sto aspettando\n");
+
+
     int ret = msgrcv(mqid, msg, sizeof(message_t) - sizeof(long), reader, 0);
     /*if (msg->session != sessione) {  // Messaggio di una sessione precedente rimasto in memoria
         return -1;
     }*/
+    printf("Ricevuto valore %d da %ld\n",ret, reader);
     return ret;
 }
 
@@ -253,26 +258,33 @@ void closeMq(const int id) {
 long getPidById(list_t figli, const int id) {
     long ret = -1;
     node_t *p = *figli;
+    printf("HERE2\n");
 
     //TODO: Destro controlla iterazione lsta
     while (ret == -1 && p != NULL) {
         int id_processo = p->value;
+        printf("Provo con %d\n", id_processo);
         message_t msg = {.to = id_processo, .session = sessione, .text = MSG_TRANSLATE};
 
         if (sendMessage(&msg) == -1) {
             perror("Errore comunicazione, riprovare");
+            printf("Errore comunicazione list\n");
             break;
         }
 
         message_t response;
-        if (receiveMessage(getpid(), &response) == -1)
-            continue;
+        if (receiveMessage(getpid(), &response) == -1){
+            perror("Errore translate receive: ");
+            printf("Errore comunicazione list\n");
+            //continue;
+        }
+        printf("Ricevuto %d\n", response.value6);
         if (response.value6 == 1 && strcmp(response.text, MSG_TRANSLATE) == 0)  //trovato l'id che stavo cercando
             ret = response.sender;
 
         p = p->next;
     }
-    printf("TRANSLATE = %d", ret);
+    printf("TRANSLATE = %d\n", ret);
     return ret;
 }
 

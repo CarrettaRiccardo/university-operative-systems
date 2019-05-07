@@ -102,6 +102,7 @@ int delDevice(char *id) {
 /**************************************** LINK ********************************************/
 int linkDevices(char *id1, char *id2) {
     printf("TODO: link device %s to %s\n", id1, id2);
+    doLink(children, atoi(id1), atoi(id2));
 }
 
 /**************************************** SWITCH ********************************************/
