@@ -52,7 +52,6 @@ int main(int sargc, char **sargv) {
                 printf("Unknown parameters, usage: list\n");
             } else {
                 listDevices();
-                printf("OK2\n");
             }
         }
         /**************************************** ADD ********************************************/
