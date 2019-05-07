@@ -32,7 +32,8 @@ void controller_destroy() {
 
 /**************************************** LIST ********************************************/
 void list_devices() {
-    printf("Elenco componenti:\n");
+    printf("Elenco componenti:\n\n");
+    printf("Controller with %d direct connected components\n", 1 );
     doList(children, "CONTROLLER", getpid());  //eseguo il comando LIST con comportamento  controller
 }
 

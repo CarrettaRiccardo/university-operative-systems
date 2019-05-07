@@ -22,9 +22,7 @@ void doList(list_t figli, const char *mode, const long responde_to) {
             long son = p->value;
 
             message_t req = buildListRequest(son);
-            printf("Controller sending msg to %ld\n", son);
             if (sendMessage(&req) == -1) printf("Errore invio msg LIST al pid %ld: %s\n", son, strerror(errno));
-            printf("Sended\n");
             message_t response;
             do {
                 if (receiveMessage(getpid(), &response) != -1) {
@@ -168,9 +166,7 @@ short int sendMessage(const message_t *msg) {
 // to = -1 se il messaggio è da ignorare
 int receiveMessage(const long reader, message_t *msg) {
     long old = reader;
-    printf("Listening on reader: %ld, mqid: %d\n", reader, mqid);
     int ret = msgrcv(mqid, msg, sizeof(message_t) - sizeof(long), reader, 0);
-    printf("Received, reader: %ld,  mqid: %d, ret: %d\n", reader, mqid, ret);
     /*if (msg->session != sessione) {  // Messaggio di una sessione precedente rimasto in memoria
         return -1;
     }*/
