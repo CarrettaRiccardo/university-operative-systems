@@ -106,7 +106,23 @@ int linkDevices(char *id1, char *id2) {
 
 /**************************************** SWITCH ********************************************/
 int switchDevice(char *id, char *label, char *pos) {
-    printf("TODO: switch id: %s, label: %s, pos: %s\n", id, label, pos);
+    printf("Modifico l'interruttore %s di %s su %s ...\n", label, id, pos);
+    int id_da_cercare = atoi(id);
+    message_t request = buildSwitchRequest(children, id_da_cercare, label, pos);
+    // se i parametri creano dei valori validi
+    if (request.value1 != -1 && request.value2 != -1){
+        if (sendMessage(&request) == -1)
+            printf("Errore comunicazione, riprova");
+        message_t response;
+        if (receiveMessage(getpid(), &response) == -1) {
+            perror("Errore switch");
+        } else {
+            printf("Modifica effettuata con successo");
+        }
+    }
+    else{
+        perror("Parametri non corretti o coerenti");
+    }
 }
 
 /**************************************** INFO ********************************************/

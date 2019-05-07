@@ -1,5 +1,3 @@
-#define SWITCH_ON "switch_on"
-#define SWITCH_OFF "switch_off"
 #define SET_TIME_DELAY "set_delay"
 #define SET_TIME_BEGIN "set_begin"
 #define SET_TIME_END "set_end"
@@ -16,3 +14,11 @@
 
 #define MSG_TRANSLATE "TRANSLATE"
 #define MSG_LIST "LIST"
+
+
+
+#define LABEL_OPEN "open"
+#define LABEL_LIGHT "light"
+#define LABEL_TERM "therm"
+#define SWITCH_POS_ON "on"
+#define SWITCH__POS_OFF "off"

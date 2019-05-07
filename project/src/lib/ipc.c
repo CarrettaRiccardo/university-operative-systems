@@ -116,6 +116,48 @@ message_t buildListRequest(const long to_pid) {
     return ret;
 }
 
+message_t buildSwitchRequest(list_t figli, const long to_id, char *label, char *pos) {
+    long to_pid = getPidById(figli, to_id);
+    long label_val = -1;// 0 = interruttore (generico), 1 = termostato
+    long pos_val = -1;// 0 = spento, 1 = acceso; x = termostato
+    
+    if (to_pid == -1)
+        printf("Id %ld non trovato\n", to_id);
+    else{
+        // mappo label (char*) in valori (long) per poterli inserire in un messaggio
+        if (strcmp(label, LABEL_LIGHT) == 0 || (strcmp(label, LABEL_OPEN) == 0)){
+            // 0 = interruttore (generico)
+            label_val = 0;
+        } else { if (strcmp(label, LABEL_LIGHT) == 0){
+                // 1 = termostato
+                label_val = 1;
+            }
+            // altrimenti è un valore non valido
+        }
+
+        if (label_val != -1){
+            // mappo pos (char*) in valori (long) per poterli inserire in un messaggio
+            if (strcmp(pos, SWITCH_POS_OFF) == 0 && label_val == 0){
+                // 0 = spento/chiuso (generico)
+                pos_val = 0;
+            } else { if (strcmp(label, SWITCH_POS_ON) == 0 && label_val == 0){
+                    // 1 = acceso/aperto (generico)
+                    pos_val = 1;
+                }
+                // altrimenti è un valore valido solo se è un numero e la label è termostato
+                else{
+                    if (label_val == 1 && atol(pos) != -1){
+                        pos_val = atol(pos);
+                    }
+                }
+            }
+        }
+    }
+
+    message_t ret = {.to = to_pid, .session = sessione, .text = MSG_SWITCH, .value1 = label_val, .value2 = pos_val, .sender = getpid()};
+    return ret;
+}
+
 /*
 * builder risposte
 * Metodi di comodo per costrutire le strutture dei messaggi di response
@@ -238,15 +280,19 @@ long getPidById(list_t figli, const int id) {
 int printLog(message_t msg) {
     char f_name[30];
     int ret = -1;
-    strcpy(strcat(f_name, msg.session), ".txt");
-    FILE *log = fopen(f_name, "a");  // crea se non esiste
-    if (log != NULL) {
-        fprintf(log, "TYPE:%s | FROM:%ld | TO:%ld | VALUES:%ld, %ld, %ld, %ld, %ld, %ld\n", msg.text, msg.sender, msg.to, msg.value1, msg.value2, msg.value3, msg.value4, msg.value5, msg.value6);
-        // chiudo subito per evitare conflitti di apertura
-        fclose(log);
-        ret = 0;
-    } else {
-        // error opening file
+    // copio in f_name la msg.session come stringa
+    if (snprintf(f_name, sizeof(msg.session), "../log/%s", msg.session) != -1){
+        strcat(f_name, ".txt");
+        FILE *log = fopen(f_name, "a");  // crea se non esiste
+        if (log != NULL) {
+            fprintf(log, "TYPE:%s | FROM:%ld | TO:%ld | VALUES:%ld, %ld, %ld, %ld, %ld, %ld\n", msg.text, msg.sender, msg.to, msg.value1, msg.value2, msg.value3, msg.value4, msg.value5, msg.value6);
+            // chiudo subito per evitare conflitti di apertura
+            fclose(log);
+            ret = 0;
+        } else {
+            // error opening file
+            printf("Errore nell'apertura del log");
+        }
     }
     return ret;
 }
