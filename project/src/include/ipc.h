@@ -51,7 +51,7 @@ message_t buildListResponse(const long to_pid, const char* nome, const short sta
 
 //############# IPC ###########
 
-short int sendMessage(const message_t msg);
+short int sendMessage(const message_t const* msg);
 
 int receiveMessage(const long reader, message_t* msg);
 

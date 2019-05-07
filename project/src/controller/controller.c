@@ -84,7 +84,7 @@ int del_device(char *id) {
 
     int id_da_cercare = atoi(id);
     message_t request = buildDieRequest(children, id_da_cercare);
-    if (sendMessage(request) == -1)
+    if (sendMessage(&request) == -1)
         printf("Errore comunicazione, riprova");
 
     message_t response;
@@ -114,7 +114,7 @@ void info_device(char *id) {
     printf("Ottengo le info da %s ...\n", id);
     int id_da_cercare = atoi(id);
     message_t request = buildInfoRequest(children, id_da_cercare);
-    if (sendMessage(request) == -1)
+    if (sendMessage(&request) == -1)
         printf("Errore comunicazione, riprova");
     message_t response;
     if (receiveMessage(getpid(), &response) != -1) {

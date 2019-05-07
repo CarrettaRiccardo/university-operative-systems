@@ -3,7 +3,7 @@
 time_t sessione;
 int mqid;
 
-//inizializza i componenti per comunicare
+// Inizializza i componenti per comunicare
 void ipc_init() {
     sessione = time(NULL);
     mqid = getMq();
@@ -26,7 +26,7 @@ void doList(list_t figli, const char *mode, const long responde_to) {
 
             message_t req = buildListRequest(son);
             printf("Controller sending msg to %ld\n", son);
-            if (sendMessage(req) == -1) printf("Errore invio msg LIST al pid %ld: %s\n", son, strerror(errno));
+            if (sendMessage(&req) == -1) printf("Errore invio msg LIST al pid %ld: %s\n", son, strerror(errno));
             printf("Sended\n");
             message_t response;
             do {
@@ -44,7 +44,7 @@ void doList(list_t figli, const char *mode, const long responde_to) {
             long son = p->value;
 
             message_t req = buildListRequest(son);
-            if (sendMessage(req) == -1)
+            if (sendMessage(&req) == -1)
                 printf("Errore invio msg LIST al pid %ld: %s\n", son, strerror(errno));
 
             message_t response;
@@ -52,7 +52,7 @@ void doList(list_t figli, const char *mode, const long responde_to) {
                 receiveMessage(getpid(), &response);
                 //TODO: Controllare sia un messaggio di LIST e non di altro tipo
                 response.to = responde_to;  //cambio il destinatario per farlo arrivare al Controller
-                sendMessage(response);
+                sendMessage(&response);
             } while (response.value5 != 1);
             p = p->next;
         }
@@ -155,12 +155,12 @@ message_t buildListResponse(const long to_pid, const char *nome, const short sta
 *
 */
 
-short int sendMessage(const message_t msg) {
-    if (msg.to == 0) {
+short int sendMessage(const message_t const *msg) {
+    if (msg->to == 0) {
         printf("Errore: destinatario invalido\n");
         return -1;
     }
-    int ret = msgsnd(mqid, &msg, sizeof(message_t), 0);
+    int ret = msgsnd(mqid, msg, sizeof(message_t), 0);
     if (ret == -1) {
         perror("Errore invio da controller");
         return -1;
@@ -223,7 +223,7 @@ long getPidById(list_t figli, const int id) {
         int id_processo = p->value;
         message_t msg = {.to = id_processo, .session = sessione, .text = "TRANSLATE"};
 
-        if (sendMessage(msg) == -1) {
+        if (sendMessage(&msg) == -1) {
             perror("Errore comunicazione, riprovare");
             break;
         }
