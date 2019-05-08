@@ -34,8 +34,6 @@ void ipcInit();
 
 void doList(list_t children, const char* mode, const long responde_to);
 
-void doLink(list_t figli, int src_id, int dest_id);
-
 /*  Print struct (per debug) */
 void printMsg(const message_t* msg);
 
@@ -46,13 +44,21 @@ void printListMessage(const message_t* msg);
 
 message_t buildInfoRequest(list_t figli, const long to_id);
 
+message_t buildTranslateRequest(const long to, const int searching);
+
 message_t buildDieRequest(list_t figli, const long to_id);
 
 message_t buildListRequest(const long to_pid);
 
+message_t buildSwitchRequest(list_t figli, const long to_id, char* label, char* pos);
+
+message_t buildCloneRequest(const long to_pid);
+
 //############# RESPONSES ###########
 
 message_t buildInfoResponse(const long id, const short stato, const int to, const char* tipo_componente);
+
+message_t buildSwitchResponse(const int success, const int to);
 
 message_t buildTranslateResponse(const long id, const int searching, const int to);
 
