@@ -39,7 +39,8 @@ void doList(list_t figli, const char *mode, const long responde_to) {
             } while (response.vals[4] != 1);
             p = p->next;
         }
-        message_t req = buildListResponse(responde_to, CONTROL_DEVICE, -1, -1, 1, -1);  //Comando di stop dell' HUB o del TIMER
+        message_t endResponse = buildListResponse(responde_to, CONTROL_DEVICE, -1, -1, 1, -1);  //Comando di stop dell' HUB o del TIMER
+        sendMessage()
     }
 }
 

@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
         message_t msg;
         int result = receiveMessage(getpid(), &msg);
         if (result == -1) {
-            perror("BULB: Errore ricezione");
+            perror("BULB: Error receive message");
         } else {
             if (msg.to == -1) continue;  // Messaggio da ignorare (per sessione diversa/altri casi)
 
