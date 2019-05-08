@@ -16,11 +16,16 @@
 #define MSG_TRANSLATE "TRANSLATE"
 #define MSG_LIST "LIST"
 
-#define LABEL_OPEN "open"
 #define LABEL_LIGHT "light"
+#define LABEL_OPEN "open"
 #define LABEL_TERM "therm"
-#define SWITCH_POS_ON "on"
+#define LABEL_LIGHT_VALUE 0
+#define LABEL_OPEN_VALUE 1
+#define LABEL_TERM_VALUE 2
 #define SWITCH_POS_OFF "off"
+#define SWITCH_POS_ON "on"
+#define SWITCH_POS_OFF_VALUE 0
+#define SWITCH_POS_ON_VALUE 1
 
 //  Tipit dispositivo
 #define CONTROLLER "CONTROLLER"
