@@ -28,6 +28,8 @@ typedef struct msg {
 /////////////////////////////// WORKERS ///////////////////////////////
 void doList(list_t children, const char* mode, const long responde_to);
 
+void doLink(list_t figli, long to_clone_pid);
+
 /*  Print struct (per debug) */
 void printMsg(const message_t* msg);
 

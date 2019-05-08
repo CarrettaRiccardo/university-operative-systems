@@ -27,14 +27,18 @@ int main(int argc, char **argv) {
             } else if (strcmp(msg.text, MSG_SWITCH) == 0) {
                 // apertura/chiusura
             } else if (strcmp(msg.text, MSG_LINK) == 0) {
-                // link
-                // (value = id a cui linkare)
+                doLink(children, msg.vals[0]);
             } else if (strcmp(msg.text, MSG_SWITCH) == 0) {
                 // switch
                 // da gestire
             } else if (strcmp(msg.text, MSG_DELETE_REQUEST) == 0) {
                 exit(0);
+            } else if (strcmp(msg.text, MSG_TRANSLATE) == 0) {
+                message_t m = buildTranslateResponse(id, msg.vals[0], msg.sender);
+                sendMessage(&m);
             } else if (strcmp(msg.text, MSG_LIST) == 0) {
+                message_t m = buildListResponse(msg.sender, HUB, 0, msg.vals[0], 0, id);
+                sendMessage(&m);
                 doList(children, CONTROL_DEVICE, msg.sender);
             }
         }

@@ -25,7 +25,7 @@ void doList(list_t figli, const char *mode, const long responde_to) {
         node_t *p = *figli;
         while (p != NULL) {
             long son = p->value;
-
+            printf("Figlio: %ld\n", son);
             message_t request = buildListRequest(son);
             if (sendMessage(&request) == -1)
                 printf("Errore invio msg LIST al pid %ld: %s\n", son, strerror(errno));
@@ -40,7 +40,7 @@ void doList(list_t figli, const char *mode, const long responde_to) {
             p = p->next;
         }
         message_t endResponse = buildListResponse(responde_to, CONTROL_DEVICE, -1, -1, 1, -1);  //Comando di stop dell' HUB o del TIMER
-        sendMessage()
+        sendMessage(&endResponse);
     }
 }
 
@@ -72,7 +72,6 @@ void printListMessage(const message_t const *msg) {
     }
 }
 
-/*  Da chiamare nel controller */
 void doLink(list_t figli, long to_clone_pid) {
     message_t request = buildCloneRequest(to_clone_pid);
     message_t response;
@@ -86,7 +85,7 @@ void doLink(list_t figli, long to_clone_pid) {
         if (pid == 0) {
             char args[NVAL + 1][30];
             int i;
-            //  Converto i values in string e le amndo negli args dell'exec
+            //  Converto i values in string e le mando negli args dell'exec
             for (i = 1; i < NVAL + 1; i++) {
                 snprintf(args[i], 10, "%ld", response.vals[i]);
             }
@@ -291,28 +290,23 @@ void closeMq(const int id) {
 
 // Traduce un id in un pid
 long getPidById(list_t figli, const int id) {
-    long ret = -1;
     node_t *p = *figli;
 
-    while (ret == -1 && p != NULL) {
+    while (p != NULL) {
         int id_processo = p->value;
-        message_t msg = buildTranslateRequest(id_processo, id);
-
-        if (sendMessage(&msg) == -1) {
-            printf("Errore comunicazione list\n");
-            break;
-        }
-
+        message_t request = buildTranslateRequest(id_processo, id);
         message_t response;
-        if (receiveMessage(getpid(), &response) == -1) {
-            printf("Errore comunicazione list\n");
+        if (sendMessage(&request) == -1) {
+            perror("Error get pid by id request");
+        } else if (receiveMessage(getpid(), &response) == -1) {
+            perror("Error get pid by id response");
+        } else if (response.vals[5] == 1 && strcmp(response.text, MSG_TRANSLATE) == 0) {
+            //  Id trovato
+            return response.sender;
         }
-        if (response.vals[5] == 1 && strcmp(response.text, MSG_TRANSLATE) == 0)  //trovato l'id che stavo cercando
-            ret = response.sender;
-
         p = p->next;
     }
-    return ret;
+    return -1;
 }
 
 // stampa nel file con nome della session il messaggio

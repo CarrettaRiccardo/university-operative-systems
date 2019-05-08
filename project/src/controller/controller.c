@@ -83,7 +83,11 @@ int delDevice(char *id) {
 /**************************************** LINK ********************************************/
 void linkDevices(char *id1, char *id2) {
     printf("TODO: link device %s to %s\n", id1, id2);
-    doLink(children, atoi(id1), atoi(id2));
+    long src = getPidById(children, atoi(id1));
+    long dest = getPidById(children, atoi(id2));
+    if (src == -1) printf("Error: id %s not found\n", id1);
+    if (dest == -1) printf("Error: id %s not found\n", id2);
+    printf("Got pid %ld to %ld\n", src, dest);
 }
 
 /**************************************** SWITCH ********************************************/
