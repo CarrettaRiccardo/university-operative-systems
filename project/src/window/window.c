@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
 
     while (1) {
         message_t msg;
-        int result = receiveMessage(getpid(), &msg);
+        int result = receiveMessage(&msg);
         if (result == -1) {
             perror("WINDOW: Errore ricezione");
         } else {

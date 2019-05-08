@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
     }
     while (1) {
         message_t msg;
-        int result = receiveMessage(getpid(), &msg);
+        int result = receiveMessage(&msg);
         if (result == -1) {
             perror("BULB: Error receive message");
         } else {
@@ -58,14 +58,12 @@ int main(int argc, char **argv) {
                     if (msg.vals[1] == 0) {  // spengo
                         stato = 0;
                         success = 0;
-
                         on_time += time(NULL) - last_start_time;
                         last_start_time = 0;
                     }
                     if (msg.vals[1] == 1) {  // accendo
                         stato = 1;
                         success = 0;
-
                         last_start_time = time(NULL);
                     }
                 }
@@ -77,6 +75,9 @@ int main(int argc, char **argv) {
                 sendMessage(&m);
             } else if (strcmp(msg.text, MSG_LIST) == 0) {  // Caso base per la LIST. value5 = 1 per indicare fine albero
                 message_t m = buildListResponse(msg.sender, BULB, stato, msg.vals[0], 1, id);
+                sendMessage(&m);
+            } else if (strcmp(msg.text, MSG_LINK) == 0) {
+                message_t m = buildLinkResponse(msg.sender, -1);
                 sendMessage(&m);
             } else if (strcmp(msg.text, MSG_CLONE) == 0) {
                 long vals[NVAL] = {id, stato, on_time, last_start_time};

@@ -26,50 +26,33 @@ typedef struct msg {
 } message_t;
 
 /////////////////////////////// WORKERS ///////////////////////////////
-void doList(list_t children, const char* mode, const long responde_to);
-
 void doLink(list_t figli, long to_clone_pid);
-
-/*  Print struct (per debug) */
-void printMsg(const message_t* msg);
-
-/* Metodo di comodo per stampare le info del comando LIST */
+void doList(list_t children, const char* mode, long responde_to);
 void printListMessage(const message_t* msg);
 
-//############# REQUESTS ###########
+/////////////////////////////// REQUESTS ///////////////////////////////
+message_t buildInfoRequest(list_t figli, long to_id);
+message_t buildTranslateRequest(long to, int searching);
+message_t buildDieRequest(list_t figli, long to_id);
+message_t buildListRequest(long to_pid);
+message_t buildSwitchRequest(list_t figli, long to_id, char* label, char* pos);
+message_t buildCloneRequest(long to_pid);
+message_t buildLinkRequest(long to_pid, long to_clone_pid);
 
-message_t buildInfoRequest(list_t figli, const long to_id);
+/////////////////////////////// RESPONSES ///////////////////////////////
+message_t buildInfoResponse(long id, short stato, int to, const char* tipo_componente);
+message_t buildSwitchResponse(int success, int to);
+message_t buildTranslateResponse(long id, int searching, int to);
+message_t buildDieResponse(long to);
+message_t buildListResponse(long to_pid, const char* nome, short stato, long livello, short stop, short id);
+message_t buildCloneResponse(long to_pid, const char* type, const long vals[]);
+message_t buildLinkResponse(long to_pid, int success);
 
-message_t buildTranslateRequest(const long to, const int searching);
+/////////////////////////////// IPC ///////////////////////////////
+short int sendMessage(const message_t* request);
+int receiveMessage(message_t* response);
 
-message_t buildDieRequest(list_t figli, const long to_id);
-
-message_t buildListRequest(const long to_pid);
-
-message_t buildSwitchRequest(list_t figli, const long to_id, char* label, char* pos);
-
-message_t buildCloneRequest(const long to_pid);
-
-//############# RESPONSES ###########
-
-message_t buildInfoResponse(const long id, const short stato, const int to, const char* tipo_componente);
-
-message_t buildSwitchResponse(const int success, const int to);
-
-message_t buildTranslateResponse(const long id, const int searching, const int to);
-
-message_t buildDieResponse(const long to);
-
-message_t buildListResponse(const long to_pid, const char* nome, const short stato, const long livello, const short stop, const short id);
-
-message_t buildCloneResponse(const long to_pid, const char* type, long vals[]);
-
-//############# IPC ###########
-
-short int sendMessage(const message_t const* msg);
-
-int receiveMessage(const long reader, message_t* msg);
-
+/////////////////////////////// INIT ///////////////////////////////
 /* Inizializza i componenti per comunicare */
 void ipcInit();
 
@@ -80,12 +63,15 @@ key_t getKey();
 int getMq();
 
 /* Close message queue */
-void closeMq(const int id);
+void closeMq(int id);
 
 /* Traduzione id-pid */
-long getPidById(list_t figli, const int id);
+long getPidById(list_t figli, int id);
+
+//////////////////////////////// DEBUG /////////////////////////////////////
+/*  Print struct (per debug) */
+void printMsg(const message_t* msg);
 
 /* Salva nel file con nome di sessione la tipologia del messaggio */
-int printLog(const message_t msg);
-
+int printLog(const message_t* msg);
 #endif

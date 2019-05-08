@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
 
     while (1) {
         message_t msg;
-        if (receiveMessage(getpid(), &msg) == -1) {
+        if (receiveMessage(&msg) == -1) {
             perror("HUB: Error receive message");
         } else {
             if (strcmp(msg.text, INFO_REQUEST) == 0) {

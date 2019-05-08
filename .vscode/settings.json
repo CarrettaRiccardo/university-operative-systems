@@ -8,6 +8,8 @@
         "stdlib.h": "c",
         "utils.h": "c",
         "ipc.h": "c",
-        "constants.h": "c"
+        "constants.h": "c",
+        "msg.h": "c",
+        "time.h": "c"
     }
 }

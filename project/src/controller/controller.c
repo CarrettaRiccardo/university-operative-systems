@@ -22,6 +22,7 @@ void controllerInit(char *file) {
     strcpy(base_dir, file);
     char *last_slash = strrchr(base_dir, '/');
     if (last_slash) *(last_slash + 1) = '\0';
+    printf("base dir: %s\n", base_dir);
 }
 
 /*  Dealloca il controller  */
@@ -71,7 +72,7 @@ int delDevice(char *id) {
 
     int pid_trovato = request.to;  //contiene la traduzione id-pid risolta
     message_t response;
-    if (receiveMessage(getpid(), &response) != -1) {
+    if (receiveMessage(&response) != -1) {
         if (strcmp(response.text, MSG_DELETE_RESPONSE) == 0) {
             printf("%d died\n", id_da_cercare);
             listRemove(children, pid_trovato);
@@ -85,8 +86,20 @@ void linkDevices(char *id1, char *id2) {
     printf("TODO: link device %s to %s\n", id1, id2);
     long src = getPidById(children, atoi(id1));
     long dest = getPidById(children, atoi(id2));
-    if (src == -1) printf("Error: id %s not found\n", id1);
-    if (dest == -1) printf("Error: id %s not found\n", id2);
+    if (src == -1) printf("Error: device with id %s not found\n", id1);
+    if (dest == -1) printf("Error: device with id %s not found\n", id2);
+
+    message_t request = buildLinkRequest(dest, src);
+    message_t response;
+    if (sendMessage(&request) < 0) {
+        perror("Error linking devices request");
+    } else if (receiveMessage(&response) < 0) {
+        perror("Error linking devices response");
+    } else if (response.vals[0] == -1) {
+        printf("Error: device with id %s is not a control device\n", id2);
+    } else {
+        printMsg(&response);
+    }
     printf("Got pid %ld to %ld\n", src, dest);
 }
 
@@ -100,7 +113,7 @@ int switchDevice(char *id, char *label, char *pos) {
         if (sendMessage(&request) == -1)
             printf("Errore comunicazione, riprova\n");
         message_t response;
-        if (receiveMessage(getpid(), &response) == -1) {
+        if (receiveMessage(&response) == -1) {
             perror("Errore switch\n");
         } else {
             if (response.vals[5] != -1) {
@@ -128,7 +141,7 @@ void infoDevice(char *id) {
     }
 
     message_t response;
-    if (receiveMessage(getpid(), &response) == -1) {
+    if (receiveMessage(&response) == -1) {
         perror("Errore info device");
         return;
     }

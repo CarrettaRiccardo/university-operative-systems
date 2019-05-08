@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
 
     while (1) {
         message_t msg;
-        if (receiveMessage(getpid(), &msg) == -1) continue;  //messaggio da ignorare (per sessione diversa/altri casi)
+        if (receiveMessage(&msg) == -1) continue;  //messaggio da ignorare (per sessione diversa/altri casi)
 
         if (strcmp(msg.text, "ECHO") == 0) {
             //Message m = {.to = getppid(), .session = sessione, .value = tempo, .state = stato};
