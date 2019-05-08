@@ -40,7 +40,7 @@ void listDevices() {
 
 /**************************************** ADD ********************************************/
 /*  Aggiunge un dispositivo al controller in base al tipo specificato   */
-int addDevice(list_t children, char *file) {
+int addDevice(char *file) {
     int pid = fork();
     /*  Processo figlio */
     if (pid == 0) {
@@ -92,14 +92,14 @@ int switchDevice(char *id, char *label, char *pos) {
     int id_da_cercare = atoi(id);
     message_t request = buildSwitchRequest(children, id_da_cercare, label, pos);
     // se i parametri creano dei valori validi
-    if (request.value1 != -1 && request.value2 != -1) {
+    if (request.vals[0] != -1 && request.vals[1] != -1) {
         if (sendMessage(&request) == -1)
             printf("Errore comunicazione, riprova\n");
         message_t response;
         if (receiveMessage(getpid(), &response) == -1) {
             perror("Errore switch\n");
         } else {
-            if (response.value6 != -1) {
+            if (response.vals[5] != -1) {
                 printf("Modifica effettuata con successo\n");
             } else {
                 printf("Errore nella modifica\n");
@@ -132,11 +132,11 @@ void infoDevice(char *id) {
     printf("%s ", response.text);  //stampo il nome componente
 
     if (strcmp(response.text, "Bulb") == 0) {
-        if (response.value6 == 1)
+        if (response.vals[5] == 1)
             printf("on");
         else
             printf("off");
-        printf(". Work time (time set to on) = %ld\n", response.value1);
+        printf(". Work time (time set to on) = %ld\n", response.vals[0]);
     } else if (strcmp(response.text, "hub") == 0) {
     } else if (strcmp(response.text, "timer") == 0) {
     }

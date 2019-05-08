@@ -11,17 +11,30 @@ TODO: Gestire i vari stati : 0=spenta 1=accesa 2=spenta manually 3=accesa manual
 
 #include "../include/ipc.h"
 
+int id;
+short stato;
+unsigned int on_time;
+unsigned long last_start_time;
+
 /* Override specifico per il metodo definito in IPC */
 message_t buildInfoResponseBulb(const long id, const short stato,
                                 const int to, const char *tipo_componente,
                                 const long work_time);
 
 int main(int argc, char **argv) {
-    const int id = atoi(argv[1]);           // Lettura id da parametro
-    short stato = 0;                        // 0 = spenta, 1 = accesa
-    unsigned int on_time = 0;   //TODO: Destro fare lettura on_time da parametro in caso di clonazione
-    unsigned long last_start_time = time(NULL);  // Tempo accensione lampadina
-
+    id = atoi(argv[1]);  // Lettura id da parametro
+    if (argc <= 2) {
+        stato = 0;                     // 0 = spenta, 1 = accesa
+        on_time = 0;                   //TODO: Destro fare lettura on_time da parametro in caso di clonazione
+        last_start_time = time(NULL);  // Tempo accensione lampadina
+    }
+    //  Inzializzazione parametri da richiesta clone
+    else {
+        stato = atoi(argv[2]);
+        on_time = atoi(argv[3]);
+        last_start_time = atoi(argv[4]);
+        int to_clone_pid = atoi(argv[5]);
+    }
     while (1) {
         message_t msg;
         int result = receiveMessage(getpid(), &msg);
@@ -36,20 +49,20 @@ int main(int argc, char **argv) {
                 exit(0);
             } else if (strcmp(msg.text, INFO_REQUEST) == 0) {
                 time_t now = time(NULL);
-                unsigned long work_time = on_time + (now - ( (stato==0) ? now : last_start_time)  ); //se è spenta ritorno solo on_time, altrimenti on_time+tempo da quanto accesa
-                message_t m = buildInfoResponseBulb(id, stato, msg.sender, "Bulb", work_time);
+                unsigned long work_time = on_time + (now - ((stato == 0) ? now : last_start_time));  //se è spenta ritorno solo on_time, altrimenti on_time+tempo da quanto accesa
+                message_t m = buildInfoResponseBulb(id, stato, msg.sender, BULB, work_time);
                 sendMessage(&m);
             } else if (strcmp(msg.text, MSG_SWITCH) == 0) {
                 int success = -1;
-                if (msg.value1 == 0){// interruttore (generico)
-                    if (msg.value2 == 0){// spengo
+                if (msg.vals[0] == 0) {      // interruttore (generico)
+                    if (msg.vals[1] == 0) {  // spengo
                         stato = 0;
                         success = 0;
 
                         on_time += time(NULL) - last_start_time;
                         last_start_time = 0;
                     }
-                    if (msg.value2 == 1){// accendo
+                    if (msg.vals[1] == 1) {  // accendo
                         stato = 1;
                         success = 0;
 
@@ -60,10 +73,14 @@ int main(int argc, char **argv) {
                 message_t m = buildSwitchResponse(success, msg.sender);
                 sendMessage(&m);
             } else if (strcmp(msg.text, MSG_TRANSLATE) == 0) {
-                message_t m = buildTranslateResponse(id, msg.value1, msg.sender);
+                message_t m = buildTranslateResponse(id, msg.vals[0], msg.sender);
                 sendMessage(&m);
             } else if (strcmp(msg.text, MSG_LIST) == 0) {  // Caso base per la LIST. value5 = 1 per indicare fine albero
-                message_t m = buildListResponse(msg.sender, "Bulb", stato, msg.value1, 1, id);
+                message_t m = buildListResponse(msg.sender, BULB, stato, msg.vals[0], 1, id);
+                sendMessage(&m);
+            } else if (strcmp(msg.text, MSG_CLONE) == 0) {
+                long vals[NVAL] = {id, stato, on_time, last_start_time};
+                message_t m = buildCloneResponse(msg.sender, BULB, vals);
                 sendMessage(&m);
             }
         }
@@ -73,6 +90,6 @@ int main(int argc, char **argv) {
 
 message_t buildInfoResponseBulb(const long id, const short stato, const int to, const char *tipo_componente, const long work_time) {
     message_t ret = buildInfoResponse(id, stato, to, tipo_componente);
-    ret.value1 = work_time;
+    ret.vals[0] = work_time;
     return ret;
 }

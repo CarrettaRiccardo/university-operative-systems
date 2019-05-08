@@ -11,6 +11,7 @@
 #include "../include/constants.h"
 #include "../include/list.h"
 #define MAXMSG 20
+#define NVAL 6
 #define KEYFILE "progfile"
 
 time_t sessione;
@@ -18,20 +19,13 @@ int mqid;
 
 typedef struct msg {
     long to;
-    char text[MAXMSG];
-    long value1;
-    long value2;
-    short value3;
-    short value4;
-    short value5;
-    short value6;
     long sender;
     time_t session;
+    char text[MAXMSG];
+    long vals[NVAL];
 } message_t;
 
-/* Inizializza i componenti per comunicare */
-void ipcInit();
-
+/////////////////////////////// WORKERS ///////////////////////////////
 void doList(list_t children, const char* mode, const long responde_to);
 
 /*  Print struct (per debug) */
@@ -66,11 +60,16 @@ message_t buildDieResponse(const long to);
 
 message_t buildListResponse(const long to_pid, const char* nome, const short stato, const long livello, const short stop, const short id);
 
+message_t buildCloneResponse(const long to_pid, const char* type, long vals[]);
+
 //############# IPC ###########
 
 short int sendMessage(const message_t const* msg);
 
 int receiveMessage(const long reader, message_t* msg);
+
+/* Inizializza i componenti per comunicare */
+void ipcInit();
 
 /* Get key to create Message queue */
 key_t getKey();

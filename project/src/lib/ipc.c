@@ -1,21 +1,7 @@
 #include "../include/ipc.h"
 #include "../include/constants.h"
 
-// Inizializza i componenti per comunicare
-void ipcInit() {
-    sessione = time(NULL);
-    mqid = getMq();
-}
-
-/*
-* worker dei metodi
-* Comandi 'do' che implemantano i comandi dell' utente
-*/
-
-/*
-I dispositivi di interazione inoltrano la richiesta a tutti i filgi prima di tornare value5=1 al padre, il quale procede ad inviare la richiesta ad un altro dei suoi figli
-TODO:
-*/
+///////////////////////////////////////////////  WORKERS ///////////////////////////////////////////////
 void doList(list_t figli, const char *mode, const long responde_to) {
     if (strcmp(mode, CONTROLLER) == 0) {
         node_t *p = *figli;
@@ -30,7 +16,7 @@ void doList(list_t figli, const char *mode, const long responde_to) {
                 if (receiveMessage(getpid(), &response) != -1) {
                     printListMessage(&response);  //TODO: Controllare sia un messaggio di LIST e non di altro tipo
                 }
-            } while (response.value5 != 1);
+            } while (response.vals[4] != 1);
 
             p = p->next;
         }
@@ -50,7 +36,7 @@ void doList(list_t figli, const char *mode, const long responde_to) {
                 //TODO: Controllare sia un messaggio di LIST e non di altro tipo
                 response.to = responde_to;  //cambio il destinatario per farlo arrivare al Controller
                 sendMessage(&response);
-            } while (response.value5 != 1);
+            } while (response.vals[4] != 1);
             p = p->next;
         }
         message_t req = buildListResponse(responde_to, CONTROL_DEVICE, -1, -1, 1, -1);  //Comando di stop dell' HUB o del TIMER
@@ -58,34 +44,30 @@ void doList(list_t figli, const char *mode, const long responde_to) {
 }
 
 void printMsg(const message_t *msg) {
-    printf("to: %ld, sender: %ld, text: %s, v1: %ld, v2: %ld, v3: %d, v4: %d, v5: %d, v6: %d, session: %ld\n", msg->to, msg->sender, msg->text, msg->value1, msg->value2, msg->value3, msg->value4, msg->value5, msg->value6, msg->session);
+    printf("to: %ld, sender: %ld, text: %s, v1: %ld, v2: %ld, v3: %d, v4: %d, v5: %d, v6: %d, session: %ld\n", msg->to, msg->sender, msg->text, msg->vals[0], msg->vals[1], msg->vals[2], msg->vals[3], msg->vals[4], msg->vals[5], msg->session);
 }
 
 //Metodo di comodo per stampare le Info da mostrare nel comando LIST
 void printListMessage(const message_t const *msg) {
     if (strcmp(msg->text, CONTROL_DEVICE) == 0) return;  // Se è un dispositivo di controllo non devo stampare le sue info, indica solo fine scansione di quel sotto_albero
     int i;
-    for (i = 0; i < msg->value1; i++) printf("   ");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
+    for (i = 0; i < msg->vals[0]; i++) printf("   ");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
 
-    printf("| <%d> %s ", msg->value3, msg->text);
-    if (strcmp(msg->text, "Bulb") == 0) {
-        if (msg->value6 == 0)
-            printf(" off\n");
-        else if (msg->value6 == 1)
-            printf(" on\n");
-        else if (msg->value6 == 2)
-            printf(" off manually\n");
-        else if (msg->value6 == 3)
-            printf(" on manually\n");
+    printf("| <%d> %s ", msg->vals[2], msg->text);
+    if (strcmp(msg->text, BULB) == 0) {
+        switch (msg->vals[5]) {
+            case 0: printf(" off\n"); break;
+            case 1: printf(" on\n"); break;
+            case 2: printf(" off (override)\n"); break;
+            case 3: printf(" on (override)\n"); break;
+        }
     } else {
-        if (msg->value6 == 0)
-            printf(" open\n");
-        else if (msg->value6 == 1)
-            printf(" close\n");
-        else if (msg->value6 == 2)
-            printf(" open manually\n");
-        else if (msg->value6 == 3)
-            printf(" off manually\n");
+        switch (msg->vals[5]) {
+            case 0: printf(" open\n"); break;
+            case 1: printf(" close\n"); break;
+            case 2: printf(" open (override)\n"); break;
+            case 3: printf(" close (override)\n"); break;
+        }
     }
 }
 
@@ -94,16 +76,32 @@ void doLink(list_t figli, long to_clone_pid) {
     message_t request = buildCloneRequest(to_clone_pid);
     message_t response;
     if (sendMessage(&request) == -1) {
-        printf("Error sending CloneRequest to %ld from %ld: %s\n", to_clone_pid, getpid(), strerror(errno));
+        printf("Error sending CloneRequest to %ld from %d: %s\n", to_clone_pid, getpid(), strerror(errno));
     } else if (receiveMessage(getpid(), &response) == -1) {
-        printf("Error receiving CloneRequest in %ld from %ld: %s\n", getpid(), to_clone_pid, strerror(errno));
+        printf("Error receiving CloneRequest in %d from %ld: %s\n", getpid(), to_clone_pid, strerror(errno));
     } else {
         int pid = fork();
+        // Figlio
         if (pid == 0) {
+            char args[NVAL + 1][30];
+            int i;
+            //  Converto i values in string e le amndo negli args dell'exec
+            for (i = 1; i < NVAL + 1; i++) {
+                snprintf(args[i], 10, "%ld", response.vals[i]);
+            }
+            strcpy(args[1], strcat(strcat("", "./"), response.text));  //  Genero il path dell'eseguibile
+            return execvp(args[0], args);
+        }
+        // Padre
+        else {
+            if (pid != -1) {
+                listPush(figli, pid);
+            }
         }
     }
 }
 
+///////////////////////////////////////////////  REQUEST ///////////////////////////////////////////////
 message_t buildInfoRequest(list_t figli, const long to_id) {
     long to_pid = getPidById(figli, to_id);
     if (to_pid == -1)
@@ -114,7 +112,7 @@ message_t buildInfoRequest(list_t figli, const long to_id) {
 }
 
 message_t buildTranslateRequest(const long to_pid, const int search) {
-    message_t ret = {.to = to_pid, .session = sessione, .text = MSG_TRANSLATE, .sender = getpid(), .value1 = search};
+    message_t ret = {.to = to_pid, .session = sessione, .text = MSG_TRANSLATE, .sender = getpid(), .vals = {search}};
     if (to_pid == -1)
         printf("Pid %ld non trovato\n", to_pid);
     return ret;
@@ -179,32 +177,34 @@ message_t buildSwitchRequest(list_t figli, const long to_id, char *label, char *
             }
         }
     }
-    message_t ret = {.to = to_pid, .session = sessione, .text = MSG_SWITCH, .value1 = label_val, .value2 = pos_val, .sender = getpid()};
+    message_t ret = {.to = to_pid, .session = sessione, .text = MSG_SWITCH, .sender = getpid()};
+    ret.vals[0] = label_val;
+    ret.vals[1] = pos_val;
     return ret;
 }
 
-/*
-* builder risposte
-* Metodi di comodo per costrutire le strutture dei messaggi di response
-*/
-
+///////////////////////////////////////////////  RESPONSE ///////////////////////////////////////////////
 //Metodo generico per info comuni. Ogni componente usa un override del metodo
 message_t buildInfoResponse(const long id, const short stato, const int to, const char *tipo_componente) {
-    message_t ret = {.to = to, .session = sessione, .value6 = stato, .sender = getpid()};
+    message_t ret = {.to = to, .session = sessione, .sender = getpid()};
     strcpy(ret.text, tipo_componente);
+    ret.vals[5] = stato;
     return ret;
 }
 
 message_t buildSwitchResponse(const int success, const int to) {
-    message_t ret = {.to = to, .session = sessione, .value6 = success, .sender = getpid()};
+    message_t ret = {.to = to, .session = sessione, .sender = getpid()};
+    ret.vals[5] = success;
     return ret;
 }
 
 //state = 1  --> il componente cercato sono io
 message_t buildTranslateResponse(const long id, const int searching, const int to) {
-    message_t ret = {.to = to, .session = sessione, .value6 = 0, .text = MSG_TRANSLATE, .sender = getpid()};  //messaggio con risposta negativa
+    message_t ret = {.to = to, .session = sessione, .text = MSG_TRANSLATE, .sender = getpid()};  //messaggio con risposta negativa
     if (id == searching)
-        ret.value6 = 1;  //stava cercando me, risposta positiva
+        ret.vals[5] = 1;  //stava cercando me, risposta positiva
+    else
+        ret.vals[5] = 0;
     return ret;
 }
 
@@ -214,20 +214,26 @@ message_t buildDieResponse(const long to) {
 }
 
 message_t buildListResponse(const long to_pid, const char *nome, const short stato, const long livello, const short stop, const short id) {
-    message_t ret = {.to = to_pid, .session = sessione, .value6 = stato, .value5 = stop, .value3 = id, .sender = getpid()};
+    message_t ret = {.to = to_pid, .session = sessione, .sender = getpid()};
     strcpy(ret.text, nome);
-    ret.value1 = livello + 1;
+    ret.vals[0] = livello + 1;
+    ret.vals[2] = id;
+    ret.vals[4] = stop;
+    ret.vals[5] = stato;
     return ret;
 }
 
-message_t buildCloneResponse(const long to_pid, const char *nome, long v1, long v2, short v3, short v4, short v5, short v6) {
-    message_t ret = {.to = to_pid, .value1 = v1, .value2 = v2, .value3 = v3, .value4 = v4, .value5 = v5, .value6 = v6, .session = sessione, .sender = getpid()};
-    strcpy(ret.text, nome);
+message_t buildCloneResponse(const long to_pid, const char *type, long vals[]) {
+    message_t ret = {.to = to_pid, .session = sessione, .sender = getpid()};
+    strcpy(ret.text, type);
+    int i;
+    for (i = 0; i < NVAL; i++) {
+        ret.vals[i] = vals[i];
+    }
     return ret;
 }
 
 ////////////////////////////////////////////////////////////////// SEND/RECEIVE //////////////////////////////////////////////////////////////////
-
 short int sendMessage(const message_t *msg) {
     if (msg->to <= 0) {
         return -1;
@@ -243,6 +249,13 @@ int receiveMessage(const long reader, message_t *msg) {
         return -1;
     }*/
     return ret;
+}
+
+///////////////////////////////////////////////  INIT ///////////////////////////////////////////////
+// Inizializza i componenti per comunicare
+void ipcInit() {
+    sessione = time(NULL);
+    mqid = getMq();
 }
 
 key_t getKey() {
@@ -272,19 +285,11 @@ void closeMq(const int id) {
     }
 }
 
-/*
-*
-* tool traduzione da id (interno al sistema) a pid del S.O
-* TODO: gestione cache per ottimizzare la traduzione di componenti già risolte (facoltativo)
-*
-*/
-
-//traduce un id in un pid
+// Traduce un id in un pid
 long getPidById(list_t figli, const int id) {
     long ret = -1;
     node_t *p = *figli;
 
-    //TODO: Destro controlla iterazione lsta
     while (ret == -1 && p != NULL) {
         int id_processo = p->value;
         message_t msg = buildTranslateRequest(id_processo, id);
@@ -297,9 +302,8 @@ long getPidById(list_t figli, const int id) {
         message_t response;
         if (receiveMessage(getpid(), &response) == -1) {
             printf("Errore comunicazione list\n");
-            //continue;
         }
-        if (response.value6 == 1 && strcmp(response.text, MSG_TRANSLATE) == 0)  //trovato l'id che stavo cercando
+        if (response.vals[5] == 1 && strcmp(response.text, MSG_TRANSLATE) == 0)  //trovato l'id che stavo cercando
             ret = response.sender;
 
         p = p->next;
@@ -311,12 +315,12 @@ long getPidById(list_t figli, const int id) {
 int printLog(message_t msg) {
     char f_name[30];
     int ret = -1;
-    // copio in f_name la msg.session come stringa
+    /*// copio in f_name la msg.session come stringa
     if (snprintf(f_name, sizeof(msg.session), "../log/%s", msg.session) != -1) {
         strcat(f_name, ".txt");
         FILE *log = fopen(f_name, "a");  // crea se non esiste
         if (log != NULL) {
-            fprintf(log, "TYPE:%s | FROM:%ld | TO:%ld | VALUES:%ld, %ld, %ld, %ld, %ld, %ld\n", msg.text, msg.sender, msg.to, msg.value1, msg.value2, msg.value3, msg.value4, msg.value5, msg.value6);
+            fprintf(log, "TYPE:%s | FROM:%ld | TO:%ld | VALUES:%ld, %ld, %ld, %ld, %ld, %ld\n", msg.text, msg.sender, msg.to, msg.vals[0], msg.vals[1], msg.vals[2], msg.vals[3], msg.vals[4], msg.vals[5]);
             // chiudo subito per evitare conflitti di apertura
             fclose(log);
             ret = 0;
@@ -324,6 +328,6 @@ int printLog(message_t msg) {
             // error opening file
             printf("Errore nell'apertura del log");
         }
-    }
+    }*/
     return ret;
 }

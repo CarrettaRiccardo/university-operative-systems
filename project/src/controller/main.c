@@ -61,15 +61,15 @@ int main(int sargc, char **sargv) {
                 printf("Unknown parameters, usage: add <device>\n");
             } else {
                 int result = 0;
-                if (strcmp(argv[1], "bulb") == 0)
+                if (strcmp(argv[1], BULB) == 0)
                     result = addDevice(BULB);
-                else if (strcmp(argv[1], "fridge") == 0)
+                else if (strcmp(argv[1], FRIDGE) == 0)
                     result = addDevice(FRIDGE);
-                else if (strcmp(argv[1], "window") == 0)
+                else if (strcmp(argv[1], WINDOW) == 0)
                     result = addDevice(WINDOW);
-                else if (strcmp(argv[1], "hub") == 0)
+                else if (strcmp(argv[1], HUB) == 0)
                     result = addDevice(HUB);
-                else if (strcmp(argv[1], "timer") == 0)
+                else if (strcmp(argv[1], TIMER) == 0)
                     result = addDevice(TIMER);
                 else
                     printf("Unknown device, supported devices: bulb, fridge, window, hub, timer\n");
