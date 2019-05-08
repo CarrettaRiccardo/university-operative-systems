@@ -26,14 +26,14 @@ typedef struct msg {
 } message_t;
 
 /////////////////////////////// WORKERS ///////////////////////////////
-void doLink(list_t figli, long to_clone_pid);
+void doLink(list_t figli, long to_clone_pid, long sender, const char* base_dir);
 void doList(list_t children, const char* mode, long responde_to);
 void printListMessage(const message_t* msg);
 
 /////////////////////////////// REQUESTS ///////////////////////////////
 message_t buildInfoRequest(list_t figli, long to_id);
 message_t buildTranslateRequest(long to, int searching);
-message_t buildDieRequest(list_t figli, long to_id);
+message_t buildDieRequest(long to_pid);
 message_t buildListRequest(long to_pid);
 message_t buildSwitchRequest(list_t figli, long to_id, char* label, char* pos);
 message_t buildCloneRequest(long to_pid);
@@ -43,7 +43,7 @@ message_t buildLinkRequest(long to_pid, long to_clone_pid);
 message_t buildInfoResponse(long id, short stato, int to, const char* tipo_componente);
 message_t buildSwitchResponse(int success, int to);
 message_t buildTranslateResponse(long id, int searching, int to);
-message_t buildDieResponse(long to);
+message_t buildDieResponse(long to_pid);
 message_t buildListResponse(long to_pid, const char* nome, short stato, long livello, short stop, short id);
 message_t buildCloneResponse(long to_pid, const char* type, const long vals[]);
 message_t buildLinkResponse(long to_pid, int success);

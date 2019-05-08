@@ -77,7 +77,7 @@ int main(int sargc, char **sargv) {
                 if (result == -1)
                     perror("Error adding device");
                 else if (result != 0)  //  Se ho aggiunto un device supportato
-                    printf("Device added\n");
+                    printf("Device added with id %d\n", result);
             }
         }
         /**************************************** DEL ********************************************/
@@ -96,6 +96,8 @@ int main(int sargc, char **sargv) {
                 printf("Unknown parameters, usage: link <id> to <id>\n");
             } else if (!isInt(argv[1]) || !isInt(argv[3])) {
                 printf("Error: <id> must be a positive number\n");
+            } else if (strcmp(argv[1], argv[3]) == 0) {
+                printf("Error: cannot link a device to itself\n");
             } else {
                 linkDevices(argv[1], argv[3]);
             }

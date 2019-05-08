@@ -23,6 +23,7 @@ message_t buildInfoResponseBulb(const long id, const short stato,
 
 int main(int argc, char **argv) {
     id = atoi(argv[1]);  // Lettura id da parametro
+    //  Creazione nuova bulb
     if (argc <= 2) {
         stato = 0;                     // 0 = spenta, 1 = accesa
         on_time = 0;                   //TODO: Destro fare lettura on_time da parametro in caso di clonazione
@@ -33,7 +34,9 @@ int main(int argc, char **argv) {
         stato = atoi(argv[2]);
         on_time = atoi(argv[3]);
         last_start_time = atoi(argv[4]);
-        int to_clone_pid = atoi(argv[5]);
+        //  Invia la conferma al padre
+        message_t confirm_clone = buildLinkResponse(getppid(), 0);
+        sendMessage(&confirm_clone);
     }
     while (1) {
         message_t msg;

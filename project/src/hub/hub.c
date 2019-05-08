@@ -9,14 +9,18 @@ TODO: Remove not-allowed libraries
 
 #include "../include/ipc.h"
 #include "../include/list.h"
+#include "../include/utils.h"
 
 int id;
 list_t children;
+
+char *base_dir;
 
 int main(int argc, char **argv) {
     id = atoi(argv[1]);
     children = listInit();
 
+    base_dir = extractBaseDir(argv[0]);
     while (1) {
         message_t msg;
         if (receiveMessage(&msg) == -1) {
@@ -27,7 +31,7 @@ int main(int argc, char **argv) {
             } else if (strcmp(msg.text, MSG_SWITCH) == 0) {
                 // apertura/chiusura
             } else if (strcmp(msg.text, MSG_LINK) == 0) {
-                doLink(children, msg.vals[0]);
+                doLink(children, msg.vals[0], msg.sender, base_dir);
             } else if (strcmp(msg.text, MSG_SWITCH) == 0) {
                 // switch
                 // da gestire
