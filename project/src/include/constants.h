@@ -12,7 +12,20 @@
 #define MSG_DELETE_REQUEST "delete"
 #define MSG_DELETE_RESPONSE "deleted"
 #define MSG_LINK "link"
+#define MSG_CLONE "clone"
 #define MSG_SWITCH "switch"
 
 #define MSG_TRANSLATE "TRANSLATE"
 #define MSG_LIST "LIST"
+
+//  Tipit dispositivo
+#define CONTROLLER "CONTROLLER"
+#define CONTROL_DEVICE "CONTROL_DEVICE"
+#define NORMAL_DEVICE "NORMAL_DEVICE"
+
+//  Dispositivi
+#define BULB "bulb"
+#define FRIDGE "fridge"
+#define WINDOW "window"
+#define HUB "hub"
+#define TIMER "timer"

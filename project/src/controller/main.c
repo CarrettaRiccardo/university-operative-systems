@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "../include/constants.h"
 #include "../include/utils.h"
 
 #define MAX_LEN 256  //  Massima lunghezza stringa parametri
@@ -62,15 +63,15 @@ int main(int sargc, char **sargv) {
             } else {
                 int result = 0;
                 if (strcmp(argv[1], "bulb") == 0)
-                    result = addBulb();
+                    result = addDevice(BULB);
                 else if (strcmp(argv[1], "fridge") == 0)
-                    result = addFridge();
+                    result = addDevice(FRIDGE);
                 else if (strcmp(argv[1], "window") == 0)
-                    result = addWindow();
+                    result = addDevice(WINDOW);
                 else if (strcmp(argv[1], "hub") == 0)
-                    result = addHub();
+                    result = addDevice(HUB);
                 else if (strcmp(argv[1], "timer") == 0)
-                    result = addTimer();
+                    result = addDevice(TIMER);
                 else
                     printf("Unknown device, supported devices: bulb, fridge, window, hub, timer\n");
 

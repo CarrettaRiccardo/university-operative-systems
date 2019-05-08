@@ -1,15 +1,17 @@
 #include "../include/ipc.h"
+#include "../include/constants.h"
 
 ////////////////////////////////////////////////////////////////// WORKERS //////////////////////////////////////////////////////////////////
 /*  I dispositivi di interazione inoltrano la richiesta a tutti i filgi prima di tornare value5=1 al padre, il quale procede ad inviare la richiesta ad un altro dei suoi figli   */
 void doList(list_t figli, const char *mode, const long responde_to) {
-    if (strcmp(mode, "CONTROLLER") == 0) {
+    if (strcmp(mode, CONTROLLER) == 0) {
         node_t *p = *figli;
         while (p != NULL) {
             long son = p->value;
 
-            message_t req = buildListRequest(son);
-            if (sendMessage(&req) == -1) printf("Errore invio msg LIST al pid %ld: %s\n", son, strerror(errno));
+            message_t request = buildListRequest(son);
+            if (sendMessage(&request) == -1)
+                printf("Errore invio msg LIST al pid %ld: %s\n", son, strerror(errno));
             message_t response;
             do {
                 if (receiveMessage(getpid(), &response) != -1) {
@@ -19,14 +21,14 @@ void doList(list_t figli, const char *mode, const long responde_to) {
 
             p = p->next;
         }
-    } else if (strcmp(mode, "CONTROL") == 0) {
+    } else if (strcmp(mode, CONTROL_DEVICE) == 0) {
         //Nei dispositivi di CONTROLLO bisogna iniziare un messaggio al padre con i propri dati con value5=0 per indentare correttamente
         node_t *p = *figli;
         while (p != NULL) {
             long son = p->value;
 
-            message_t req = buildListRequest(son);
-            if (sendMessage(&req) == -1)
+            message_t request = buildListRequest(son);
+            if (sendMessage(&request) == -1)
                 printf("Errore invio msg LIST al pid %ld: %s\n", son, strerror(errno));
 
             message_t response;
@@ -38,13 +40,13 @@ void doList(list_t figli, const char *mode, const long responde_to) {
             } while (response.value5 != 1);
             p = p->next;
         }
-        message_t req = buildListResponse(responde_to, "CONTROL", -1, -1, 1, -1);  //Comando di stop dell' HUB o del TIMER
+        message_t req = buildListResponse(responde_to, CONTROL_DEVICE, -1, -1, 1, -1);  //Comando di stop dell' HUB o del TIMER
     }
 }
 
 //Metodo di comodo per stampare le Info da mostrare nel comando LIST
 void printListMessage(const message_t const *msg) {
-    if (strcmp(msg->text, "CONTROL") == 0) return;  // Se è un dispositivo di controllo non devo stampare le sue info, indica solo fine scansione di quel sotto_albero
+    if (strcmp(msg->text, CONTROL_DEVICE) == 0) return;  // Se è un dispositivo di controllo non devo stampare le sue info, indica solo fine scansione di quel sotto_albero
     int i;
     for (i = 0; i < msg->value1; i++) printf("\t");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
 
@@ -70,9 +72,19 @@ void printListMessage(const message_t const *msg) {
     }
 }
 
-void doLink(list_t figli, int src_id, int dest_id) {
-    long src = getPidById(figli, src_id);
-    long dest = getPidById(figli, dest_id);
+/*  Da chiamare nel controller */
+void doLink(list_t figli, long to_clone_pid) {
+    message_t request = buildCloneRequest(to_clone_pid);
+    message_t response;
+    if (sendMessage(&request) == -1) {
+        printf("Error sending CloneRequest to %ld from %ld: %s\n", to_clone_pid, getpid(), strerror(errno));
+    } else if (receiveMessage(&response) == -1) {
+        printf("Error receiving CloneRequest in %ld from %ld: %s\n", getpid(), to_clone_pid, strerror(errno));
+    } else {
+        int pid = fork();
+        if (pid == 0) {
+                }
+    }
 }
 
 ////////////////////////////////////////////////////////////////// REQUESTS //////////////////////////////////////////////////////////////////
@@ -99,8 +111,8 @@ message_t buildListRequest(const long to_pid) {
     return ret;
 }
 
-message_t buildLinkRequest(const long to_pid) {
-    message_t ret = {.to = to_pid, .session = sessione, .text = MSG_LIST, .sender = getpid()};
+message_t buildCloneRequest(const long to_pid) {
+    message_t ret = {.to = to_pid, .session = sessione, .text = MSG_CLONE, .sender = getpid()};
     return ret;
 }
 
@@ -132,7 +144,10 @@ message_t buildListResponse(const long to_pid, const char *nome, const short sta
     return ret;
 }
 
-message_t buildLinkResponse(const long to_pid, const char *nome, const short stato, const long livello, const short stop, const short id) {
+message_t buildCloneResponse(const long to_pid, const char *nome, long v1, long v2, short v3, short v4, short v5, short v6) {
+    message_t ret = {.to = to_pid, .value1 = v1, .value2 = v2, .value3 = v3, .value4 = v4, .value5 = v5, .value6 = v6, .session = sessione, .sender = getpid()};
+    strcpy(ret.text, nome);
+    return ret;
 }
 
 ////////////////////////////////////////////////////////////////// SEND/RECEIVE //////////////////////////////////////////////////////////////////

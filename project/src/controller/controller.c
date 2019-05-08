@@ -39,8 +39,8 @@ void listDevices() {
 }
 
 /**************************************** ADD ********************************************/
-/*  (private) Aggiunge un dispositivo al controller in base al tipo specificato   */
-int _addDevice(char *file) {
+/*  Aggiunge un dispositivo al controller in base al tipo specificato   */
+int addDevice(list_t children, char *file) {
     int pid = fork();
     /*  Processo figlio */
     if (pid == 0) {
@@ -58,26 +58,6 @@ int _addDevice(char *file) {
         }
         return pid;
     }
-}
-
-int addBulb() {
-    return _addDevice("bulb");
-}
-
-int addFridge() {
-    return _addDevice("fridge");
-}
-
-int addWindow() {
-    return _addDevice("window");
-}
-
-int addHub() {
-    return _addDevice("hub");
-}
-
-int addTimer() {
-    return _addDevice("timer");
 }
 
 /**************************************** DEL ********************************************/
@@ -100,9 +80,13 @@ int delDevice(char *id) {
 }
 
 /**************************************** LINK ********************************************/
-int linkDevices(char *id1, char *id2) {
+void linkDevices(char *id1, char *id2) {
     printf("TODO: link device %s to %s\n", id1, id2);
-    doLink(children, atoi(id1), atoi(id2));
+    if (doLink(children, atoi(id1), atoi(id2)) == -1) {
+        printf("Error: %s is not a control device. The 2° id must be a control device (hub, timer)", id2);
+    } else {
+        printf("Success: %s connected to %s", id1, id2);
+    }
 }
 
 /**************************************** SWITCH ********************************************/
