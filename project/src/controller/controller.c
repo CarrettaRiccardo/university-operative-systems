@@ -131,13 +131,13 @@ void infoDevice(char *id) {
 
     printf("%s ", response.text);  //stampo il nome componente
 
-    if (strcmp(response.text, "Bulb") == 0) {
+    if (strcmp(response.text, BULB) == 0) {
         if (response.vals[5] == 1)
             printf("on");
         else
             printf("off");
         printf(". Work time (time set to on) = %ld\n", response.vals[0]);
-    } else if (strcmp(response.text, "hub") == 0) {
-    } else if (strcmp(response.text, "timer") == 0) {
+    } else if (strcmp(response.text, HUB) == 0) {
+    } else if (strcmp(response.text, TIMER) == 0) {
     }
 }

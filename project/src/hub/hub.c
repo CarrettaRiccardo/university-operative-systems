@@ -19,10 +19,7 @@ int main(int argc, char **argv) {
 
         if (receiveMessage(getpid(), &msg) == -1) continue;  // Messaggio da ignorare (per sessione diversa/altri casi)
 
-        if (strcmp(msg.text, "ECHO") == 0) {
-            //Message m = {.to = getppid(), .session = sessione, .value = tempo, .state = stato};
-            //sendMessage( mqid, m );
-        } else if (strcmp(msg.text, INFO_REQUEST) == 0) {
+        if (strcmp(msg.text, INFO_REQUEST) == 0) {
             // ritorna info
         } else if (strcmp(msg.text, MSG_SWITCH) == 0) {
             // apertura/chiusura

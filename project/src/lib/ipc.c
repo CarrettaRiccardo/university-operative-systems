@@ -44,7 +44,7 @@ void doList(list_t figli, const char *mode, const long responde_to) {
 }
 
 void printMsg(const message_t *msg) {
-    printf("to: %ld, sender: %ld, text: %s, v1: %ld, v2: %ld, v3: %d, v4: %d, v5: %d, v6: %d, session: %ld\n", msg->to, msg->sender, msg->text, msg->vals[0], msg->vals[1], msg->vals[2], msg->vals[3], msg->vals[4], msg->vals[5], msg->session);
+    printf("to: %ld, sender: %ld, text: %s, v1: %ld, v2: %ld, v3: %ld, v4: %ld, v5: %ld, v6: %ld, session: %ld\n", msg->to, msg->sender, msg->text, msg->vals[0], msg->vals[1], msg->vals[2], msg->vals[3], msg->vals[4], msg->vals[5], msg->session);
 }
 
 //Metodo di comodo per stampare le Info da mostrare nel comando LIST
@@ -53,7 +53,7 @@ void printListMessage(const message_t const *msg) {
     int i;
     for (i = 0; i < msg->vals[0]; i++) printf("   ");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
 
-    printf("| <%d> %s ", msg->vals[2], msg->text);
+    printf("| <%ld> %s ", msg->vals[2], msg->text);
     if (strcmp(msg->text, BULB) == 0) {
         switch (msg->vals[5]) {
             case 0: printf(" off\n"); break;
@@ -89,8 +89,11 @@ void doLink(list_t figli, long to_clone_pid) {
             for (i = 1; i < NVAL + 1; i++) {
                 snprintf(args[i], 10, "%ld", response.vals[i]);
             }
-            strcpy(args[1], strcat(strcat("", "./"), response.text));  //  Genero il path dell'eseguibile
-            return execvp(args[0], args);
+            char path[40] = "";
+            strcpy(args[1], strcat(strcat(path, "./"), response.text));  //  Genero il path dell'eseguibile
+            if (execvp(args[0], args) == -1) {
+                perror("Clone error");
+            }
         }
         // Padre
         else {
