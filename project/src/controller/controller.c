@@ -2,10 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include "../include/ipc.h"  //TODO: Destro linkare libreria ipc.c
+#include "../include/ipc.h"
 #include "../include/list.h"
-
-#define MAX_DEVICE_NAME_LENGTH 20
 
 list_t children;
 int next_id;
@@ -22,7 +20,6 @@ void controllerInit(char *file) {
     strcpy(base_dir, file);
     char *last_slash = strrchr(base_dir, '/');
     if (last_slash) *(last_slash + 1) = '\0';
-    printf("base dir: %s\n", base_dir);
 }
 
 /*  Dealloca il controller  */
@@ -35,7 +32,7 @@ void controllerDestroy() {
 
 void listDevices() {
     printf("Elenco componenti:\n");
-    printf("Controller with %d direct connected components:\n", listCount(children));
+    printf("<0> controller %d children\n", listCount(children));
     doList(children, "CONTROLLER", getpid());  //eseguo il comando LIST con comportamento  controller
 }
 
@@ -53,54 +50,67 @@ int addDevice(char *file) {
     }
     /*  Processo padre */
     else {
-        if (pid != -1) {
-            next_id++;
-            listPush(children, pid);
-        }
-        return pid;
+        if (pid == -1) return -1;
+        next_id++;
+        listPush(children, pid);
+        return next_id - 1;
     }
 }
 
 /**************************************** DEL ********************************************/
-int delDevice(char *id) {
-    printf("Elimino  %s ...\n", id);
-
-    int id_da_cercare = atoi(id);
-    message_t request = buildDieRequest(children, id_da_cercare);
-    if (sendMessage(&request) == -1)
-        printf("Errore comunicazione, riprova");
-
-    int pid_trovato = request.to;  //contiene la traduzione id-pid risolta
+void delDevice(char *id) {
+    long pid = getPidById(children, atoi(id));
+    if (pid == -1) {
+        printf("Error: device with id %s not found\n", id);
+        return;
+    }
+    message_t request = buildDieRequest(pid);
     message_t response;
-    if (receiveMessage(&response) != -1) {
-        if (strcmp(response.text, MSG_DELETE_RESPONSE) == 0) {
-            printf("%d died\n", id_da_cercare);
-            listRemove(children, pid_trovato);
-        } else
-            printf("error dying %s\n", response.text);
+    if (sendMessage(&request) == -1) {
+        perror("Error deleting device request");
+    } else if (receiveMessage(&response) == -1) {
+        perror("Error deleting device response");
+    } else if (strcmp(response.text, MSG_DELETE_RESPONSE) == 0) {
+        printf("Device %s deleted\n", id);
+        listRemove(children, pid);
+    } else {
+        printf("Error deleting %s: %s\n", id, response.text);
     }
 }
 
 /**************************************** LINK ********************************************/
 void linkDevices(char *id1, char *id2) {
-    printf("TODO: link device %s to %s\n", id1, id2);
     long src = getPidById(children, atoi(id1));
+    if (src == -1) {
+        printf("Error: device with id %s not found\n", id1);
+        return;
+    }
     long dest = getPidById(children, atoi(id2));
-    if (src == -1) printf("Error: device with id %s not found\n", id1);
-    if (dest == -1) printf("Error: device with id %s not found\n", id2);
+    if (dest == -1) {
+        printf("Error: device with id %s not found\n", id2);
+        return;
+    }
 
     message_t request = buildLinkRequest(dest, src);
     message_t response;
-    if (sendMessage(&request) < 0) {
+    if (sendMessage(&request) == -1) {
         perror("Error linking devices request");
-    } else if (receiveMessage(&response) < 0) {
+    } else if (receiveMessage(&response) == -1) {
         perror("Error linking devices response");
     } else if (response.vals[0] == -1) {
-        printf("Error: device with id %s is not a control device\n", id2);
+        printf("Error: the device with id %s is not a control device\n", id2);
     } else {
-        printMsg(&response);
+        //  Killo il processo src già clonato
+        request = buildDieRequest(src);
+        if (sendMessage(&request) == -1) {
+            perror("Error deleting device request");
+        } else if (receiveMessage(&response) == -1) {
+            perror("Error deleting device response");
+        } else if (strcmp(response.text, MSG_DELETE_RESPONSE) == 0) {
+            listRemove(children, src);
+            printf("Device %s linked to %s\n", id1, id2);
+        }
     }
-    printf("Got pid %ld to %ld\n", src, dest);
 }
 
 /**************************************** SWITCH ********************************************/

@@ -18,7 +18,6 @@ void doList(list_t figli, const char *mode, long responde_to) {
                     printListMessage(&response);  //TODO: Controllare sia un messaggio di LIST e non di altro tipo
                 }
             } while (response.vals[4] != 1);
-
             p = p->next;
         }
     } else if (strcmp(mode, CONTROL_DEVICE) == 0) {
@@ -26,7 +25,6 @@ void doList(list_t figli, const char *mode, long responde_to) {
         node_t *p = *figli;
         while (p != NULL) {
             long son = p->value;
-            printf("Figlio: %ld\n", son);
             message_t request = buildListRequest(son);
             if (sendMessage(&request) == -1)
                 printf("Errore invio msg LIST al pid %ld: %s\n", son, strerror(errno));
@@ -36,6 +34,7 @@ void doList(list_t figli, const char *mode, long responde_to) {
                 receiveMessage(&response);
                 //TODO: Controllare sia un messaggio di LIST e non di altro tipo
                 response.to = responde_to;  //cambio il destinatario per farlo arrivare al Controller
+                response.vals[0] += 1;      //  Aumento il valore "livello"
                 sendMessage(&response);
             } while (response.vals[4] != 1);
             p = p->next;
@@ -73,7 +72,7 @@ void printListMessage(const message_t const *msg) {
     }
 }
 
-void doLink(list_t figli, long to_clone_pid) {
+void doLink(list_t figli, long to_clone_pid, long sender, const char *base_dir) {
     message_t request = buildCloneRequest(to_clone_pid);
     message_t response;
     if (sendMessage(&request) == -1) {
@@ -81,33 +80,37 @@ void doLink(list_t figli, long to_clone_pid) {
     } else if (receiveMessage(&response) == -1) {
         printf("Error receiving CloneRequest in %d from %ld: %s\n", getpid(), to_clone_pid, strerror(errno));
     } else {
-        printMsg(&response);
         int pid = fork();
+        char exec_file[50];
         // Figlio
         if (pid == 0) {
             char *args[NVAL + 2];
-            int i;
+            args[0] = malloc(sizeof(char) * 50);
+            strcat(strcat(args[0], base_dir), response.text);  //  Genero il path dell'eseguibile
             //  Converto i values in string e le mando negli args dell'exec
+            int i;
             for (i = 1; i < NVAL + 1; i++) {
                 args[i] = malloc(sizeof(char) * 20);
-                snprintf(args[i], 10, "%ld", response.vals[i]);
+                snprintf(args[i], 10, "%ld", response.vals[i - 1]);
             }
             args[NVAL + 1] = NULL;
-            char path[40] = "";
-            strcpy(args[0], strcat(strcat(path, "./bin/"), response.text));  //  Genero il path dell'eseguibile
-            printf("Cloning from |%s|\n", args[0]);
             if (execvp(args[0], args) == -1) {
                 perror("Clone error in doLink");
             }
-            for (i = 1; i < NVAL + 1; i++) {
-                free(args[i]);
-            }
+            for (i = 1; i < NVAL + 1; i++) free(args[i]);
         }
         // Padre
         else {
             if (pid != -1) {
                 listPush(figli, pid);
             }
+            //  Attendo una conferma dal figlio clonato e la inoltro al padre.
+            message_t ack;
+            receiveMessage(&ack);
+            ack.to = sender;
+            sendMessage(&ack);
+
+            //  TODO: delete al padre
         }
     }
 }
@@ -129,11 +132,7 @@ message_t buildTranslateRequest(long to_pid, int search) {
     return ret;
 }
 
-message_t buildDieRequest(list_t figli, long to_id) {
-    long to_pid = getPidById(figli, to_id);
-    if (to_pid == -1)
-        printf("Id %ld non trovato\n", to_id);
-
+message_t buildDieRequest(long to_pid) {
     message_t ret = {.to = to_pid, .session = sessione, .text = MSG_DELETE_REQUEST, .sender = getpid()};
     return ret;
 }
@@ -237,8 +236,8 @@ message_t buildTranslateResponse(long id, int searching, int to) {
     return ret;
 }
 
-message_t buildDieResponse(long to) {
-    message_t ret = {.to = to, .session = sessione, .text = MSG_DELETE_RESPONSE, .sender = getpid()};
+message_t buildDieResponse(long to_pid) {
+    message_t ret = {.to = to_pid, .session = sessione, .text = MSG_DELETE_RESPONSE, .sender = getpid()};
     return ret;
 }
 
@@ -303,8 +302,7 @@ key_t getKey() {
 }
 
 int getMq() {
-    const key_t key = getKey();  //creo id per mailbox
-    printf("Key mq: %d\n", key);
+    const key_t key = getKey();               //creo id per mailbox
     int ret = msgget(key, 0666 | IPC_CREAT);  //mi "collego" alla mq
     if (ret == -1) {
         perror("Errore connessione mq");

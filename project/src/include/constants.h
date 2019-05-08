@@ -33,6 +33,8 @@
 #define NORMAL_DEVICE "NORMAL_DEVICE"
 
 //  Dispositivi
+#define MAX_DEVICE_NAME_LENGTH 20
+
 #define BULB "bulb"
 #define FRIDGE "fridge"
 #define WINDOW "window"
