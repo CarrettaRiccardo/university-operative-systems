@@ -14,6 +14,7 @@
 #define LIST_VAL_LEVEL 1
 #define LIST_VAL_STATE 2
 #define LIST_VAL_STOP 3
+#define LIST_VAL_OVERRIDE 4 
 
 // INFO
 #define INFO_MSG_TYPE 1

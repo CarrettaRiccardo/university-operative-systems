@@ -32,44 +32,29 @@ void controllerDestroy() {
 void printListMessage(const message_t *msg)
 {
     int i;
-    for (i = 0; i < msg->vals[LIST_VAL_LEVEL]; i++)
-        printf("    "); // Stampa x \t, dove x = lv (profondità componente, per indentazione)
+    for (i = 0; i < msg->vals[LIST_VAL_LEVEL]; i++) printf("    "); // Stampa x \t, dove x = lv (profondità componente, per indentazione)
     printf("| <%ld> %s ", msg->vals[LIST_VAL_ID], msg->text);
-    if (strcmp(msg->text, BULB) == 0)
-    {
-        switch (msg->vals[LIST_VAL_STATE])
-        {
-        case 0:
-            printf(" off\n");
-            break;
-        case 1:
-            printf(" on\n");
-            break;
-        case 2:
-            printf(" off (override)\n");
-            break;
-        case 3:
-            printf(" on (override)\n");
-            break;
+
+    if (strcmp(msg->text, BULB) == 0){
+        switch (msg->vals[LIST_VAL_STATE]){
+            case 0:printf(" off\n");break;
+            case 1:printf(" on\n");break;
+            case 2:printf(" off (override)\n");break;
+            case 3:printf(" on (override)\n");break;
         }
     }
-    else
-    {
-        switch (msg->vals[LIST_VAL_STATE])
-        {
-        case 0:
-            printf(" close\n");
-            break;
-        case 1:
-            printf(" open\n");
-            break;
-        case 2:
-            printf(" close (override)\n");
-            break;
-        case 3:
-            printf(" open (override)\n");
-            break;
+    else if (strcmp(msg->text, BULB) == 0){
+        switch (msg->vals[LIST_VAL_STATE]){
+            case 0:printf(" close\n");break;
+            case 1:printf(" open\n");break;
+            case 2:printf(" close (override)\n");break;
+            case 3:printf(" open (override)\n");break;
         }
+    }
+    else if (strcmp(msg->text, HUB) == 0){ //TODO: decidere come mostrare 
+        /*switch (msg->vals[LIST_VAL_OVERRIDE]){
+            case 1:printf(" override\n");break;
+        }*/
     }
 }
 
