@@ -17,11 +17,11 @@ int main(int argc, char **argv) {
     const int mqid = getMq();                 //Ottengo accesso per la MailBox
     const int sessione = (int)atoi(argv[1]);  //Ottengo il valore di sessione passato da mio padre
 
-    short stato = 0;         //0 = chiusa, 1 = aperta
-    short interruttore = 0;  //0 = fermo, 1 = apertura/chiusura (torna subito ad off, ma se azionato apre la porta o la chiude)
-    short delay = 0;         // tempo di chiusura automatica porta
-    short temperatura = 0;   // temperatura interna
-    short perc = 0;          // percentuale riempimento (0-100%)
+    short stato = SWITCH_POS_OFF_VALUE;         //0 = chiusa, 1 = aperta
+    short interruttore = SWITCH_POS_OFF_VALUE;  //0 = fermo, 1 = apertura/chiusura (torna subito ad off, ma se azionato apre la porta o la chiude)
+    short delay = 10;         // tempo di chiusura automatica porta
+    short temperatura = 4;   // temperatura interna
+    short perc = 22;          // percentuale riempimento (0-100%)
     unsigned long last_open_time = 0; // time ultima apertura
     unsigned int tempo = 0;      //tempo apertura porta
 

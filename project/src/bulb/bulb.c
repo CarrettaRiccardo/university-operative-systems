@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
     id = atoi(argv[1]);  // Lettura id da parametro
     //  Creazione nuova bulb
     if (argc <= 2) {
-        stato = 0;                     // 0 = spenta, 1 = accesa
+        stato = SWITCH_POS_OFF_VALUE;                     // 0 = spenta, 1 = accesa
         interruttore = stato;
         on_time = 0;                   //TODO: Destro fare lettura on_time da parametro in caso di clonazione
         last_start_time = time(NULL);          // Tempo accensione lampadina

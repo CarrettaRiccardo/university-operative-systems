@@ -15,8 +15,8 @@ message_t buildInfoResponseWindow(long to_pid, short state, long open_time);
 
 int main(int argc, char **argv) {
     const int id = atoi(argv[1]);               // Lettura id da parametro
-    short stato = 0;                            // per significato vedi sopra
-    short interruttore = 0;                     // valore interruttore (torna subito ad off (sempre off), ma se azionato apre/chiude la finestra in modo inverso)
+    short stato = SWITCH_POS_OFF_VALUE;         // per significato vedi sopra
+    short interruttore = SWITCH_POS_OFF_VALUE;  // valore interruttore (torna subito ad off (sempre off), ma se azionato apre/chiude la finestra in modo inverso)
     unsigned int open_time = 0;                 //TODO: Destro fare lettura open_time da parametro in caso di clonazione
     unsigned long last_open_time = time(NULL);  // Tempo ultima apertura lampadina
 
