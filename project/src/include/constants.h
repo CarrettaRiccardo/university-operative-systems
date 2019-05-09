@@ -4,18 +4,42 @@
 #define SET_TEMPERATURE "set_temperature"
 #define SET_PERC_FILLED "set_filled"
 
-#define INFO_REQUEST "request_info"
-#define INFO_RESPONSE "response_info"
+/*************  Tipi messaggi e parametri *************/
+// LIST
+#define LIST_MSG_TYPE 0
+#define LIST_VAL_ID 0
+#define LIST_VAL_LEVEL 1
+#define LIST_VAL_STATE 2
+#define LIST_VAL_STOP 3
 
-#define MSG_DELETE_REQUEST "delete"
-#define MSG_DELETE_RESPONSE "deleted"
-#define MSG_LINK "link"
-#define MSG_CLONE "clone"
-#define MSG_SWITCH "switch"
+// INFO
+#define INFO_MSG_TYPE 1
+#define INFO_VAL_STATE 0
 
-#define MSG_TRANSLATE "TRANSLATE"
-#define MSG_LIST "LIST"
+// DELETE
+#define DELETE_MSG_TYPE 2
 
+// LINK
+#define LINK_MSG_TYPE 3
+#define LINK_VAL_PID 0
+#define LINK_VAL_SUCCESS 1
+
+// CLONE (ogni dispositivo manderà valori diversi)
+#define CLONE_MSG_TYPE 4
+
+// SWITCH
+#define SWITCH_MSG_TYPE 5
+#define SWITCH_VAL_LABEL 0
+#define SWITCH_VAL_POS 1
+#define SWITCH_VAL_SUCCESS 2
+
+// TRANSLATE
+#define TRANSLATE_MSG_TYPE 6
+#define TRANSLATE_VAL_FOUND 0
+#define TRANSLATE_VAL_ID 1
+//  Parametri messaggi
+
+//  Tipi interruttori
 #define LABEL_LIGHT "light"
 #define LABEL_OPEN "open"
 #define LABEL_TERM "therm"

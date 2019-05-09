@@ -26,6 +26,9 @@ int listContains(list_t l, int value);
 /*  Ritorna il numero di elementi nella lista */
 int listCount(list_t l);
 
+/*  Ritorna 1 se la lista è vuota, 0 altrimenti */
+int listEmpty(list_t l);
+
 /*  Stampa la lista (per debug) */
 void listPrint(list_t l);
 

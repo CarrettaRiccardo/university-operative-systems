@@ -44,12 +44,12 @@ int main(int argc, char **argv) {
         if (strcmp(msg.text, "ECHO") == 0) {
             //Message m = {.to = getppid(), .session = sessione, .value = tempo, .state = stato};
             //sendMessage( mqid, m );
-        } else if (strcmp(msg.text, INFO_REQUEST) == 0) {
+        } else if (msg.type == INFO_MSG_TYPE) {
             // ritorna info
-        } else if (strcmp(msg.text, MSG_SWITCH) == 0) {
+        } else if (msg.type == SWITCH_MSG_TYPE) {
                 int success = -1;
-                if (msg.vals[0] == LABEL_OPEN_VALUE) {   // interruttore (apri/chiudi)
-                    if (msg.vals[1] == SWITCH_POS_OFF_VALUE) {  // chiudo
+                if (msg.vals[SWITCH_VAL_LABEL] == LABEL_OPEN_VALUE) {   // interruttore (apri/chiudi)
+                    if (msg.vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_VALUE) {  // chiudo
                         // controllo se il tempo di chiusura automatica NON è superato
                         if (stato == SWITCH_POS_ON_VALUE && last_open_time + time(NULL) < last_open_time + delay) {
                             // se sì, sommo la differenza di tempo attuale al tempo di apertura...
@@ -60,37 +60,38 @@ int main(int argc, char **argv) {
                         // altrimenti è gia su "off"
                         success = 1;
                     }
-                    if (msg.vals[1] == SWITCH_POS_ON_VALUE) {  // apro
+                    if (msg.vals[SWITCH_VAL_POS] == SWITCH_POS_ON_VALUE) {  // apro
                         stato = SWITCH_POS_ON_VALUE;// TODO
                         success = 1;
                     }
-                } else { if (msg.vals[0] == LABEL_TERM_VALUE) {   // termostato
-                    if (msg.vals[1] != -1) {  // cambio valore
+                } else { if (msg.vals[SWITCH_VAL_LABEL] == LABEL_TERM_VALUE) {   // termostato
+                    if (msg.vals[SWITCH_VAL_POS] != -1) {  // cambio valore
                         temperatura = (short)msg.vals[1];
                         success = 1;
-                        on_time += time(NULL) - last_start_time;
-                        last_start_time = 0;
+                        tempo += time(NULL) - last_open_time;
                     }
                 }
-                }
-                // return success or not
-                message_t m = buildSwitchResponse(success, msg.sender);
-                sendMessage(&m);
-        } else if (strcmp(msg.text, SET_TIME_DELAY) == 0) {
+            }
+            // return success or not
+            message_t m = buildSwitchResponse(success, msg.sender);
+            sendMessage(&m);
+        }
+        /*
+        TODO: Questi comandi vanno fatti sempre con lo switch
+        else if (strcmp(msg.text, SET_TIME_DELAY) == 0) {
             // delay chiusura porta
         } else if (strcmp(msg.text, SET_TEMPERATURE) == 0) {
             // temperatura interna
         } else if (strcmp(msg.text, SET_PERC_FILLED) == 0) {  // solo da esterno
             // percentuale riempimento
-        } else if (strcmp(msg.text, MSG_LINK) == 0) {
+        } 
+        */
+        else if (msg.type == LINK_MSG_TYPE) {
             // link
             // (value = id a cui linkare)
-        } else if (strcmp(msg.text, MSG_SWITCH) == 0) {
-            // switch
-            // da gestire
-        } else if (strcmp(msg.text, MSG_DELETE_REQUEST) == 0) {
+        } else if (msg.type == DELETE_MSG_TYPE) {
             exit(0);
-        } else if (strcmp(msg.text, MSG_TRANSLATE) == 0) {
+        } else if (msg.type == TRANSLATE_MSG_TYPE) {
             //Message m = buildTranslateResponse(id, sessione, msg.value, msg.sender);
             //sendMessage(mqid, m);
         }

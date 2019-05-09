@@ -29,11 +29,49 @@ void controllerDestroy() {
 }
 
 /**************************************** LIST ********************************************/
+// Metodo di comodo per stampare le Info da mostrare nel comando LIST
+void printListMessage(const message_t *msg) {
+    int i;
+    for (i = 0; i < msg->vals[LIST_VAL_LEVEL]; i++) printf("    ");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
+    printf("| <%ld> %s ", msg->vals[LIST_VAL_ID], msg->text);
+    if (strcmp(msg->text, BULB) == 0) {
+        switch (msg->vals[LIST_VAL_STATE]) {
+            case 0: printf(" off\n"); break;
+            case 1: printf(" on\n"); break;
+            case 2: printf(" off (override)\n"); break;
+            case 3: printf(" on (override)\n"); break;
+        }
+    } else {
+        switch (msg->vals[LIST_VAL_STATE]) {
+            case 0: printf(" close\n"); break;
+            case 1: printf(" open\n"); break;
+            case 2: printf(" close (override)\n"); break;
+            case 3: printf(" open (override)\n"); break;
+        }
+    }
+}
 
 void listDevices() {
-    printf("Elenco componenti:\n");
-    printf("<0> controller %d children\n", listCount(children));
-    doList(children, "CONTROLLER", getpid());  //eseguo il comando LIST con comportamento  controller
+    printf("<0> controller with %d children\n", listCount(children));
+    node_t *p = *children;
+    while (p != NULL) {
+        long son = p->value;
+
+        message_t request = buildListRequest(son);
+        message_t response;
+        if (sendMessage(&request) == -1) {
+            perror("Error list request");
+        } else {
+            do {
+                if (receiveMessage(&response) == -1) {
+                    perror("Error list response");
+                } else {
+                    printListMessage(&response);
+                }
+            } while (response.vals[LIST_VAL_STOP] != 1);
+        }
+        p = p->next;
+    }
 }
 
 /**************************************** ADD ********************************************/
@@ -64,13 +102,13 @@ void delDevice(char *id) {
         printf("Error: device with id %s not found\n", id);
         return;
     }
-    message_t request = buildDieRequest(pid);
+    message_t request = buildDeleteRequest(pid);
     message_t response;
     if (sendMessage(&request) == -1) {
         perror("Error deleting device request");
     } else if (receiveMessage(&response) == -1) {
         perror("Error deleting device response");
-    } else if (strcmp(response.text, MSG_DELETE_RESPONSE) == 0) {
+    } else if (response.type == DELETE_MSG_TYPE) {
         printf("Device %s deleted\n", id);
         listRemove(children, pid);
     } else {
@@ -97,16 +135,16 @@ void linkDevices(char *id1, char *id2) {
         perror("Error linking devices request");
     } else if (receiveMessage(&response) == -1) {
         perror("Error linking devices response");
-    } else if (response.vals[0] == -1) {
+    } else if (response.vals[LINK_VAL_SUCCESS] == -1) {
         printf("Error: the device with id %s is not a control device\n", id2);
     } else {
         //  Killo il processo src già clonato
-        request = buildDieRequest(src);
+        request = buildDeleteRequest(src);
         if (sendMessage(&request) == -1) {
             perror("Error deleting device request");
         } else if (receiveMessage(&response) == -1) {
             perror("Error deleting device response");
-        } else if (strcmp(response.text, MSG_DELETE_RESPONSE) == 0) {
+        } else if (response.type == DELETE_MSG_TYPE) {
             listRemove(children, src);
             printf("Device %s linked to %s\n", id1, id2);
         }
@@ -116,17 +154,23 @@ void linkDevices(char *id1, char *id2) {
 /**************************************** SWITCH ********************************************/
 int switchDevice(char *id, char *label, char *pos) {
     printf("Modifico l'interruttore %s di %s su %s ...\n", label, id, pos);
-    int id_da_cercare = atoi(id);
-    message_t request = buildSwitchRequest(children, id_da_cercare, label, pos);
-    // se i parametri creano dei valori validi
-    if (request.vals[0] != -1 && request.vals[1] != -1) {
+    long pid = getPidById(children, atoi(id));
+    if (pid == -1) {
+        printf("Error: device with id %s not found\n", id);
+        return;
+    }
+    message_t request = buildSwitchRequest(pid, label, pos);
+    message_t response;
+
+    // Se i parametri creano dei valori validi
+    if (request.vals[SWITCH_VAL_LABEL] != -1 && request.vals[SWITCH_VAL_POS] != -1) {
         if (sendMessage(&request) == -1)
             printf("Errore comunicazione, riprova\n");
-        message_t response;
+
         if (receiveMessage(&response) == -1) {
             perror("Errore switch\n");
         } else {
-            if (response.vals[5] != -1) {
+            if (response.vals[SWITCH_VAL_SUCCESS] != -1) {
                 printf("Modifica effettuata con successo\n");
             } else {
                 printf("Errore nella modifica\n");
@@ -138,33 +182,28 @@ int switchDevice(char *id, char *label, char *pos) {
 }
 
 /**************************************** INFO ********************************************/
-//TODO: Distinguere info in base al tipo di componente
-//TODO: Se id non è un numero valido dare errore
-//TODO: Destro mappare i nomi dei compnenti con le costanti
 void infoDevice(char *id) {
-    printf("Ottengo le info da %s ...\n", id);
-    int id_da_cercare = atoi(id);
-    message_t request = buildInfoRequest(children, id_da_cercare);
-    if (sendMessage(&request) == -1) {
-        printf("Errore: destinatario invalido\n");
-        return;  //destinatario non trovato, non mi pongo in attesa di un suo messaggio
-    }
-
-    message_t response;
-    if (receiveMessage(&response) == -1) {
-        perror("Errore info device");
+    long pid = getPidById(children, atoi(id));
+    if (pid == -1) {
+        printf("Error: device with id %s not found\n", id);
         return;
     }
-
-    printf("%s ", response.text);  //stampo il nome componente
-
-    if (strcmp(response.text, BULB) == 0) {
-        if (response.vals[5] == 1)
-            printf("on");
-        else
-            printf("off");
-        printf(". Work time (time set to on) = %ld\n", response.vals[0]);
-    } else if (strcmp(response.text, HUB) == 0) {
-    } else if (strcmp(response.text, TIMER) == 0) {
+    message_t request = buildInfoRequest(pid);
+    message_t response;
+    if (sendMessage(&request) == -1) {
+        perror("Error info request");
+    } else if (receiveMessage(&response) == -1) {
+        perror("Errore info response");
+    } else {
+        printf("Type: %s, state: ", response.text);  //stampo il nome componente
+        if (strcmp(response.text, BULB) == 0) {
+            if (response.vals[INFO_VAL_STATE] == 1)
+                printf("on");
+            else
+                printf("off");
+            printf(", work time (time set to on) = %ld\n", response.vals[0]);
+        } else if (strcmp(response.text, HUB) == 0) {
+        } else if (strcmp(response.text, TIMER) == 0) {
+        }
     }
 }

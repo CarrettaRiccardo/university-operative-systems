@@ -80,3 +80,11 @@ void listPrint(list_t head) {
         printf("]\n");
     }
 }
+
+int listEmpty(list_t l) {
+    if (*l == NULL) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
