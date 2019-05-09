@@ -16,6 +16,7 @@ message_t buildInfoResponseWindow(long to_pid, short state, long open_time);
 int main(int argc, char **argv) {
     const int id = atoi(argv[1]);               // Lettura id da parametro
     short stato = 0;                            // per significato vedi sopra
+    short interruttore = 0;                     // valore interruttore (torna subito ad off (sempre off), ma se azionato apre/chiude la finestra in modo inverso)
     unsigned int open_time = 0;                 //TODO: Destro fare lettura open_time da parametro in caso di clonazione
     unsigned long last_open_time = time(NULL);  // Tempo ultima apertura lampadina
 
@@ -34,21 +35,33 @@ int main(int argc, char **argv) {
                 exit(0);
             } else if (msg.type == INFO_MSG_TYPE) {
                 time_t now = time(NULL);
-                unsigned long work_time = open_time + (now - ((stato == 0) ? now : last_open_time));  //se è chiusa ritorno solo on_time, altrimenti on_time+tempo da quanto accesa
-                message_t m = buildInfoResponseWindow(msg.sender, stato, open_time);
+                unsigned long work_time = open_time + (now - ((stato == 0) ? now : last_open_time));  //se è chiusa ritorno solo "open_time", altrimenti open_time+differenza da quanto accesa
+                message_t m = buildInfoResponseWindow(msg.sender, stato, work_time);
                 sendMessage(&m);
             } else if (msg.type == SWITCH_MSG_TYPE) {
                 int success = -1;
-                if (msg.vals[SWITCH_VAL_LABEL] == LABEL_OPEN_VALUE) {    // interruttore (apri/chiudi)
-                    if (msg.vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_VALUE) {  // chiudo
-                        stato = SWITCH_POS_OFF_VALUE;
+                if (msg.vals[SWITCH_VAL_LABEL] == LABEL_OPEN_VALUE || msg.vals[SWITCH_VAL_LABEL] == LABEL_GENERIC_SWITCH_VALUE) { // interruttore (apri/chiudi) o generico (da hub ai propri figli)
+                    // apro/chiudo (invertendo) solo se preme "on" in quanto l'interruttore sarà sempre "off"
+                    if (msg.vals[SWITCH_VAL_POS] == SWITCH_POS_ON_VALUE) {
+                        // se è chiuso, apro e salvo il tempo di apertura
+                        if (stato == SWITCH_POS_OFF_VALUE){
+                            last_open_time = time(NULL);
+                            stato = SWITCH_POS_ON_VALUE;
+                            interruttore = SWITCH_POS_OFF_VALUE;
+                        } else {
+                            // se è aperto, sommo il tempo di apertura e chiudo
+                            if (stato == SWITCH_POS_ON_VALUE){
+                                open_time += time(NULL) - last_open_time;
+                                stato = SWITCH_POS_OFF_VALUE;
+                                interruttore = SWITCH_POS_OFF_VALUE;
+                            }
+                        }
                         success = 1;
-                        open_time += time(NULL) - last_open_time;
-                        last_open_time = 0;// check TODO
-                    } else if (msg.vals[SWITCH_VAL_POS] == SWITCH_POS_ON_VALUE) {  // apro
-                        stato = SWITCH_POS_ON_VALUE;
-                        success = 1;
-                        last_open_time = time(NULL);
+                    } else{ 
+                        // se inserisce "off" non deve fare nulla in quanto l'interruttore è sempre a "off"
+                        if (msg.vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_VALUE) {
+                            success = 1;
+                        }
                     }
                 }
                 // return success or not

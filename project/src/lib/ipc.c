@@ -105,8 +105,8 @@ message_t buildLinkRequest(long to_pid, long to_clone_pid) {
 }
 
 message_t buildSwitchRequest(long to_pid, char *label, char *pos) {
-    long label_val = -1;  // 0 = interruttore (generico), 1 = termostato
-    long pos_val = -1;    // 0 = spento, 1 = acceso; x = termostato
+    long label_val = __LONG_MAX__;  // 0 = interruttore (generico), 1 = termostato
+    long pos_val = __LONG_MAX__;    // 0 = spento, 1 = acceso; x = termostato
 
     // mappo label (char*) in valori (long) per poterli inserire in un messaggio
     if (strcmp(label, LABEL_LIGHT) == 0) {
@@ -126,7 +126,7 @@ message_t buildSwitchRequest(long to_pid, char *label, char *pos) {
         }
     }
 
-    if (label_val != -1) {
+    if (label_val != __LONG_MAX__) {
         // mappo pos (char*) in valori (long) per poterli inserire in un messaggio
         if (label_val == LABEL_LIGHT_VALUE || label_val == LABEL_OPEN_VALUE) {  // se è un interrutore (luce o apri/chiudi)
             if (strcmp(pos, SWITCH_POS_OFF) == 0) {                             // "off"
@@ -149,7 +149,7 @@ message_t buildSwitchRequest(long to_pid, char *label, char *pos) {
             }
         }
     }
-    message_t ret = buildRequest(to_pid, INFO_MSG_TYPE);
+    message_t ret = buildRequest(to_pid, SWITCH_MSG_TYPE);
     ret.vals[SWITCH_VAL_LABEL] = label_val;
     ret.vals[SWITCH_VAL_POS] = pos_val;
     return ret;
@@ -291,5 +291,5 @@ int printLog(const message_t *msg) {
 }
 
 void printMsg(const message_t *msg) {
-    printf("to: %ld, sender: %ld, text: %s, v1: %ld, v2: %ld, v3: %ld, v4: %ld, v5: %ld, v6: %ld, session: %ld\n", msg->to, msg->sender, msg->text, msg->vals[0], msg->vals[1], msg->vals[2], msg->vals[3], msg->vals[4], msg->vals[5], msg->session);
+    printf("to: %ld, sender: %ld, text: %s, v0: %ld, v1: %ld, v2: %ld, v3: %ld, v4: %ld, v5: %ld, session: %ld\n", msg->to, msg->sender, msg->text, msg->vals[0], msg->vals[1], msg->vals[2], msg->vals[3], msg->vals[4], msg->vals[5], msg->session);
 }

@@ -163,7 +163,7 @@ int switchDevice(char *id, char *label, char *pos) {
     message_t response;
 
     // Se i parametri creano dei valori validi
-    if (request.vals[SWITCH_VAL_LABEL] != -1 && request.vals[SWITCH_VAL_POS] != -1) {
+    if (request.vals[SWITCH_VAL_LABEL] != __LONG_MAX__ && request.vals[SWITCH_VAL_POS] != __LONG_MAX__) {
         if (sendMessage(&request) == -1)
             printf("Errore comunicazione, riprova\n");
 
@@ -197,13 +197,30 @@ void infoDevice(char *id) {
     } else {
         printf("Type: %s, state: ", response.text);  //stampo il nome componente
         if (strcmp(response.text, BULB) == 0) {
-            if (response.vals[INFO_VAL_STATE] == 1)
+            if (response.vals[INFO_VAL_STATE] == SWITCH_POS_ON_VALUE)
                 printf("on");
             else
                 printf("off");
-            printf(", work time (time set to on) = %ld\n", response.vals[0]);
+            printf(", work time (time set to on) = %ld\n", response.vals[1]);
+        } else if (strcmp(response.text, WINDOW) == 0) {
+            if (response.vals[INFO_VAL_STATE] == SWITCH_POS_ON_VALUE)
+                printf("opened");
+            else
+                printf("closed");
+            printf(", total opened time = %ld\n", response.vals[1]);
+        } else if (strcmp(response.text, FRIDGE) == 0) {
+            if (response.vals[INFO_VAL_STATE] == SWITCH_POS_ON_VALUE)
+                printf("opened");
+            else
+                printf("closed");
+            printf(", total opened time = %ld", response.vals[1]);
+            printf(", delay = %ld", response.vals[2]);
+            printf(", temperature = %ld", response.vals[3]);
+            printf(", percent filled = %ld\n", response.vals[4]);
         } else if (strcmp(response.text, HUB) == 0) {
+            // TODO
         } else if (strcmp(response.text, TIMER) == 0) {
+            // TODO
         }
     }
 }
