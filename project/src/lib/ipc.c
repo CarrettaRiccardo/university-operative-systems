@@ -3,73 +3,31 @@
 #include "../include/constants.h"
 
 ///////////////////////////////////////////////  WORKERS ///////////////////////////////////////////////
-void doList(list_t figli, const char *mode, long responde_to) {
-    if (strcmp(mode, CONTROLLER) == 0) {
-        node_t *p = *figli;
-        while (p != NULL) {
-            long son = p->value;
+void doList(list_t figli, char *nome, long responde_to) {
+    //Nei dispositivi di CONTROLLO bisogna iniziare un messaggio al padre con i propri dati con value5=0 per indentare correttamente
+    node_t *p = *figli;
+    while (p != NULL) {
+        long son = p->value;
+        message_t request = buildListRequest(son);
+        if (sendMessage(&request) == -1)
+            printf("Errore invio msg LIST al pid %ld: %s\n", son, strerror(errno));
 
-            message_t request = buildListRequest(son);
-            if (sendMessage(&request) == -1)
-                printf("Errore invio msg LIST al pid %ld: %s\n", son, strerror(errno));
-            message_t response;
-            do {
-                if (receiveMessage(&response) != -1) {
-                    printListMessage(&response);  //TODO: Controllare sia un messaggio di LIST e non di altro tipo
-                }
-            } while (response.vals[4] != 1);
-            p = p->next;
-        }
-    } else if (strcmp(mode, CONTROL_DEVICE) == 0) {
-        //Nei dispositivi di CONTROLLO bisogna iniziare un messaggio al padre con i propri dati con value5=0 per indentare correttamente
-        node_t *p = *figli;
-        while (p != NULL) {
-            long son = p->value;
-            message_t request = buildListRequest(son);
-            if (sendMessage(&request) == -1)
-                printf("Errore invio msg LIST al pid %ld: %s\n", son, strerror(errno));
-
-            message_t response;
-            do {
-                receiveMessage(&response);
-                //TODO: Controllare sia un messaggio di LIST e non di altro tipo
-                response.to = responde_to;  //cambio il destinatario per farlo arrivare al Controller
-                response.vals[0] += 1;      //  Aumento il valore "livello"
-                sendMessage(&response);
-            } while (response.vals[4] != 1);
-            p = p->next;
-        }
-        message_t endResponse = buildListResponse(responde_to, CONTROL_DEVICE, -1, -1, 1, -1);  //Comando di stop dell' HUB o del TIMER
-        sendMessage(&endResponse);
+        message_t response;
+        do {
+            receiveMessage(&response);
+            //TODO: Controllare sia un messaggio di LIST e non di altro tipo
+            response.to = responde_to;  //cambio il destinatario per farlo arrivare al Controller
+            response.vals[0] += 1;      //  Aumento il valore "livello"
+            sendMessage(&response);
+        } while (response.vals[4] != 1);
+        p = p->next;
     }
+    message_t endResponse = buildListResponse(responde_to, nome, -1, -1, 1, -1);  //Comando di stop dell' HUB o del TIMER
+    sendMessage(&endResponse);
 }
 
 void printMsg(const message_t *msg) {
     printf("to: %ld, sender: %ld, text: %s, v1: %ld, v2: %ld, v3: %ld, v4: %ld, v5: %ld, v6: %ld, session: %ld\n", msg->to, msg->sender, msg->text, msg->vals[0], msg->vals[1], msg->vals[2], msg->vals[3], msg->vals[4], msg->vals[5], msg->session);
-}
-
-//Metodo di comodo per stampare le Info da mostrare nel comando LIST
-void printListMessage(const message_t const *msg) {
-    if (strcmp(msg->text, CONTROL_DEVICE) == 0) return;  // Se è un dispositivo di controllo non devo stampare le sue info, indica solo fine scansione di quel sotto_albero
-    int i;
-    for (i = 0; i < msg->vals[0]; i++) printf("   ");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
-
-    printf("| <%ld> %s ", msg->vals[2], msg->text);
-    if (strcmp(msg->text, BULB) == 0) {
-        switch (msg->vals[5]) {
-            case 0: printf(" off\n"); break;
-            case 1: printf(" on\n"); break;
-            case 2: printf(" off (override)\n"); break;
-            case 3: printf(" on (override)\n"); break;
-        }
-    } else {
-        switch (msg->vals[5]) {
-            case 0: printf(" open\n"); break;
-            case 1: printf(" close\n"); break;
-            case 2: printf(" open (override)\n"); break;
-            case 3: printf(" close (override)\n"); break;
-        }
-    }
 }
 
 void doLink(list_t figli, long to_clone_pid, long sender, const char *base_dir) {

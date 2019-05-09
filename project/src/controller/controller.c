@@ -33,7 +33,45 @@ void controllerDestroy() {
 void listDevices() {
     printf("Elenco componenti:\n");
     printf("<0> controller %d children\n", listCount(children));
-    doList(children, "CONTROLLER", getpid());  //eseguo il comando LIST con comportamento  controller
+    node_t *p = *children;
+    while (p != NULL) {
+        long son = p->value;
+
+        message_t request = buildListRequest(son);
+        message_t response;
+        if (sendMessage(&request) == -1) {
+            perror("Error list request");
+        } else {
+            do {
+                if (receiveMessage(&response) != -1) {
+                    printListMessage(&response);  //TODO: Controllare sia un messaggio di LIST e non di altro tipo
+                }
+            } while (response.vals[4] != 1);
+        }
+        p = p->next;
+    }
+}
+
+// Metodo di comodo per stampare le Info da mostrare nel comando LIST
+void printListMessage(const message_t const *msg) {
+    int i;
+    for (i = 0; i < msg->vals[0]; i++) printf("    ");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
+    printf("| <%ld> %s ", msg->vals[2], msg->text);
+    if (strcmp(msg->text, BULB) == 0) {
+        switch (msg->vals[5]) {
+            case 0: printf(" off\n"); break;
+            case 1: printf(" on\n"); break;
+            case 2: printf(" off (override)\n"); break;
+            case 3: printf(" on (override)\n"); break;
+        }
+    } else {
+        switch (msg->vals[5]) {
+            case 0: printf(" close\n"); break;
+            case 1: printf(" open\n"); break;
+            case 2: printf(" close (override)\n"); break;
+            case 3: printf(" open (override)\n"); break;
+        }
+    }
 }
 
 /**************************************** ADD ********************************************/

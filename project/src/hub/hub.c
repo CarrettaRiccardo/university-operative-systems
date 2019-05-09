@@ -41,9 +41,10 @@ int main(int argc, char **argv) {
                 message_t m = buildTranslateResponse(id, msg.vals[0], msg.sender);
                 sendMessage(&m);
             } else if (strcmp(msg.text, MSG_LIST) == 0) {
+                //  Risponde con i propri dati e inoltra la richiesta ai figli
                 message_t m = buildListResponse(msg.sender, HUB, 0, msg.vals[0], 0, id);
                 sendMessage(&m);
-                doList(children, CONTROL_DEVICE, msg.sender);
+                doList(children, HUB, msg.sender);
             }
         }
     }
