@@ -200,6 +200,7 @@ message_t buildTranslateResponse(long to_pid, long found) {
 //Esegue ricorsivamente nei figli di un dispositivo di controllo il TRANSLATE
 message_t buildTranslateResponseControl(long sender, int my_id, int search, list_t children){
     if (my_id == search){
+        printf("Sono io %ld", search);
         return buildTranslateResponse(sender, getppid());
     }
     else{
