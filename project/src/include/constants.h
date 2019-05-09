@@ -27,14 +27,19 @@
 // CLONE (ogni dispositivo manderà valori diversi)
 #define CLONE_MSG_TYPE 4
 
+// GET CHILDREN
+#define GET_CHILDREN_MSG_TYPE 5
+#define GET_CHILDREN_VAL_POS 0
+#define GET_CHILDREN_VAL_ID 1
+
 // SWITCH
-#define SWITCH_MSG_TYPE 5
+#define SWITCH_MSG_TYPE 6
 #define SWITCH_VAL_LABEL 0
 #define SWITCH_VAL_POS 1
 #define SWITCH_VAL_SUCCESS 2
 
 // TRANSLATE
-#define TRANSLATE_MSG_TYPE 6
+#define TRANSLATE_MSG_TYPE 7
 #define TRANSLATE_VAL_FOUND 0
 #define TRANSLATE_VAL_ID 1
 //  Parametri messaggi

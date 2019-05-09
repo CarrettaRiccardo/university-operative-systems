@@ -52,7 +52,7 @@ void printListMessage(const message_t *msg) {
 }
 
 void listDevices() {
-    printf("<0> controller with %d children\n", listCount(children));
+    printf("<0> controller, register: num = %d\n", listCount(children));
     node_t *p = *children;
     while (p != NULL) {
         long son = p->value;

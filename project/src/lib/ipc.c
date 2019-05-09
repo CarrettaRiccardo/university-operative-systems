@@ -51,6 +51,7 @@ void doLink(list_t children, long to_clone_pid, long sender, const char *base_di
                 snprintf(args[i], 10, "%ld", response.vals[i - 1]);
             }
             args[NVAL + 1] = NULL;
+            printf("Cloning from %s\n", args[0]);
             if (execvp(args[0], args) == -1) {
                 perror("Clone error in doLink");
             }
@@ -96,6 +97,9 @@ message_t buildListRequest(long to_pid) {
 
 message_t buildCloneRequest(long to_pid) {
     return buildRequest(to_pid, CLONE_MSG_TYPE);
+}
+message_t buildGetChildRequest(long to_pid) {
+    return buildRequest(to_pid, GET_CHILDREN_MSG_TYPE);
 }
 
 message_t buildLinkRequest(long to_pid, long to_clone_pid) {
@@ -198,6 +202,12 @@ message_t buildCloneResponse(long to_pid, const char *component_type, const long
     strcpy(ret.text, component_type);
     int i;
     for (i = 0; i < NVAL; i++) ret.vals[i] = vals[i];  // Copio i valori nella risposta
+    return ret;
+}
+
+message_t buildGetChildResponse(long to_pid, int child_pid) {
+    message_t ret = buildResponse(to_pid, GET_CHILDREN_MSG_TYPE);
+    ret.vals[GET_CHILDREN_VAL_ID] = child_pid;
     return ret;
 }
 

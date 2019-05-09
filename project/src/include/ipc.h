@@ -38,6 +38,7 @@ message_t buildDeleteRequest(long to_pid);
 message_t buildListRequest(long to_pid);
 message_t buildSwitchRequest(long to_pid, char* label, char* pos);
 message_t buildCloneRequest(long to_pid);
+message_t buildGetChildRequest(long to_pid);
 message_t buildLinkRequest(long to_pid, long to_clone_pid);
 
 /////////////////////////////// RESPONSES ///////////////////////////////
@@ -48,6 +49,7 @@ message_t buildTranslateResponse(long to_pid, short found);
 message_t buildDeleteResponse(long to_pid);
 message_t buildListResponse(long to_pid, const char* component_type, int id, int lv, short state, short stop);
 message_t buildCloneResponse(long to_pid, const char* component_type, const long vals[]);
+message_t buildGetChildResponse(long to_pid, int child_pid);
 message_t buildLinkResponse(long to_pid, short success);
 
 /////////////////////////////// IPC ///////////////////////////////

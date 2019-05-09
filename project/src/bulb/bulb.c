@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
         on_time = atoi(argv[3]);
         last_start_time = atoi(argv[4]);
         //  Invia la conferma al padre
-        message_t confirm_clone = buildLinkResponse(getppid(), 0);
+        message_t confirm_clone = buildLinkResponse(getppid(), 1);
         sendMessage(&confirm_clone);
     }
     while (1) {
