@@ -17,13 +17,13 @@ int main(int argc, char **argv) {
     const int mqid = getMq();                 //Ottengo accesso per la MailBox
     const int sessione = (int)atoi(argv[1]);  //Ottengo il valore di sessione passato da mio padre
 
-    short stato = 0;         //0 = chiusa, 1 = aperta
-    short interruttore = 0;  //0 = fermo, 1 = apertura/chiusura (torna subito ad off, ma se azionato apre la porta o la chiude)
-    short delay = 0;         // tempo di chiusura automatica porta
-    short temperatura = 0;   // temperatura interna
-    short perc = 0;          // percentuale riempimento (0-100%)
-    unsigned long last_open_time = 0; // time ultima apertura
-    unsigned int tempo = 0;      //tempo apertura porta
+    short stato = 0;                   //0 = chiusa, 1 = aperta
+    short interruttore = 0;            //0 = fermo, 1 = apertura/chiusura (torna subito ad off, ma se azionato apre la porta o la chiude)
+    short delay = 0;                   // tempo di chiusura automatica porta
+    short temperatura = 0;             // temperatura interna
+    short perc = 0;                    // percentuale riempimento (0-100%)
+    unsigned long last_open_time = 0;  // time ultima apertura
+    unsigned int tempo = 0;            //tempo apertura porta
 
     if (sessione == 0) {                       //Sessione diversa da quella corrente.
         printf("Errore sessione reader = 0");  //TODO: Gestire correttamente la morte  del processo
@@ -36,13 +36,12 @@ int main(int argc, char **argv) {
 
         /* UPDATE: ad ogni ricezione di messaggio, aggiorno le proprietà del fridge */
         // controllo se il tempo di chiusura automatica è superato
-        if (stato == SWITCH_POS_ON_VALUE && last_open_time + delay <= time(NULL)){
+        if (stato == SWITCH_POS_ON_VALUE && last_open_time + delay <= time(NULL)) {
             // se sì, sommo il "delay" al tempo di apertura...
             tempo += delay;
             // ...e chiudo automaticamente la porta
             stato = SWITCH_POS_OFF_VALUE;
         }
-
 
         if (strcmp(msg.text, "ECHO") == 0) {
             //Message m = {.to = getppid(), .session = sessione, .value = tempo, .state = stato};
@@ -54,8 +53,8 @@ int main(int argc, char **argv) {
             sendMessage(&m);
         } else if (msg.type == SWITCH_MSG_TYPE) {
             int success = -1;
-            if (msg.vals[SWITCH_VAL_LABEL] == LABEL_OPEN_VALUE || msg.vals[SWITCH_VAL_LABEL] == LABEL_GENERIC_SWITCH_VALUE) { // interruttore (apri/chiudi) o generico (da hub ai propri figli)
-                if (msg.vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_VALUE) {  // chiudo
+            if (msg.vals[SWITCH_VAL_LABEL] == LABEL_OPEN_VALUE || msg.vals[SWITCH_VAL_LABEL] == LABEL_GENERIC_SWITCH_VALUE) {  // interruttore (apri/chiudi) o generico (da hub ai propri figli)
+                if (msg.vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_VALUE) {                                                        // chiudo
                     // controllo se il tempo di chiusura automatica NON è superato
                     if (stato == SWITCH_POS_ON_VALUE && last_open_time + delay > time(NULL)) {
                         // se non lo è (quindi deve ancora chiudersi automaticamente), sommo la differenza di tempo attuale al tempo di apertura...
@@ -78,9 +77,9 @@ int main(int argc, char **argv) {
                     // altrimenti è gia su "on"
                     success = 1;
                 }
-            } else { 
-                if (msg.vals[SWITCH_VAL_LABEL] == LABEL_TERM_VALUE) {   // termostato
-                    if (msg.vals[SWITCH_VAL_POS] != __LONG_MAX__) {  // cambio valore
+            } else {
+                if (msg.vals[SWITCH_VAL_LABEL] == LABEL_TERM_VALUE) {  // termostato
+                    if (msg.vals[SWITCH_VAL_POS] != __LONG_MAX__) {    // cambio valore
                         temperatura = (short)msg.vals[SWITCH_VAL_POS];
                         success = 1;
                         tempo += time(NULL) - last_open_time;
