@@ -11,25 +11,30 @@ TODO: Gestire i vari stati : 0=spenta 1=accesa 2=spenta manually 3=accesa manual
 
 #include "../include/ipc.h"
 
-int id;
-short stato;
-unsigned int on_time;
-unsigned long last_start_time;
 
 /* Override specifico per il metodo definito in IPC */
 message_t buildInfoResponseBulb(long to_pid, short state, long work_time);
 
 int main(int argc, char **argv) {
+    int id;
+    short stato;
+    short interruttore; // valore interruttore che è 1 a 1 con lo stato
+    unsigned int on_time;
+    unsigned long last_start_time;
+
+
     id = atoi(argv[1]);  // Lettura id da parametro
     //  Creazione nuova bulb
     if (argc <= 2) {
         stato = 0;                     // 0 = spenta, 1 = accesa
+        interruttore = stato;
         on_time = 0;                   //TODO: Destro fare lettura on_time da parametro in caso di clonazione
-        last_start_time = time(NULL);  // Tempo accensione lampadina
+        last_start_time = time(NULL);          // Tempo accensione lampadina
     }
     //  Inzializzazione parametri da richiesta clone
     else {
         stato = atoi(argv[2]);
+        interruttore = stato;
         on_time = atoi(argv[3]);
         last_start_time = atoi(argv[4]);
         //  Invia la conferma al padre
@@ -50,26 +55,33 @@ int main(int argc, char **argv) {
                 exit(0);
             } else if (msg.type == INFO_MSG_TYPE) {
                 time_t now = time(NULL);
-                unsigned long work_time = on_time + (now - ((stato == 0) ? now : last_start_time));  //se è spenta ritorno solo on_time, altrimenti on_time+tempo da quanto accesa
+                unsigned long work_time = on_time + (now - ((stato == SWITCH_POS_OFF_VALUE) ? now : last_start_time));  //se è spenta ritorno solo "on_time", altrimenti on_time+differenza da quanto accesa
                 message_t m = buildInfoResponseBulb(msg.sender, stato, work_time);
                 sendMessage(&m);
             } else if (msg.type == SWITCH_MSG_TYPE) {
                 int success = -1;
-                if (msg.vals[0] == LABEL_LIGHT_VALUE) {         // interruttore (luce)
-                    if (msg.vals[1] == SWITCH_POS_OFF_VALUE) {  // spengo
-                        stato = SWITCH_POS_OFF_VALUE;
+                if (msg.vals[SWITCH_VAL_LABEL] == LABEL_LIGHT_VALUE || msg.vals[SWITCH_VAL_LABEL] == LABEL_GENERIC_SWITCH_VALUE) { // interruttore (luce) o generico (da hub ai propri figli)
+                    if (msg.vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_VALUE) {  // spengo
+                        // se è accesa, sommo il tempo di accensione e spengo
+                        if (interruttore == SWITCH_POS_ON_VALUE){
+                            on_time += time(NULL) - last_start_time;
+                            interruttore = SWITCH_POS_OFF_VALUE;
+                            stato = interruttore;
+                        }
                         success = 1;
-                        on_time += time(NULL) - last_start_time;
-                        last_start_time = 0;
                     }
-                    if (msg.vals[1] == SWITCH_POS_ON_VALUE) {  // accendo
-                        stato = SWITCH_POS_ON_VALUE;
+                    if (msg.vals[SWITCH_VAL_POS] == SWITCH_POS_ON_VALUE) {  // accendo
+                        // se è spenta, accendo e salvo il tempo di accensione
+                        if (interruttore == SWITCH_POS_OFF_VALUE){
+                            last_start_time = time(NULL);
+                            interruttore = SWITCH_POS_ON_VALUE;
+                            stato = interruttore;
+                        }
                         success = 1;
-                        last_start_time = time(NULL);
                     }
                 }
                 // return success or not
-                message_t m = buildSwitchResponse(success, msg.sender);
+                message_t m = buildSwitchResponse(msg.sender, success);
                 sendMessage(&m);
             } else if (msg.type == TRANSLATE_MSG_TYPE) {
                 message_t m = buildTranslateResponse(msg.sender, msg.vals[TRANSLATE_VAL_ID] == id ? 1 : 0);
