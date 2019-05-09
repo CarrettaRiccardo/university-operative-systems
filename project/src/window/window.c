@@ -11,9 +11,7 @@ TODO: Gestire i vari stati : 0=chiusa 1=aperta 2=chiusa manually 3=aprta manuall
 #include "../include/ipc.h"
 
 /* Override specifico per il metodo definito in IPC */
-message_t buildInfoResponseWindow(const long id, const short stato,
-                                  const int to, const char *tipo_componente,
-                                  const long open_time);
+message_t buildInfoResponseWindow(long to_pid, short state, long open_time);
 
 int main(int argc, char **argv) {
     const int id = atoi(argv[1]);               // Lettura id da parametro
@@ -30,26 +28,25 @@ int main(int argc, char **argv) {
             if (msg.to == -1)
                 continue;  // Messaggio da ignorare (per sessione diversa/altri casi)
 
-            if (strcmp(msg.text, MSG_DELETE_REQUEST) == 0) {
-                message_t m = buildDieResponse(msg.sender);
+            if (msg.type == DELETE_MSG_TYPE) {
+                message_t m = buildDeleteResponse(msg.sender);
                 sendMessage(&m);
                 exit(0);
-            } else if (strcmp(msg.text, INFO_REQUEST) == 0) {
+            } else if (msg.type == INFO_MSG_TYPE) {
                 time_t now = time(NULL);
                 unsigned long work_time = open_time + (now - ((stato == 0) ? now : last_open_time));  //se è chiusa ritorno solo on_time, altrimenti on_time+tempo da quanto accesa
-                message_t m = buildInfoResponseWindow(id, stato, msg.sender, WINDOW, work_time);
+                message_t m = buildInfoResponseWindow(msg.sender, stato, open_time);
                 sendMessage(&m);
-            } else if (strcmp(msg.text, MSG_SWITCH) == 0) {
+            } else if (msg.type == SWITCH_MSG_TYPE) {
                 int success = -1;
-                if (msg.vals[0] == 0) {      // interruttore (generico)
-                    if (msg.vals[1] == 0) {  // chiudo
+                if (msg.vals[SWITCH_VAL_LABEL] == 0) {    // interruttore (generico)
+                    if (msg.vals[SWITCH_VAL_POS] == 0) {  // chiudo
                         stato = 0;
                         success = 0;
 
                         open_time += time(NULL) - last_open_time;
                         last_open_time = 0;
-                    }
-                    if (msg.vals[1] == 1) {  // apro
+                    } else if (msg.vals[SWITCH_VAL_POS] == 1) {  // apro
                         stato = 1;
                         success = 0;
 
@@ -59,11 +56,11 @@ int main(int argc, char **argv) {
                 // return success or not
                 message_t m = buildSwitchResponse(success, msg.sender);
                 sendMessage(&m);
-            } else if (strcmp(msg.text, MSG_TRANSLATE) == 0) {
-                message_t m = buildTranslateResponse(id, msg.vals[0], msg.sender);
+            } else if (msg.type == TRANSLATE_MSG_TYPE) {
+                message_t m = buildTranslateResponse(msg.sender, msg.vals[TRANSLATE_VAL_ID] == id ? 1 : 0);
                 sendMessage(&m);
-            } else if (strcmp(msg.text, MSG_LIST) == 0) {  // Caso base per la LIST. value5 = 1 per indicare fine albero
-                message_t m = buildListResponse(msg.sender, WINDOW, stato, msg.vals[0], 1, id);
+            } else if (msg.type == LIST_MSG_TYPE) {
+                message_t m = buildListResponse(msg.sender, WINDOW, id, msg.vals[0], stato, 1);
                 sendMessage(&m);
             }
         }
@@ -71,8 +68,9 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-message_t buildInfoResponseWindow(const long id, const short stato, const int to, const char *tipo_componente, const long work_time) {
-    message_t ret = buildInfoResponse(id, stato, to, tipo_componente);
-    ret.vals[0] = work_time;
+message_t buildInfoResponseWindow(long to_pid, short state, long open_time) {
+    message_t ret = buildInfoResponse(to_pid, WINDOW);
+    ret.vals[INFO_VAL_STATE] = state;
+    ret.vals[1] = open_time;
     return ret;
 }

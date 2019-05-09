@@ -26,25 +26,28 @@ int main(int argc, char **argv) {
         if (receiveMessage(&msg) == -1) {
             perror("HUB: Error receive message");
         } else {
-            if (strcmp(msg.text, INFO_REQUEST) == 0) {
+            if (msg.type == INFO_MSG_TYPE) {
                 // ritorna info
-            } else if (strcmp(msg.text, MSG_SWITCH) == 0) {
+            } else if (msg.type == SWITCH_MSG_TYPE) {
                 // apertura/chiusura
-            } else if (strcmp(msg.text, MSG_LINK) == 0) {
+            } else if (msg.type == LINK_MSG_TYPE) {
                 doLink(children, msg.vals[0], msg.sender, base_dir);
-            } else if (strcmp(msg.text, MSG_SWITCH) == 0) {
-                // switch
-                // da gestire
-            } else if (strcmp(msg.text, MSG_DELETE_REQUEST) == 0) {
+            } else if (msg.type == DELETE_MSG_TYPE) {
                 exit(0);
-            } else if (strcmp(msg.text, MSG_TRANSLATE) == 0) {
-                message_t m = buildTranslateResponse(id, msg.vals[0], msg.sender);
+            } else if (msg.type == TRANSLATE_MSG_TYPE) {
+                message_t m = buildTranslateResponse(msg.sender, msg.vals[TRANSLATE_VAL_ID] == id ? 1 : 0);
                 sendMessage(&m);
-            } else if (strcmp(msg.text, MSG_LIST) == 0) {
+            } else if (msg.type == LIST_MSG_TYPE) {
                 //  Risponde con i propri dati e inoltra la richiesta ai figli
-                message_t m = buildListResponse(msg.sender, HUB, 0, msg.vals[0], 0, id);
-                sendMessage(&m);
-                doList(children, HUB, msg.sender);
+                message_t m;
+                if (listEmpty(children)) {
+                    m = buildListResponse(msg.sender, HUB, id, msg.vals[0], 0, 1);
+                    sendMessage(&m);
+                } else {
+                    m = buildListResponse(msg.sender, HUB, id, msg.vals[0], 0, 0);
+                    sendMessage(&m);
+                    doList(msg.sender, children);
+                }
             }
         }
     }
