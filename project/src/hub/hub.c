@@ -30,15 +30,14 @@ int main(int argc, char **argv) {
         do {
             receiveMessage(&response);
             child_pid = response.vals[GET_CHILDREN_VAL_ID];
-            printf("Received child pid: %ld\n", child_pid);
             if (child_pid != -1) {
+                printf("doLink (1) da %d con id %d\n", getpid(), id);
                 doLink(children, child_pid, getppid(), base_dir);
                 message_t ack = buildResponse(to_clone_pid, -1);
                 sendMessage(&ack);
             }
         } while (child_pid != -1);
         //  Invia la conferma al padre
-        printf("Sending confirm clone\n");
         message_t confirm_clone = buildLinkResponse(getppid(), 1);
         sendMessage(&confirm_clone);
     }
@@ -53,7 +52,8 @@ int main(int argc, char **argv) {
             } else if (msg.type == SWITCH_MSG_TYPE) {
                 // apertura/chiusura
             } else if (msg.type == LINK_MSG_TYPE) {
-                doLink(children, msg.vals[0], msg.sender, base_dir);
+                printf("doLink (2) da %d con id %d\n", getpid(), id);
+                doLink(children, msg.vals[LINK_VAL_PID], msg.sender, base_dir);
             } else if (msg.type == DELETE_MSG_TYPE) {
                 message_t m = buildDeleteResponse(msg.sender);
                 sendMessage(&m);
