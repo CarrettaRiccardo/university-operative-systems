@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
                     }
                 }
                 // return success or not
-                message_t m = buildSwitchResponse(success, msg.sender);
+                message_t m = buildSwitchResponse(msg.sender, success);
                 sendMessage(&m);
             } else if (msg.type == TRANSLATE_MSG_TYPE) {
                 message_t m = buildTranslateResponse(msg.sender, msg.vals[TRANSLATE_VAL_ID] == id ? 1 : 0);

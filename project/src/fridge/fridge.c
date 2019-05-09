@@ -88,7 +88,7 @@ int main(int argc, char **argv) {
                 }
             }
             // return success or not
-            message_t m = buildSwitchResponse(success, msg.sender);
+            message_t m = buildSwitchResponse(msg.sender, success);
             sendMessage(&m);
 
             /*
