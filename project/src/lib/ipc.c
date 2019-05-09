@@ -51,7 +51,6 @@ void doLink(list_t children, long to_clone_pid, long sender, const char *base_di
                 snprintf(args[i], 10, "%ld", response.vals[i - 1]);
             }
             args[NVAL + 1] = NULL;
-            printf("Cloning from %s\n", args[0]);
             if (execvp(args[0], args) == -1) {
                 perror("Clone error in doLink");
             }
