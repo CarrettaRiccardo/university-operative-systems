@@ -121,32 +121,44 @@ message_t buildSwitchRequest(list_t figli, long to_id, char *label, char *pos) {
         printf("Id %ld non trovato\n", to_id);
     else {
         // mappo label (char*) in valori (long) per poterli inserire in un messaggio
-        if (strcmp(label, LABEL_LIGHT) == 0 || (strcmp(label, LABEL_OPEN) == 0)) {
-            // 0 = interruttore (generico)
-            label_val = 0;
+        if (strcmp(label, LABEL_LIGHT) == 0) {
+            // 0 = interruttore (luce)
+            label_val = LABEL_LIGHT_VALUE;
         } else {
-            if (strcmp(label, LABEL_LIGHT) == 0) {
-                // 1 = termostato
-                label_val = 1;
+            if (strcmp(label, LABEL_OPEN) == 0) {
+                // 1 = interruttore (apri/chiudi)
+                label_val = LABEL_OPEN_VALUE;
+            } else {
+                if (strcmp(label, LABEL_TERM) == 0) {
+                    // 2 = termostato
+                    label_val = LABEL_TERM_VALUE;
+                }
+                else {
+                    // valore non valido
+                }
             }
-            // altrimenti è un valore non valido
         }
 
         if (label_val != -1) {
             // mappo pos (char*) in valori (long) per poterli inserire in un messaggio
-            if (strcmp(pos, SWITCH_POS_OFF) == 0 && label_val == 0) {
-                // 0 = spento/chiuso (generico)
-                pos_val = 0;
-            } else {
-                if (strcmp(pos, SWITCH_POS_ON) == 0 && label_val == 0) {
-                    // 1 = acceso/aperto (generico)
-                    pos_val = 1;
-                }
-                // altrimenti è un valore valido solo se è un numero e la label è termostato
-                else {
-                    if (label_val == 1 && atol(pos) != -1) {
-                        pos_val = atol(pos);
+            if (label_val == LABEL_LIGHT_VALUE || label_val == LABEL_OPEN_VALUE) {// se è un interrutore (luce o apri/chiudi)
+                if (strcmp(pos, SWITCH_POS_OFF) == 0){// "off"
+                    // 0 = spento/chiuso (generico)
+                    pos_val = SWITCH_POS_OFF_VALUE;
+                } else {
+                    if (strcmp(pos, SWITCH_POS_ON) == 0){// "on"
+                        // 1 = acceso/aperto (generico)
+                        pos_val = SWITCH_POS_ON_VALUE;
+                    } else {
+                        // valore non valido
                     }
+                }
+            } else {
+                if (label_val == LABEL_TERM_VALUE && atol(pos) != 0) {// è un valore valido solo se è un numero e la label è termostato (2)
+                    // x = valore termostato
+                    pos_val = atol(pos);
+                } else {
+                    // valore non valido
                 }
             }
         }
