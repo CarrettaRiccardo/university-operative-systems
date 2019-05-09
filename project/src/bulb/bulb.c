@@ -21,6 +21,7 @@ int main(int argc, char **argv) {
     short interruttore; // valore interruttore che è 1 a 1 con lo stato
     unsigned int on_time;
     unsigned long last_start_time;
+    unsigned int controller_pid; //Aggiunto da Steve in forma temporanea
 
 
     id = atoi(argv[1]);  // Lettura id da parametro
@@ -49,9 +50,13 @@ int main(int argc, char **argv) {
         } else {
             if (msg.to == -1) continue;  // Messaggio da ignorare (per sessione diversa/altri casi)
 
-            if (msg.type == DELETE_MSG_TYPE) {
+            if (msg.type == DELETE_MSG_TYPE) { //TODO: Gestire il caso del DELETE da override, che porta ad un problema percheè sender!=ppi ma il controller non sta in ascolto di messaggi
                 message_t m = buildDeleteResponse(msg.sender);
                 sendMessage(&m);
+                if(getppid() != msg.sender && getppid() != controller_pid){ //sto morendo, invio conferma di ricezione al mittente, e nel caso che il mittente non sia mio padre, invio un messaggio a mio padre di rimuovermi dalla lista dei suoi figli
+                    message_t m = buildDieMessage(getppid());
+                    sendMessage(&m);
+                }
                 exit(0);
             } else if (msg.type == INFO_MSG_TYPE) {
                 time_t now = time(NULL);

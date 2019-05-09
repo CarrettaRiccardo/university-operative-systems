@@ -28,44 +28,74 @@ void controllerDestroy() {
     free(base_dir);
 }
 
-/**************************************** LIST ********************************************/
-// Metodo di comodo per stampare le Info da mostrare nel comando LIST
-void printListMessage(const message_t *msg) {
+// Metodo di comodo per stampare le Info da mostrare nel comando LIST. Solo per Controller
+void printListMessage(const message_t *msg)
+{
     int i;
-    for (i = 0; i < msg->vals[LIST_VAL_LEVEL]; i++) printf("    ");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
+    for (i = 0; i < msg->vals[LIST_VAL_LEVEL]; i++)
+        printf("    "); // Stampa x \t, dove x = lv (profondità componente, per indentazione)
     printf("| <%ld> %s ", msg->vals[LIST_VAL_ID], msg->text);
-    if (strcmp(msg->text, BULB) == 0) {
-        switch (msg->vals[LIST_VAL_STATE]) {
-            case 0: printf(" off\n"); break;
-            case 1: printf(" on\n"); break;
-            case 2: printf(" off (override)\n"); break;
-            case 3: printf(" on (override)\n"); break;
+    if (strcmp(msg->text, BULB) == 0)
+    {
+        switch (msg->vals[LIST_VAL_STATE])
+        {
+        case 0:
+            printf(" off\n");
+            break;
+        case 1:
+            printf(" on\n");
+            break;
+        case 2:
+            printf(" off (override)\n");
+            break;
+        case 3:
+            printf(" on (override)\n");
+            break;
         }
-    } else {
-        switch (msg->vals[LIST_VAL_STATE]) {
-            case 0: printf(" close\n"); break;
-            case 1: printf(" open\n"); break;
-            case 2: printf(" close (override)\n"); break;
-            case 3: printf(" open (override)\n"); break;
+    }
+    else
+    {
+        switch (msg->vals[LIST_VAL_STATE])
+        {
+        case 0:
+            printf(" close\n");
+            break;
+        case 1:
+            printf(" open\n");
+            break;
+        case 2:
+            printf(" close (override)\n");
+            break;
+        case 3:
+            printf(" open (override)\n");
+            break;
         }
     }
 }
 
+/**************************************** LIST ********************************************/
 void listDevices() {
     printf("<0> controller, register: num = %d\n", listCount(children));
     node_t *p = *children;
-    while (p != NULL) {
+    while (p != NULL)
+    {
         long son = p->value;
-
         message_t request = buildListRequest(son);
         message_t response;
-        if (sendMessage(&request) == -1) {
+        if (sendMessage(&request) == -1)
+        {
             perror("Error list request");
-        } else {
-            do {
-                if (receiveMessage(&response) == -1) {
+        }
+        else
+        {
+            do
+            {
+                if (receiveMessage(&response) == -1)
+                {
                     perror("Error list response");
-                } else {
+                }
+                else
+                {
                     printListMessage(&response);
                 }
             } while (response.vals[LIST_VAL_STOP] != 1);
@@ -73,6 +103,8 @@ void listDevices() {
         p = p->next;
     }
 }
+
+
 
 /**************************************** ADD ********************************************/
 /*  Aggiunge un dispositivo al controller in base al tipo specificato   */
@@ -96,7 +128,7 @@ int addDevice(char *file) {
 }
 
 /**************************************** DEL ********************************************/
-void delDevice(char *id) {
+void delDevice(char *id){
     long pid = getPidById(children, atoi(id));
     if (pid == -1) {
         printf("Error: device with id %s not found\n", id);

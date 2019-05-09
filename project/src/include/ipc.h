@@ -28,7 +28,7 @@ typedef struct msg {
 
 /////////////////////////////// WORKERS ///////////////////////////////
 void doLink(list_t children, long to_clone_pid, long sender, const char* base_dir);
-void doList(long to_pid, list_t children);
+void doListController(list_t children);
 
 /////////////////////////////// REQUESTS ///////////////////////////////
 message_t buildRequest(long to_pid, short msg_type);
@@ -46,11 +46,15 @@ message_t buildResponse(long to_pid, short msg_type);
 message_t buildInfoResponse(long to_pid, const char* tipo_componente);
 message_t buildSwitchResponse(long to_pid, short success);
 message_t buildTranslateResponse(long to_pid, short found);
+message_t buildTranslateResponseControl(long sender, int my_id, int search, list_t children);
 message_t buildDeleteResponse(long to_pid);
 message_t buildListResponse(long to_pid, const char* component_type, int id, int lv, short state, short stop);
 message_t buildCloneResponse(long to_pid, const char* component_type, const long vals[]);
 message_t buildGetChildResponse(long to_pid, int child_pid);
 message_t buildLinkResponse(long to_pid, short success);
+message_t buildBusyResponse(const long to);
+
+message_t buildDieMessage(long to);
 
 /////////////////////////////// IPC ///////////////////////////////
 int sendMessage(const message_t* request);

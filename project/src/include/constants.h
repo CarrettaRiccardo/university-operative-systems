@@ -5,6 +5,9 @@
 #define SET_PERC_FILLED "set_filled"
 
 /*************  Tipi messaggi e parametri *************/
+//BUSY: per segnalare che un dispositivo non può eseguire il comando che riceve
+#define BUSY_MSG_TYPE 99
+
 // LIST
 #define LIST_MSG_TYPE 0
 #define LIST_VAL_ID 0
@@ -18,6 +21,7 @@
 
 // DELETE
 #define DELETE_MSG_TYPE 2
+#define DIE_MESG_TYPE 98
 
 // LINK
 #define LINK_MSG_TYPE 3

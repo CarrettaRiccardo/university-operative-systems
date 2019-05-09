@@ -3,7 +3,10 @@
 #include "../include/constants.h"
 
 ///////////////////////////////////////////////  WORKERS ///////////////////////////////////////////////
-void doList(long to_pid, list_t children) {
+
+
+//Implementa il metodo LIST per un dispositivo di Controllo (Hub o Timer)
+void doListControl(long to_pid, list_t children) {
     node_t *p = *children;
     while (p != NULL) {
         long son = p->value;
@@ -14,8 +17,16 @@ void doList(long to_pid, list_t children) {
         message_t response;
         int stop = 0;
         do {
-            receiveMessage(&response);
-            response.to = to_pid;                // Cambio il destinatario per farlo arrivare al Controller
+            do{ //se ricevo un messaggio diverso da quello che mi aspetto, rispondo BUSY
+                if(receiveMessage(&response) == -1)
+                    perror("Error list control response");
+                if(response.type != LIST_MSG_TYPE){
+                    message_t busy = buildBusyResponse(response.sender);
+                    sendMessage(&busy);
+                }
+            }while(response.type!= LIST_MSG_TYPE);
+
+            response.to = to_pid;                // Cambio il destinatario per farlo arrivare a mio padre
             response.vals[LIST_VAL_LEVEL] += 1;  //  Aumento il valore "livello"
             stop = response.vals[LIST_VAL_STOP];
             response.vals[LIST_VAL_STOP] = 0;  //  Tolgo lo stop dalla risposta
@@ -23,6 +34,10 @@ void doList(long to_pid, list_t children) {
                 //  Ultimo figlio, imposto lo stop
                 response.vals[LIST_VAL_STOP] = 1;
             }
+            else{
+                stop = 0;
+            }
+            
             sendMessage(&response);
         } while (stop != 1);
         p = p->next;
@@ -182,6 +197,17 @@ message_t buildTranslateResponse(long to_pid, short found) {
     return ret;
 }
 
+//Esegue ricorsivamente nei figli di un dispositivo di controllo il TRANSLATE
+message_t buildTranslateResponseControl(long sender, int my_id, int search, list_t children){
+    if (my_id == search){
+        return buildTranslateResponse(sender, 1);
+    }
+    else{
+        int to_pid = getPidById(children,search); //se ho trovato il componente ottengo il suo valore, -1 altrimenti
+        return buildTranslateResponse(sender, to_pid);
+    }
+}
+
 message_t buildDeleteResponse(long to_pid) {
     return buildResponse(to_pid, DELETE_MSG_TYPE);
 }
@@ -216,8 +242,19 @@ message_t buildLinkResponse(long to_pid, short success) {
     return ret;
 }
 
-////////////////////////////////////////////////////////////////// SEND/RECEIVE //////////////////////////////////////////////////////////////////
-int sendMessage(const message_t *msg) {
+message_t buildBusyResponse(const long to){
+    message_t ret = buildResponse(to, BUSY_MSG_TYPE);
+    return ret;
+}
+
+message_t buildDieMessage(long to){
+    message_t ret = buildResponse(to, DIE_MESG_TYPE);
+    return ret;
+}
+
+
+    ////////////////////////////////////////////////////////////////// SEND/RECEIVE //////////////////////////////////////////////////////////////////
+int sendMessage(const message_t *msg){
     if (msg->to <= 0) return -1;
     return msgsnd(mqid, msg, sizeof(message_t) - sizeof(long), 0);
 }
