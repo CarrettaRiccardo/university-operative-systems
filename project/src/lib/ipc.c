@@ -204,6 +204,7 @@ message_t buildTranslateResponseControl(long sender, int my_id, int search, list
     }
     else{
         long to_pid = getPidById(children,search); //se ho trovato il componente ottengo il suo valore, -1 altrimenti
+        printf("Ho trovato %ld",to_pid);
         return buildTranslateResponse(sender, to_pid);
     }
 }
