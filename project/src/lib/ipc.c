@@ -200,7 +200,7 @@ message_t buildTranslateResponse(long to_pid, long found) {
 //Esegue ricorsivamente nei figli di un dispositivo di controllo il TRANSLATE
 message_t buildTranslateResponseControl(long sender, int my_id, int search, list_t children){
     if (my_id == search){
-        return buildTranslateResponse(sender, 1);
+        return buildTranslateResponse(sender, getppid());
     }
     else{
         long to_pid = getPidById(children,search); //se ho trovato il componente ottengo il suo valore, -1 altrimenti
