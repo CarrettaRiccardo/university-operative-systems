@@ -19,6 +19,7 @@ int main(int argc, char **argv) {
     short delay = 0;         // tempo di chiusura automatica porta
     short temperatura = 0;   // temperatura interna
     short perc = 0;          // percentuale riempimento (0-100%)
+    unsigned long last_open_time = 0; // time ultima apertura
     unsigned int tempo;      //tempo apertura porta
 
     if (sessione == 0) {                       //Sessione diversa da quella corrente.
@@ -30,6 +31,16 @@ int main(int argc, char **argv) {
         message_t msg;
         if (receiveMessage(&msg) == -1) continue;  //messaggio da ignorare (per sessione diversa/altri casi)
 
+        /* UPDATE: ad ogni ricezione di messaggio, aggiorno le proprietà del fridge */
+        // controllo se il tempo di chiusura automatica è superato
+        if (stato == SWITCH_POS_ON_VALUE && last_open_time + delay <= time(NULL)){
+            // se sì, sommo il "delay" al tempo di apertura...
+            tempo += delay;
+            // ...e chiudo automaticamente la porta
+            stato = SWITCH_POS_OFF_VALUE;
+        }
+
+
         if (strcmp(msg.text, "ECHO") == 0) {
             //Message m = {.to = getppid(), .session = sessione, .value = tempo, .state = stato};
             //sendMessage( mqid, m );
@@ -38,18 +49,27 @@ int main(int argc, char **argv) {
         } else if (strcmp(msg.text, MSG_SWITCH) == 0) {
                 int success = -1;
                 if (msg.vals[0] == LABEL_OPEN_VALUE) {   // interruttore (apri/chiudi)
-                    if (msg.vals[1] == SWITCH_POS_OFF_VALUE) {  // spengo
-                        stato = 0;// TODO
+                    if (msg.vals[1] == SWITCH_POS_OFF_VALUE) {  // chiudo
+                        // controllo se il tempo di chiusura automatica NON è superato
+                        if (stato == SWITCH_POS_ON_VALUE && last_open_time + time(NULL) < last_open_time + delay) {
+                            // se sì, sommo la differenza di tempo attuale al tempo di apertura...
+                            tempo += time(NULL) - last_open_time;
+                            // ...e chiudo la porta
+                            stato = SWITCH_POS_OFF_VALUE;
+                        }
+                        // altrimenti è gia su "off"
                         success = 1;
                     }
-                    if (msg.vals[1] == SWITCH_POS_ON_VALUE) {  // accendo
-                        stato = 1;// TODO
+                    if (msg.vals[1] == SWITCH_POS_ON_VALUE) {  // apro
+                        stato = SWITCH_POS_ON_VALUE;// TODO
                         success = 1;
                     }
                 } else { if (msg.vals[0] == LABEL_TERM_VALUE) {   // termostato
                     if (msg.vals[1] != -1) {  // cambio valore
                         temperatura = (short)msg.vals[1];
                         success = 1;
+                        on_time += time(NULL) - last_start_time;
+                        last_start_time = 0;
                     }
                 }
                 }

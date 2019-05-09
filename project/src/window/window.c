@@ -41,19 +41,17 @@ int main(int argc, char **argv) {
                 sendMessage(&m);
             } else if (strcmp(msg.text, MSG_SWITCH) == 0) {
                 int success = -1;
-                if (msg.vals[0] == 0) {      // interruttore (generico)
-                    if (msg.vals[1] == 0) {  // chiudo
-                        stato = 0;
-                        success = 0;
-
-                        open_time += time(NULL) - last_open_time;
-                        last_open_time = 0;
+                if (msg.vals[0] == LABEL_OPEN_VALUE) {      // interruttore (apri/chiudi)
+                    if (msg.vals[1] == SWITCH_POS_OFF_VALUE) {  // chiudo
+                        stato = SWITCH_POS_OFF_VALUE;
+                        success = 1;
+                        on_time += time(NULL) - last_start_time;
+                        last_start_time = 0;
                     }
-                    if (msg.vals[1] == 1) {  // apro
-                        stato = 1;
-                        success = 0;
-
-                        last_open_time = time(NULL);
+                    if (msg.vals[1] == SWITCH_POS_ON_VALUE) {  // apro
+                        stato = SWITCH_POS_ON_VALUE;
+                        success = 1;
+                        last_start_time = time(NULL);
                     }
                 }
                 // return success or not

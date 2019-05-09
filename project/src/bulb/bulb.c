@@ -59,13 +59,13 @@ int main(int argc, char **argv) {
                 int success = -1;
                 if (msg.vals[0] == LABEL_LIGHT_VALUE) {      // interruttore (luce)
                     if (msg.vals[1] == SWITCH_POS_OFF_VALUE) {  // spengo
-                        stato = 0;
+                        stato = SWITCH_POS_OFF_VALUE;
                         success = 1;
                         on_time += time(NULL) - last_start_time;
                         last_start_time = 0;
                     }
                     if (msg.vals[1] == SWITCH_POS_ON_VALUE) {  // accendo
-                        stato = 1;
+                        stato = SWITCH_POS_ON_VALUE;
                         success = 1;
                         last_start_time = time(NULL);
                     }
