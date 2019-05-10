@@ -45,16 +45,15 @@ message_t buildLinkRequest(int to_pid, int to_clone_pid);
 message_t buildResponse(int to_pid, short msg_type);
 message_t buildInfoResponse(int to_pid, const char* tipo_componente);
 message_t buildSwitchResponse(int to_pid, short success);
-message_t buildTranslateResponse(int to_pid, int found);
+message_t buildTranslateResponse(int to_pid, int pid_found);
 message_t buildTranslateResponseControl(int sender, int my_id, int search, list_t children);
 message_t buildDeleteResponse(int to_pid);
 message_t buildListResponse(int to_pid, int id, const char* text, int lv, short state, short stop);
 message_t buildCloneResponse(int to_pid, const char* component_type, const int vals[]);
 message_t buildGetChildResponse(int to_pid, int child_pid);
 message_t buildLinkResponse(int to_pid, short success);
-message_t buildBusyResponse(const int to);
-
-message_t buildDieMessage(int to);
+message_t buildBusyResponse(int to_pid);
+message_t buildDieMessage(int to_pid);
 
 /////////////////////////////// IPC ///////////////////////////////
 int sendMessage(const message_t* request);

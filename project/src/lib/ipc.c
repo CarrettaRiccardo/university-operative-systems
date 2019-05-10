@@ -189,21 +189,20 @@ message_t buildSwitchResponse(int to_pid, short success) {
     return ret;
 }
 
-message_t buildTranslateResponse(int to_pid, int found) {
+//pid_found = PID processo trovato, <=0 se non trovato
+message_t buildTranslateResponse(int to_pid, int pid_found) {
     message_t ret = buildResponse(to_pid, TRANSLATE_MSG_TYPE);
-    ret.vals[TRANSLATE_VAL_FOUND] = found;
+    ret.vals[TRANSLATE_VAL_ID] = pid_found;
     return ret;
 }
 
-//Esegue ricorsivamente nei figli di un dispositivo di controllo il TRANSLATE
 message_t buildTranslateResponseControl(int sender, int my_id, int search, list_t children) {
     if (my_id == search) {
-        printf("Sono io %ld\n", search);
-        return buildTranslateResponse(sender, getppid());
+        printf("Sono io\n");
+        return buildTranslateResponse(sender, getpid());
     } else {
-        int to_pid = getPidById(children, search);  //se ho trovato il componente ottengo il suo valore, -1 altrimenti
-        printf("Ho trovato %ld\n", to_pid);
-        listPrint(children);
+        int to_pid = getPidById(children, search);
+        printf("Ho trovato %d\n", to_pid);
         return buildTranslateResponse(sender, to_pid);
     }
 }
@@ -306,8 +305,8 @@ int getPidById(list_t figli, int id) {
             perror("Error get pid by id request");
         } else if (receiveMessage(&response) == -1) {
             perror("Error get pid by id response");
-        } else if (response.vals[TRANSLATE_VAL_FOUND] > 0 && response.type == TRANSLATE_MSG_TYPE) {
-            return response.vals[TRANSLATE_VAL_FOUND];  // Id trovato
+        } else if (response.vals[TRANSLATE_VAL_ID] > 0 && response.type == TRANSLATE_MSG_TYPE) {
+            return response.vals[TRANSLATE_VAL_ID];  // Id trovato
         }
         p = p->next;
     }

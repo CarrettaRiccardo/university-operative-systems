@@ -96,7 +96,6 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-message_t buildInfoResponseHub(const int sender) {
-    message_t ret = buildInfoResponse(sender, HUB);
-    return ret;
+message_t buildInfoResponseHub(const long sender) {
+    return buildInfoResponse(sender, HUB);
 }

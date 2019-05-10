@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
                 message_t m = buildSwitchResponse(msg.sender, success);
                 sendMessage(&m);
             } else if (msg.type == TRANSLATE_MSG_TYPE) {
-                message_t m = buildTranslateResponse(msg.sender, msg.vals[TRANSLATE_VAL_ID] == id ? 1 : 0);
+                message_t m = buildTranslateResponse(msg.sender, msg.vals[TRANSLATE_VAL_ID] == id ? getpid() : -1);
                 sendMessage(&m);
             } else if (msg.type == LIST_MSG_TYPE) {
                 message_t m = buildListResponse(msg.sender, WINDOW, id, msg.vals[0], stato, 1);
