@@ -52,6 +52,7 @@ void printListMessage(const message_t *msg)
         }
     }
     else if (strcmp(msg->text, HUB) == 0){ //TODO: decidere come mostrare 
+        printf("\n");
         /*switch (msg->vals[LIST_VAL_OVERRIDE]){
             case 1:printf(" override\n");break;
         }*/

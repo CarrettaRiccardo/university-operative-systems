@@ -200,12 +200,13 @@ message_t buildTranslateResponse(long to_pid, long found) {
 //Esegue ricorsivamente nei figli di un dispositivo di controllo il TRANSLATE
 message_t buildTranslateResponseControl(long sender, int my_id, int search, list_t children){
     if (my_id == search){
-        printf("Sono io %ld", search);
+        printf("Sono io %ld\n", search);
         return buildTranslateResponse(sender, getppid());
     }
     else{
         long to_pid = getPidById(children,search); //se ho trovato il componente ottengo il suo valore, -1 altrimenti
-        printf("Ho trovato %ld",to_pid);
+        printf("Ho trovato %ld\n",to_pid);
+        listPrint(children);
         return buildTranslateResponse(sender, to_pid);
     }
 }
@@ -305,6 +306,7 @@ long getPidById(list_t figli, int id) {
         int id_processo = p->value;
         message_t request = buildTranslateRequest(id_processo, id);
         message_t response;
+        printf("Chiedo a id = %d\n", id_processo);
         if (sendMessage(&request) == -1) {
             perror("Error get pid by id request");
         } else if (receiveMessage(&response) == -1) {
