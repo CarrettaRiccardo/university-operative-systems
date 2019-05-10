@@ -111,6 +111,12 @@ message_t buildInfoResponseHub(int sender) {
         } else if (receiveMessage(&response) == -1) {
             perror("Error get pid by id response");
         } else {
+            if(response.type != INFO_MSG_TYPE){
+                message_t busy = buildBusyResponse(response.sender);
+                sendMessage(&busy);
+                continue;//per evitare annidamento di if e parentesi, faccio ripartire il ciclo sullo stesso figlio. Letto un messaggio non pertinente
+            }
+
             if(stato_figli != -1 && stato_figli != response.vals[INFO_VAL_STATE]){
                 message_t ret = buildInfoResponse(sender,HUB);
                 ret.vals[INFO_VAL_STATE] = 3; //stato di override
