@@ -45,7 +45,7 @@ message_t buildLinkRequest(long to_pid, long to_clone_pid);
 message_t buildResponse(long to_pid, short msg_type);
 message_t buildInfoResponse(long to_pid, const char* tipo_componente);
 message_t buildSwitchResponse(long to_pid, short success);
-message_t buildTranslateResponse(long to_pid, long found);
+message_t buildTranslateResponse(long to_pid, int pid_found);
 message_t buildTranslateResponseControl(long sender, int my_id, int search, list_t children);
 message_t buildDeleteResponse(long to_pid);
 message_t buildListResponse(long to_pid, const char* component_type, int id, int lv, short state, short stop);

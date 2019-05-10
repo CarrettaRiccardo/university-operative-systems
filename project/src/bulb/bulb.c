@@ -89,7 +89,7 @@ int main(int argc, char **argv) {
                 message_t m = buildSwitchResponse(msg.sender, success);
                 sendMessage(&m);
             } else if (msg.type == TRANSLATE_MSG_TYPE) {
-                message_t m = buildTranslateResponse(msg.sender, msg.vals[TRANSLATE_VAL_ID] == id ? getpid() : 0);
+                message_t m = buildTranslateResponse(msg.sender, msg.vals[TRANSLATE_VAL_ID] == id ? getpid() : -1);
                 sendMessage(&m);
             } else if (msg.type == LIST_MSG_TYPE) {  // Caso base per la LIST. value5 = 1 per indicare fine albero
                 message_t m = buildListResponse(msg.sender, BULB, id, msg.vals[0], stato, 1);

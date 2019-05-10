@@ -32,15 +32,14 @@ void controllerDestroy() {
 void printListMessage(const message_t *msg)
 {
     int i;
-    for (i = 0; i < msg->vals[LIST_VAL_LEVEL]; i++) printf("    "); // Stampa x \t, dove x = lv (profondità componente, per indentazione)
-    printf("| <%ld> %s ", msg->vals[LIST_VAL_ID], msg->text);
-
-    if (strcmp(msg->text, BULB) == 0){
-        switch (msg->vals[LIST_VAL_STATE]){
-            case 0:printf(" off\n");break;
-            case 1:printf(" on\n");break;
-            case 2:printf(" off (override)\n");break;
-            case 3:printf(" on (override)\n");break;
+    for (i = 0; i < msg->vals[LIST_VAL_LEVEL]; i++) printf("    ");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
+    printf("|<%ld> %s ", msg->vals[LIST_VAL_ID], msg->text);
+    if (strcmp(msg->text, BULB) == 0) {
+        switch (msg->vals[LIST_VAL_STATE]) {
+            case 0: printf(" off\n"); break;
+            case 1: printf(" on\n"); break;
+            case 2: printf(" off (override)\n"); break;
+            case 3: printf(" on (override)\n"); break;
         }
     }
     else if (strcmp(msg->text, BULB) == 0){
@@ -212,7 +211,7 @@ void infoDevice(char *id) {
         perror("Error info request");
     } else if (receiveMessage(&response) == -1) {
         perror("Errore info response");
-    } else {
+    } else{
         printf("Type: %s, state: ", response.text);  //stampo il nome componente
         if (strcmp(response.text, BULB) == 0) {
             if (response.vals[INFO_VAL_STATE] == SWITCH_POS_ON_VALUE)
@@ -236,9 +235,11 @@ void infoDevice(char *id) {
             printf(", temperature = %ld", response.vals[3]);
             printf(", percent filled = %ld\n", response.vals[4]);
         } else if (strcmp(response.text, HUB) == 0) {
-            // TODO
+            printf("%d\n", response.vals[INFO_VAL_STATE]);
         } else if (strcmp(response.text, TIMER) == 0) {
             // TODO
         }
     }
+
+    
 }
