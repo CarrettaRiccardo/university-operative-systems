@@ -16,7 +16,7 @@ int id;
 list_t children;
 
 //Override del metodo in IPC.C per il componente Hub
-message_t buildInfoResponseHub(const int sender);
+message_t buildInfoResponseHub(int sender);
 
 int main(int argc, char **argv) {
     base_dir = extractBaseDir(argv[0]);
@@ -62,10 +62,10 @@ int main(int argc, char **argv) {
             } else if (msg.type == LIST_MSG_TYPE) {  //  Risponde con i propri dati e inoltra la richiesta ai figli
                 message_t m;
                 if (listEmpty(children)) {
-                    m = buildListResponse(msg.sender, HUB, id, msg.vals[0], 0, 1);
+                    m = buildListResponse(msg.sender, id, HUB, msg.vals[LIST_VAL_LEVEL], 1);
                     sendMessage(&m);
                 } else {
-                    m = buildListResponse(msg.sender, HUB, id, msg.vals[0], 0, 0);
+                    m = buildListResponse(msg.sender, id, HUB, msg.vals[LIST_VAL_LEVEL], 0);
                     sendMessage(&m);
                     doListControl(msg.sender, children);
                 }
@@ -96,6 +96,6 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-message_t buildInfoResponseHub(const long sender) {
+message_t buildInfoResponseHub(int sender) {
     return buildInfoResponse(sender, HUB);
 }

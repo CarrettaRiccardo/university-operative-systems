@@ -48,7 +48,7 @@ message_t buildSwitchResponse(int to_pid, short success);
 message_t buildTranslateResponse(int to_pid, int pid_found);
 message_t buildTranslateResponseControl(int sender, int my_id, int search, list_t children);
 message_t buildDeleteResponse(int to_pid);
-message_t buildListResponse(int to_pid, int id, const char* text, int lv, short state, short stop);
+message_t buildListResponse(int to_pid, int id, const char* text, int lv, short stop);
 message_t buildCloneResponse(int to_pid, const char* component_type, const int vals[]);
 message_t buildGetChildResponse(int to_pid, int child_pid);
 message_t buildLinkResponse(int to_pid, short success);

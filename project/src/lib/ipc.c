@@ -11,7 +11,7 @@ void doListControl(int to_pid, list_t children) {
         int son = p->value;
         message_t request = buildListRequest(son);
         if (sendMessage(&request) == -1)
-            printf("Errore invio msg LIST al pid %ld: %s\n", son, strerror(errno));
+            printf("Errore invio msg LIST al pid %d: %s\n", son, strerror(errno));
 
         message_t response;
         int stop = 0;
@@ -46,9 +46,9 @@ void doLink(list_t children, int to_clone_pid, int sender, const char *base_dir)
     message_t request = buildCloneRequest(to_clone_pid);
     message_t response;
     if (sendMessage(&request) == -1) {
-        printf("Error sending CloneRequest to %ld from %d: %s\n", to_clone_pid, getpid(), strerror(errno));
+        printf("Error sending CloneRequest to %d from %d: %s\n", to_clone_pid, getpid(), strerror(errno));
     } else if (receiveMessage(&response) == -1) {
-        printf("Error receiving CloneRequest in %d from %ld: %s\n", getpid(), to_clone_pid, strerror(errno));
+        printf("Error receiving CloneRequest in %d from %d: %s\n", getpid(), to_clone_pid, strerror(errno));
     } else {
         int pid = fork();
         char exec_file[50];
@@ -61,7 +61,7 @@ void doLink(list_t children, int to_clone_pid, int sender, const char *base_dir)
             int i;
             for (i = 1; i < NVAL + 1; i++) {
                 args[i] = malloc(sizeof(char) * 20);
-                snprintf(args[i], 10, "%ld", response.vals[i - 1]);
+                snprintf(args[i], 10, "%d", response.vals[i - 1]);
             }
             args[NVAL + 1] = NULL;
             if (execvp(args[0], args) == -1) {
@@ -322,7 +322,7 @@ int printLog(const message_t *msg) {
         strcat(f_name, ".txt");
         FILE *log = fopen(f_name, "a");  // crea se non esiste
         if (log != NULL) {
-            fprintf(log, "TYPE:%s | FROM:%ld | TO:%ld | VALUES:%ld, %ld, %ld, %ld, %ld, %ld\n", msg.text, msg.sender, msg.to, msg.vals[0], msg.vals[1], msg.vals[2], msg.vals[3], msg.vals[4], msg.vals[5]);
+            fprintf(log, "TYPE:%s | FROM:%d | TO:%d | VALUES:%d, %d, %d, %d, %d, %d\n", msg.text, msg.sender, msg.to, msg.vals[0], msg.vals[1], msg.vals[2], msg.vals[3], msg.vals[4], msg.vals[5]);
             // chiudo subito per evitare conflitti di apertura
             fclose(log);
             ret = 0;
@@ -335,5 +335,5 @@ int printLog(const message_t *msg) {
 }
 
 void printMsg(const message_t *msg) {
-    printf("to: %ld, sender: %ld, text: %s, v0: %ld, v1: %ld, v2: %ld, v3: %ld, v4: %ld, v5: %ld, session: %ld\n", msg->to, msg->sender, msg->text, msg->vals[0], msg->vals[1], msg->vals[2], msg->vals[3], msg->vals[4], msg->vals[5], msg->session);
+    printf("to: %d, sender: %d, text: %s, v0: %d, v1: %d, v2: %d, v3: %d, v4: %d, v5: %d, session: %ld\n", msg->to, msg->sender, msg->text, msg->vals[0], msg->vals[1], msg->vals[2], msg->vals[3], msg->vals[4], msg->vals[5], msg->session);
 }

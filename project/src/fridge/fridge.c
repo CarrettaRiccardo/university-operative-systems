@@ -109,7 +109,7 @@ int main(int argc, char **argv) {
             message_t m = buildTranslateResponse(msg.sender, msg.vals[TRANSLATE_VAL_ID] == id ? 1 : 0);
             sendMessage(&m);
         } else if (msg.type == LIST_MSG_TYPE) {
-            message_t m = buildListResponse(msg.sender, FRIDGE, id, msg.vals[0], stato, 1);
+            message_t m = buildListResponse(msg.sender, id, FRIDGE, msg.vals[LIST_VAL_LEVEL], 1);
             sendMessage(&m);
         }
     }

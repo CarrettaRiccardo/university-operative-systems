@@ -74,7 +74,7 @@ void listPrint(list_t head) {
         node_t *p = *head;
         printf("[");
         while (p != NULL) {
-            printf("%ld, ", p->value);
+            printf("%d, ", p->value);
             p = p->next;
         }
         printf("]\n");
