@@ -43,10 +43,7 @@ int main(int argc, char **argv) {
             stato = SWITCH_POS_OFF_VALUE;
         }
 
-        if (strcmp(msg.text, "ECHO") == 0) {
-            //Message m = {.to = getppid(), .session = sessione, .value = tempo, .state = stato};
-            //sendMessage( mqid, m );
-        } else if (msg.type == INFO_MSG_TYPE) {
+        if (msg.type == INFO_MSG_TYPE) {
             time_t now = time(NULL);
             unsigned int open_time = tempo + (now - ((stato == 0) ? now : last_open_time));  //se è chiusa ritorno solo "tempo", altrimenti tempo+differenza da quanto accesa
             message_t m = buildInfoResponseFridge(msg.sender, stato, open_time, delay, temperatura, perc);
@@ -104,9 +101,15 @@ int main(int argc, char **argv) {
             // link
             // (value = id a cui linkare)
         } else if (msg.type == DELETE_MSG_TYPE) {
+            message_t m = buildDeleteResponse(msg.sender);
+            sendMessage(&m);
+            if (getppid() != msg.sender){ //sto morendo, invio conferma di ricezione al mittente, e nel caso che il mittente non sia mio padre, invio un messaggio a mio padre di rimuovermi dalla lista dei suoi figli
+                message_t m = buildDieMessage(getppid());
+                sendMessage(&m);
+            }
             exit(0);
         } else if (msg.type == TRANSLATE_MSG_TYPE) {
-            message_t m = buildTranslateResponse(msg.sender, msg.vals[TRANSLATE_VAL_ID] == id ? 1 : 0);
+            message_t m = buildTranslateResponse(msg.sender, msg.vals[TRANSLATE_VAL_ID] == id ? getpid() : -1);
             sendMessage(&m);
         } else if (msg.type == LIST_MSG_TYPE) {
             message_t m = buildListResponse(msg.sender, id, FRIDGE, msg.vals[LIST_VAL_LEVEL], 1);

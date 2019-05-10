@@ -96,6 +96,33 @@ int main(int argc, char **argv) {
     return 0;
 }
 
+//Stato = Override <-> lo stato dei componenti ad esso collegati non sono omogenei (intervento esterno all' HUB)
 message_t buildInfoResponseHub(int sender) {
-    return buildInfoResponse(sender, HUB);
+    node_t *p = *children;
+    short stato_figli = -1;
+
+    while (p != NULL) {
+        int id_processo = p->value;
+        message_t request = buildInfoRequest(id_processo);
+        message_t response;
+        
+        if (sendMessage(&request) == -1) {
+            perror("Error get pid by id request");
+        } else if (receiveMessage(&response) == -1) {
+            perror("Error get pid by id response");
+        } else {
+            if(stato_figli != -1 && stato_figli != response.vals[INFO_VAL_STATE]){
+                message_t ret = buildInfoResponse(sender,HUB);
+                ret.vals[INFO_VAL_STATE] = 3; //stato di override
+                return ret;
+            }
+            else{
+                stato_figli = response.vals[INFO_VAL_STATE];
+            }
+        }
+        p = p->next;
+    }
+    message_t ret = buildInfoResponse(sender, HUB);
+    ret.vals[INFO_VAL_STATE] = stato_figli; //stato di override
+    return ret;
 }

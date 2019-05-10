@@ -300,7 +300,7 @@ int getPidById(list_t figli, int id) {
         int id_processo = p->value;
         message_t request = buildTranslateRequest(id_processo, id);
         message_t response;
-        printf("Chiedo a id = %d\n", id_processo);
+        
         if (sendMessage(&request) == -1) {
             perror("Error get pid by id request");
         } else if (receiveMessage(&response) == -1) {
