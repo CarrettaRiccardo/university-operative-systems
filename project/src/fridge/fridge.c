@@ -10,7 +10,7 @@ TODO: Remove not-allowed libraries
 #include "../include/ipc.h"
 
 /* Override specifico per il metodo definito in IPC */
-message_t buildInfoResponseFridge(long to_pid, short state, long open_time, short del, short temp, short percent);
+message_t buildInfoResponseFridge(int to_pid, short state, int open_time, short del, short temp, short percent);
 
 int main(int argc, char **argv) {
     const int id = atoi(argv[1]);
@@ -19,10 +19,10 @@ int main(int argc, char **argv) {
 
     short stato = SWITCH_POS_OFF_VALUE;         //0 = chiusa, 1 = aperta
     short interruttore = SWITCH_POS_OFF_VALUE;  //0 = fermo, 1 = apertura/chiusura (torna subito ad off, ma se azionato apre la porta o la chiude)
-    short delay = 13;                            // tempo di chiusura automatica porta
+    short delay = 13;                           // tempo di chiusura automatica porta
     short temperatura = 4;                      // temperatura interna
-    short perc = 22;                             // percentuale riempimento (0-100%)
-    unsigned long last_open_time = 0;           // time ultima apertura
+    short perc = 22;                            // percentuale riempimento (0-100%)
+    unsigned int last_open_time = 0;            // time ultima apertura
     unsigned int tempo = 0;                     //tempo apertura porta
 
     if (sessione == 0) {                       //Sessione diversa da quella corrente.
@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
             //sendMessage( mqid, m );
         } else if (msg.type == INFO_MSG_TYPE) {
             time_t now = time(NULL);
-            unsigned long open_time = tempo + (now - ((stato == 0) ? now : last_open_time));  //se è chiusa ritorno solo "tempo", altrimenti tempo+differenza da quanto accesa
+            unsigned int open_time = tempo + (now - ((stato == 0) ? now : last_open_time));  //se è chiusa ritorno solo "tempo", altrimenti tempo+differenza da quanto accesa
             message_t m = buildInfoResponseFridge(msg.sender, stato, open_time, delay, temperatura, perc);
             sendMessage(&m);
         } else if (msg.type == SWITCH_MSG_TYPE) {
@@ -117,7 +117,7 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-message_t buildInfoResponseFridge(long to_pid, short state, long open_time, short del, short temp, short percent) {
+message_t buildInfoResponseFridge(int to_pid, short state, int open_time, short del, short temp, short percent) {
     message_t ret = buildInfoResponse(to_pid, FRIDGE);
     ret.vals[INFO_VAL_STATE] = state;
     ret.vals[1] = open_time;

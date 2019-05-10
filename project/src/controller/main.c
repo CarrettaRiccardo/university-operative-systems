@@ -134,10 +134,10 @@ int main(int sargc, char **sargv) {
 }
 
 void getArgs(char *line, int *argc, char **argv) {
-    /*  Lettura stringa */
+    // Lettura stringa
     fgets(line, MAX_LEN, stdin);
     line[strcspn(line, "\n")] = '\0';  //  Rimuovo eventuali \n dalla fine della stringa per evitare problemi nel parse
-    /*  Parse args  */
+    // Parse argomenti
     int pos = 0;
     char *arg = strtok(line, " ");  //  Parse primo parametro
     while (arg != NULL && pos < MAX_ARGC) {

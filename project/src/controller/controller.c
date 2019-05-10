@@ -28,69 +28,30 @@ void controllerDestroy() {
     free(base_dir);
 }
 
-// Metodo di comodo per stampare le Info da mostrare nel comando LIST. Solo per Controller
-void printListMessage(const message_t *msg)
-{
-    int i;
-    for (i = 0; i < msg->vals[LIST_VAL_LEVEL]; i++) printf("    "); // Stampa x \t, dove x = lv (profondità componente, per indentazione)
-    printf("| <%ld> %s ", msg->vals[LIST_VAL_ID], msg->text);
-
-    if (strcmp(msg->text, BULB) == 0){
-        switch (msg->vals[LIST_VAL_STATE]){
-            case 0:printf(" off\n");break;
-            case 1:printf(" on\n");break;
-            case 2:printf(" off (override)\n");break;
-            case 3:printf(" on (override)\n");break;
-        }
-    }
-    else if (strcmp(msg->text, BULB) == 0){
-        switch (msg->vals[LIST_VAL_STATE]){
-            case 0:printf(" close\n");break;
-            case 1:printf(" open\n");break;
-            case 2:printf(" close (override)\n");break;
-            case 3:printf(" open (override)\n");break;
-        }
-    }
-    else if (strcmp(msg->text, HUB) == 0){ //TODO: decidere come mostrare 
-        printf("\n");
-        /*switch (msg->vals[LIST_VAL_OVERRIDE]){
-            case 1:printf(" override\n");break;
-        }*/
-    }
-}
-
 /**************************************** LIST ********************************************/
 void listDevices() {
     printf("<0> controller, register: num = %d\n", listCount(children));
     node_t *p = *children;
-    while (p != NULL)
-    {
-        long son = p->value;
+    while (p != NULL) {
+        int son = p->value;
         message_t request = buildListRequest(son);
         message_t response;
-        if (sendMessage(&request) == -1)
-        {
+        if (sendMessage(&request) == -1) {
             perror("Error list request");
-        }
-        else
-        {
-            do
-            {
-                if (receiveMessage(&response) == -1)
-                {
+        } else {
+            do {
+                if (receiveMessage(&response) == -1) {
                     perror("Error list response");
-                }
-                else
-                {
-                    printListMessage(&response);
+                } else {
+                    int i;
+                    for (i = 0; i < response.vals[LIST_VAL_LEVEL]; i++) printf("    ");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
+                    printf("|(%ld) %s\n", response.vals[LIST_VAL_ID], response.text);
                 }
             } while (response.vals[LIST_VAL_STOP] != 1);
         }
         p = p->next;
     }
 }
-
-
 
 /**************************************** ADD ********************************************/
 /*  Aggiunge un dispositivo al controller in base al tipo specificato   */
@@ -114,8 +75,8 @@ int addDevice(char *file) {
 }
 
 /**************************************** DEL ********************************************/
-void delDevice(char *id){
-    long pid = getPidById(children, atoi(id));
+void delDevice(char *id) {
+    int pid = getPidById(children, atoi(id));
     if (pid == -1) {
         printf("Error: device with id %s not found\n", id);
         return;
@@ -136,12 +97,12 @@ void delDevice(char *id){
 
 /**************************************** LINK ********************************************/
 void linkDevices(char *id1, char *id2) {
-    long src = getPidById(children, atoi(id1));
+    int src = getPidById(children, atoi(id1));
     if (src == -1) {
         printf("Error: device with id %s not found\n", id1);
         return;
     }
-    long dest = getPidById(children, atoi(id2));
+    int dest = getPidById(children, atoi(id2));
     if (dest == -1) {
         printf("Error: device with id %s not found\n", id2);
         return;
@@ -172,7 +133,7 @@ void linkDevices(char *id1, char *id2) {
 /**************************************** SWITCH ********************************************/
 int switchDevice(char *id, char *label, char *pos) {
     printf("Modifico l'interruttore %s di %s su %s ...\n", label, id, pos);
-    long pid = getPidById(children, atoi(id));
+    int pid = getPidById(children, atoi(id));
     if (pid == -1) {
         printf("Error: device with id %s not found\n", id);
         return;
@@ -201,7 +162,7 @@ int switchDevice(char *id, char *label, char *pos) {
 
 /**************************************** INFO ********************************************/
 void infoDevice(char *id) {
-    long pid = getPidById(children, atoi(id));
+    int pid = getPidById(children, atoi(id));
     if (pid == -1) {
         printf("Error: device with id %s not found\n", id);
         return;
@@ -213,32 +174,7 @@ void infoDevice(char *id) {
     } else if (receiveMessage(&response) == -1) {
         perror("Errore info response");
     } else {
-        printf("Type: %s, state: ", response.text);  //stampo il nome componente
-        if (strcmp(response.text, BULB) == 0) {
-            if (response.vals[INFO_VAL_STATE] == SWITCH_POS_ON_VALUE)
-                printf("on");
-            else
-                printf("off");
-            printf(", work time (time set to on) = %ld\n", response.vals[1]);
-        } else if (strcmp(response.text, WINDOW) == 0) {
-            if (response.vals[INFO_VAL_STATE] == SWITCH_POS_ON_VALUE)
-                printf("opened");
-            else
-                printf("closed");
-            printf(", total opened time = %ld\n", response.vals[1]);
-        } else if (strcmp(response.text, FRIDGE) == 0) {
-            if (response.vals[INFO_VAL_STATE] == SWITCH_POS_ON_VALUE)
-                printf("opened");
-            else
-                printf("closed");
-            printf(", total opened time = %ld", response.vals[1]);
-            printf(", delay = %ld", response.vals[2]);
-            printf(", temperature = %ld", response.vals[3]);
-            printf(", percent filled = %ld\n", response.vals[4]);
-        } else if (strcmp(response.text, HUB) == 0) {
-            // TODO
-        } else if (strcmp(response.text, TIMER) == 0) {
-            // TODO
-        }
+        //  Stampo il testo ricevuto dal dispositivo
+        printf("Type: %s\n", response.text);
     }
 }

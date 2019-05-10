@@ -13,7 +13,7 @@
 #define KEYFILE "progfile"
 
 typedef struct msg {
-    long mesg_type;
+    int mesg_type;
     char text[MAXMSG];
     short int valore;
     time_t session;

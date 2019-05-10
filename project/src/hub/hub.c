@@ -16,17 +16,17 @@ int id;
 list_t children;
 
 //Override del metodo in IPC.C per il componente Hub
-message_t buildInfoResponseHub(const long sender);
+message_t buildInfoResponseHub(const int sender);
 
 int main(int argc, char **argv) {
     base_dir = extractBaseDir(argv[0]);
     id = atoi(argv[1]);
     children = listInit();
-    if (argc > 2) { //  Clone dell'hub
-        long to_clone_pid = atol(argv[2]);
+    if (argc > 2) {  //  Clone dell'hub
+        int to_clone_pid = atol(argv[2]);
         message_t request = buildGetChildRequest(to_clone_pid);
         message_t response;
-        long child_pid;
+        int child_pid;
         sendMessage(&request);
         // Linka tutti i figli dell'hub clonato a sè stesso
         do {
@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
             } else if (msg.type == TRANSLATE_MSG_TYPE) {
                 message_t m = buildTranslateResponseControl(msg.sender, id, msg.vals[TRANSLATE_VAL_ID], children);
                 sendMessage(&m);
-            } else if (msg.type == LIST_MSG_TYPE) { //  Risponde con i propri dati e inoltra la richiesta ai figli
+            } else if (msg.type == LIST_MSG_TYPE) {  //  Risponde con i propri dati e inoltra la richiesta ai figli
                 message_t m;
                 if (listEmpty(children)) {
                     m = buildListResponse(msg.sender, HUB, id, msg.vals[0], 0, 1);
@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
                     doListControl(msg.sender, children);
                 }
             } else if (msg.type == CLONE_MSG_TYPE) {
-                long vals[NVAL] = {id, getpid()};
+                int vals[NVAL] = {id, getpid()};
                 message_t m = buildCloneResponse(msg.sender, HUB, vals);
                 sendMessage(&m);
             } else if (msg.type == GET_CHILDREN_MSG_TYPE) {
@@ -86,7 +86,7 @@ int main(int argc, char **argv) {
                 }
                 m = buildGetChildResponse(msg.sender, -1);
                 sendMessage(&m);
-            }else if (msg.type == DIE_MESG_TYPE){
+            } else if (msg.type == DIE_MESG_TYPE) {
                 //  Rimuovo il mittente di questo messaggio dalla lista dei miei figli
                 listRemove(children, msg.sender);
             }
@@ -96,7 +96,7 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-message_t buildInfoResponseHub(const long sender){
-    message_t ret = buildInfoResponse(sender,HUB);
+message_t buildInfoResponseHub(const int sender) {
+    message_t ret = buildInfoResponse(sender, HUB);
     return ret;
 }

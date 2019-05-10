@@ -11,26 +11,24 @@ TODO: Gestire i vari stati : 0=spenta 1=accesa 2=spenta manually 3=accesa manual
 
 #include "../include/ipc.h"
 
-
 /* Override specifico per il metodo definito in IPC */
-message_t buildInfoResponseBulb(long to_pid, short state, long work_time);
+message_t buildInfoResponseBulb(int to_pid, short state, int work_time);
 
 int main(int argc, char **argv) {
     int id;
     short stato;
-    short interruttore; // valore interruttore che è 1 a 1 con lo stato
+    short interruttore;  // valore interruttore che è 1 a 1 con lo stato
     unsigned int on_time;
-    unsigned long last_start_time;
-    unsigned int controller_pid; //Aggiunto da Steve in forma temporanea
-
+    unsigned int last_start_time;
+    unsigned int controller_pid;  //Aggiunto da Steve in forma temporanea
 
     id = atoi(argv[1]);  // Lettura id da parametro
     //  Creazione nuova bulb
     if (argc <= 2) {
-        stato = SWITCH_POS_OFF_VALUE;                     // 0 = spenta, 1 = accesa
+        stato = SWITCH_POS_OFF_VALUE;  // 0 = spenta, 1 = accesa
         interruttore = stato;
         on_time = 0;                   //TODO: Destro fare lettura on_time da parametro in caso di clonazione
-        last_start_time = time(NULL);          // Tempo accensione lampadina
+        last_start_time = time(NULL);  // Tempo accensione lampadina
     }
     //  Inzializzazione parametri da richiesta clone
     else {
@@ -50,25 +48,25 @@ int main(int argc, char **argv) {
         } else {
             if (msg.to == -1) continue;  // Messaggio da ignorare (per sessione diversa/altri casi)
 
-            if (msg.type == DELETE_MSG_TYPE) { //TODO: Gestire il caso del DELETE da override, che porta ad un problema percheè sender!=ppi ma il controller non sta in ascolto di messaggi
+            if (msg.type == DELETE_MSG_TYPE) {  //TODO: Gestire il caso del DELETE da override, che porta ad un problema percheè sender!=ppi ma il controller non sta in ascolto di messaggi
                 message_t m = buildDeleteResponse(msg.sender);
                 sendMessage(&m);
-                if(getppid() != msg.sender && getppid() != controller_pid){ //sto morendo, invio conferma di ricezione al mittente, e nel caso che il mittente non sia mio padre, invio un messaggio a mio padre di rimuovermi dalla lista dei suoi figli
+                if (getppid() != msg.sender && getppid() != controller_pid) {  //sto morendo, invio conferma di ricezione al mittente, e nel caso che il mittente non sia mio padre, invio un messaggio a mio padre di rimuovermi dalla lista dei suoi figli
                     message_t m = buildDieMessage(getppid());
                     sendMessage(&m);
                 }
                 exit(0);
             } else if (msg.type == INFO_MSG_TYPE) {
                 time_t now = time(NULL);
-                unsigned long work_time = on_time + (now - ((stato == SWITCH_POS_OFF_VALUE) ? now : last_start_time));  //se è spenta ritorno solo "on_time", altrimenti on_time+differenza da quanto accesa
+                unsigned int work_time = on_time + (now - ((stato == SWITCH_POS_OFF_VALUE) ? now : last_start_time));  //se è spenta ritorno solo "on_time", altrimenti on_time+differenza da quanto accesa
                 message_t m = buildInfoResponseBulb(msg.sender, stato, work_time);
                 sendMessage(&m);
             } else if (msg.type == SWITCH_MSG_TYPE) {
                 int success = -1;
-                if (msg.vals[SWITCH_VAL_LABEL] == LABEL_LIGHT_VALUE || msg.vals[SWITCH_VAL_LABEL] == LABEL_GENERIC_SWITCH_VALUE) { // interruttore (luce) o generico (da hub ai propri figli)
-                    if (msg.vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_VALUE) {  // spengo
+                if (msg.vals[SWITCH_VAL_LABEL] == LABEL_LIGHT_VALUE || msg.vals[SWITCH_VAL_LABEL] == LABEL_GENERIC_SWITCH_VALUE) {  // interruttore (luce) o generico (da hub ai propri figli)
+                    if (msg.vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_VALUE) {                                                         // spengo
                         // se è accesa, sommo il tempo di accensione e spengo
-                        if (interruttore == SWITCH_POS_ON_VALUE){
+                        if (interruttore == SWITCH_POS_ON_VALUE) {
                             on_time += time(NULL) - last_start_time;
                             interruttore = SWITCH_POS_OFF_VALUE;
                             stato = interruttore;
@@ -77,7 +75,7 @@ int main(int argc, char **argv) {
                     }
                     if (msg.vals[SWITCH_VAL_POS] == SWITCH_POS_ON_VALUE) {  // accendo
                         // se è spenta, accendo e salvo il tempo di accensione
-                        if (interruttore == SWITCH_POS_OFF_VALUE){
+                        if (interruttore == SWITCH_POS_OFF_VALUE) {
                             last_start_time = time(NULL);
                             interruttore = SWITCH_POS_ON_VALUE;
                             stato = interruttore;
@@ -98,7 +96,7 @@ int main(int argc, char **argv) {
                 message_t m = buildLinkResponse(msg.sender, -1);
                 sendMessage(&m);
             } else if (msg.type == CLONE_MSG_TYPE) {
-                long vals[NVAL] = {id, stato, on_time, last_start_time};
+                int vals[NVAL] = {id, stato, on_time, last_start_time};
                 message_t m = buildCloneResponse(msg.sender, BULB, vals);
                 sendMessage(&m);
             }
@@ -107,7 +105,7 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-message_t buildInfoResponseBulb(long to_pid, short state, long work_time) {
+message_t buildInfoResponseBulb(int to_pid, short state, int work_time) {
     message_t ret = buildInfoResponse(to_pid, BULB);
     ret.vals[INFO_VAL_STATE] = state;
     ret.vals[1] = work_time;

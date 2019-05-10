@@ -4,12 +4,11 @@
 
 ///////////////////////////////////////////////  WORKERS ///////////////////////////////////////////////
 
-
 //Implementa il metodo LIST per un dispositivo di Controllo (Hub o Timer)
-void doListControl(long to_pid, list_t children) {
+void doListControl(int to_pid, list_t children) {
     node_t *p = *children;
     while (p != NULL) {
-        long son = p->value;
+        int son = p->value;
         message_t request = buildListRequest(son);
         if (sendMessage(&request) == -1)
             printf("Errore invio msg LIST al pid %ld: %s\n", son, strerror(errno));
@@ -17,14 +16,14 @@ void doListControl(long to_pid, list_t children) {
         message_t response;
         int stop = 0;
         do {
-            do{ //se ricevo un messaggio diverso da quello che mi aspetto, rispondo BUSY
-                if(receiveMessage(&response) == -1)
+            do {  //se ricevo un messaggio diverso da quello che mi aspetto, rispondo BUSY
+                if (receiveMessage(&response) == -1)
                     perror("Error list control response");
-                if(response.type != LIST_MSG_TYPE){
+                if (response.type != LIST_MSG_TYPE) {
                     message_t busy = buildBusyResponse(response.sender);
                     sendMessage(&busy);
                 }
-            }while(response.type!= LIST_MSG_TYPE);
+            } while (response.type != LIST_MSG_TYPE);
 
             response.to = to_pid;                // Cambio il destinatario per farlo arrivare a mio padre
             response.vals[LIST_VAL_LEVEL] += 1;  //  Aumento il valore "livello"
@@ -33,18 +32,17 @@ void doListControl(long to_pid, list_t children) {
             if (stop == 1 && p->next == NULL) {
                 //  Ultimo figlio, imposto lo stop
                 response.vals[LIST_VAL_STOP] = 1;
-            }
-            else{
+            } else {
                 stop = 0;
             }
-            
+
             sendMessage(&response);
         } while (stop != 1);
         p = p->next;
     }
 }
 
-void doLink(list_t children, long to_clone_pid, long sender, const char *base_dir) {
+void doLink(list_t children, int to_clone_pid, int sender, const char *base_dir) {
     message_t request = buildCloneRequest(to_clone_pid);
     message_t response;
     if (sendMessage(&request) == -1) {
@@ -86,47 +84,47 @@ void doLink(list_t children, long to_clone_pid, long sender, const char *base_di
 }
 
 ///////////////////////////////////////////////  REQUEST ///////////////////////////////////////////////
-message_t buildRequest(long to_pid, short msg_type) {
+message_t buildRequest(int to_pid, short msg_type) {
     message_t ret = {.to = to_pid, .sender = getpid(), .session = session, .type = msg_type};
     return ret;
 }
 
-message_t buildInfoRequest(long to_pid) {
+message_t buildInfoRequest(int to_pid) {
     return buildRequest(to_pid, INFO_MSG_TYPE);
 }
 
-message_t buildTranslateRequest(long to_pid, int search_id) {
+message_t buildTranslateRequest(int to_pid, int search_id) {
     message_t ret = buildRequest(to_pid, TRANSLATE_MSG_TYPE);
     ret.vals[TRANSLATE_VAL_ID] = search_id;
     return ret;
 }
 
-message_t buildDeleteRequest(long to_pid) {
+message_t buildDeleteRequest(int to_pid) {
     return buildRequest(to_pid, DELETE_MSG_TYPE);
 }
 
-message_t buildListRequest(long to_pid) {
+message_t buildListRequest(int to_pid) {
     return buildRequest(to_pid, LIST_MSG_TYPE);
 }
 
-message_t buildCloneRequest(long to_pid) {
+message_t buildCloneRequest(int to_pid) {
     return buildRequest(to_pid, CLONE_MSG_TYPE);
 }
-message_t buildGetChildRequest(long to_pid) {
+message_t buildGetChildRequest(int to_pid) {
     return buildRequest(to_pid, GET_CHILDREN_MSG_TYPE);
 }
 
-message_t buildLinkRequest(long to_pid, long to_clone_pid) {
+message_t buildLinkRequest(int to_pid, int to_clone_pid) {
     message_t ret = buildRequest(to_pid, LINK_MSG_TYPE);
     ret.vals[LINK_VAL_PID] = to_clone_pid;
     return ret;
 }
 
-message_t buildSwitchRequest(long to_pid, char *label, char *pos) {
-    long label_val = __LONG_MAX__;  // 0 = interruttore (generico), 1 = termostato
-    long pos_val = __LONG_MAX__;    // 0 = spento, 1 = acceso; x = termostato
+message_t buildSwitchRequest(int to_pid, char *label, char *pos) {
+    int label_val = __INT_MAX__;  // 0 = interruttore (generico), 1 = termostato
+    int pos_val = __INT_MAX__;    // 0 = spento, 1 = acceso; x = termostato
 
-    // mappo label (char*) in valori (long) per poterli inserire in un messaggio
+    // mappo label (char*) in valori (int) per poterli inserire in un messaggio
     if (strcmp(label, LABEL_LIGHT) == 0) {
         // 0 = interruttore (luce)
         label_val = LABEL_LIGHT_VALUE;
@@ -145,7 +143,7 @@ message_t buildSwitchRequest(long to_pid, char *label, char *pos) {
     }
 
     if (label_val != __LONG_MAX__) {
-        // mappo pos (char*) in valori (long) per poterli inserire in un messaggio
+        // mappo pos (char*) in valori (int) per poterli inserire in un messaggio
         if (label_val == LABEL_LIGHT_VALUE || label_val == LABEL_OPEN_VALUE) {  // se è un interrutore (luce o apri/chiudi)
             if (strcmp(pos, SWITCH_POS_OFF) == 0) {                             // "off"
                 // 0 = spento/chiuso (generico)
@@ -174,58 +172,56 @@ message_t buildSwitchRequest(long to_pid, char *label, char *pos) {
 }
 
 ///////////////////////////////////////////////  RESPONSE ///////////////////////////////////////////////
-message_t buildResponse(long to_pid, short msg_type) {
+message_t buildResponse(int to_pid, short msg_type) {
     message_t ret = {.to = to_pid, .sender = getpid(), .session = session, .type = msg_type};
     return ret;
 }
 //Metodo generico per info comuni. Ogni componente usa un override del metodo
-message_t buildInfoResponse(long to_pid, const char *tipo_componente) {
+message_t buildInfoResponse(int to_pid, const char *text) {
     message_t ret = buildResponse(to_pid, INFO_MSG_TYPE);
-    strcpy(ret.text, tipo_componente);
+    strcpy(ret.text, text);
     return ret;
 }
 
-message_t buildSwitchResponse(long to_pid, short success) {
+message_t buildSwitchResponse(int to_pid, short success) {
     message_t ret = buildResponse(to_pid, SWITCH_MSG_TYPE);
     ret.vals[SWITCH_VAL_SUCCESS] = success;
     return ret;
 }
 
-message_t buildTranslateResponse(long to_pid, long found) {
+message_t buildTranslateResponse(int to_pid, int found) {
     message_t ret = buildResponse(to_pid, TRANSLATE_MSG_TYPE);
     ret.vals[TRANSLATE_VAL_FOUND] = found;
     return ret;
 }
 
 //Esegue ricorsivamente nei figli di un dispositivo di controllo il TRANSLATE
-message_t buildTranslateResponseControl(long sender, int my_id, int search, list_t children){
-    if (my_id == search){
+message_t buildTranslateResponseControl(int sender, int my_id, int search, list_t children) {
+    if (my_id == search) {
         printf("Sono io %ld\n", search);
         return buildTranslateResponse(sender, getppid());
-    }
-    else{
-        long to_pid = getPidById(children,search); //se ho trovato il componente ottengo il suo valore, -1 altrimenti
-        printf("Ho trovato %ld\n",to_pid);
+    } else {
+        int to_pid = getPidById(children, search);  //se ho trovato il componente ottengo il suo valore, -1 altrimenti
+        printf("Ho trovato %ld\n", to_pid);
         listPrint(children);
         return buildTranslateResponse(sender, to_pid);
     }
 }
 
-message_t buildDeleteResponse(long to_pid) {
+message_t buildDeleteResponse(int to_pid) {
     return buildResponse(to_pid, DELETE_MSG_TYPE);
 }
 
-message_t buildListResponse(long to_pid, const char *component_type, int id, int lv, short state, short stop) {
+message_t buildListResponse(int to_pid, int id, const char *text, int lv, short stop) {
     message_t ret = buildResponse(to_pid, LIST_MSG_TYPE);
-    strcpy(ret.text, component_type);
     ret.vals[LIST_VAL_ID] = id;
+    strcpy(ret.text, text);
     ret.vals[LIST_VAL_LEVEL] = lv;
-    ret.vals[LIST_VAL_STATE] = state;
     ret.vals[LIST_VAL_STOP] = stop;
     return ret;
 }
 
-message_t buildCloneResponse(long to_pid, const char *component_type, const long vals[]) {
+message_t buildCloneResponse(int to_pid, const char *component_type, const int vals[]) {
     message_t ret = buildResponse(to_pid, CLONE_MSG_TYPE);
     strcpy(ret.text, component_type);
     int i;
@@ -233,37 +229,36 @@ message_t buildCloneResponse(long to_pid, const char *component_type, const long
     return ret;
 }
 
-message_t buildGetChildResponse(long to_pid, int child_pid) {
+message_t buildGetChildResponse(int to_pid, int child_pid) {
     message_t ret = buildResponse(to_pid, GET_CHILDREN_MSG_TYPE);
     ret.vals[GET_CHILDREN_VAL_ID] = child_pid;
     return ret;
 }
 
-message_t buildLinkResponse(long to_pid, short success) {
+message_t buildLinkResponse(int to_pid, short success) {
     message_t ret = buildResponse(to_pid, LINK_MSG_TYPE);
     ret.vals[LINK_VAL_SUCCESS] = success;
     return ret;
 }
 
-message_t buildBusyResponse(const long to){
+message_t buildBusyResponse(const int to) {
     message_t ret = buildResponse(to, BUSY_MSG_TYPE);
     return ret;
 }
 
-message_t buildDieMessage(long to){
+message_t buildDieMessage(int to) {
     message_t ret = buildResponse(to, DIE_MESG_TYPE);
     return ret;
 }
 
-
-    ////////////////////////////////////////////////////////////////// SEND/RECEIVE //////////////////////////////////////////////////////////////////
-int sendMessage(const message_t *msg){
+////////////////////////////////////////////////////////////////// SEND/RECEIVE //////////////////////////////////////////////////////////////////
+int sendMessage(const message_t *msg) {
     if (msg->to <= 0) return -1;
-    return msgsnd(mqid, msg, sizeof(message_t) - sizeof(long), 0);
+    return msgsnd(mqid, msg, sizeof(message_t) - sizeof(int), 0);
 }
 
 int receiveMessage(message_t *msg) {
-    return msgrcv(mqid, msg, sizeof(message_t) - sizeof(long), getpid(), 0);
+    return msgrcv(mqid, msg, sizeof(message_t) - sizeof(int), getpid(), 0);
 }
 
 ///////////////////////////////////////////////  INIT ///////////////////////////////////////////////
@@ -300,7 +295,7 @@ void closeMq(int id) {
 }
 
 // Traduce un id in un pid
-long getPidById(list_t figli, int id) {
+int getPidById(list_t figli, int id) {
     node_t *p = *figli;
     while (p != NULL) {
         int id_processo = p->value;
@@ -312,7 +307,7 @@ long getPidById(list_t figli, int id) {
         } else if (receiveMessage(&response) == -1) {
             perror("Error get pid by id response");
         } else if (response.vals[TRANSLATE_VAL_FOUND] > 0 && response.type == TRANSLATE_MSG_TYPE) {
-            return response.vals[TRANSLATE_VAL_FOUND]; // Id trovato
+            return response.vals[TRANSLATE_VAL_FOUND];  // Id trovato
         }
         p = p->next;
     }
