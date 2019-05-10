@@ -335,5 +335,5 @@ int printLog(const message_t *msg) {
 }
 
 void printMsg(const message_t *msg) {
-    printf("to: %d, sender: %d, text: %s, v0: %d, v1: %d, v2: %d, v3: %d, v4: %d, v5: %d, session: %ld\n", msg->to, msg->sender, msg->text, msg->vals[0], msg->vals[1], msg->vals[2], msg->vals[3], msg->vals[4], msg->vals[5], msg->session);
+    printf("to: %ld, sender: %d, text: %s, v0: %d, v1: %d, v2: %d, v3: %d, v4: %d, v5: %d, session: %ld\n", msg->to, msg->sender, msg->text, msg->vals[0], msg->vals[1], msg->vals[2], msg->vals[3], msg->vals[4], msg->vals[5], msg->session);
 }

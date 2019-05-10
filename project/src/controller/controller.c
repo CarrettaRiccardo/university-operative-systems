@@ -30,11 +30,10 @@ void controllerDestroy() {
 
 /**************************************** LIST ********************************************/
 void listDevices() {
-    printf("<0> controller, register: num = %d\n", listCount(children));
+    printf("(0) controller, register: num = %d\n", listCount(children));
     node_t *p = *children;
     while (p != NULL) {
-        int son = p->value;
-        message_t request = buildListRequest(son);
+        message_t request = buildListRequest(p->value);
         message_t response;
         if (sendMessage(&request) == -1) {
             perror("Error list request");

@@ -18,7 +18,7 @@ time_t session;
 int mqid;
 
 typedef struct msg {
-    int to;
+    long to;
     int sender;
     short type;
     time_t session;
@@ -28,7 +28,7 @@ typedef struct msg {
 
 /////////////////////////////// WORKERS ///////////////////////////////
 void doLink(list_t children, int to_clone_pid, int sender, const char* base_dir);
-void doListController(list_t children);
+void doListControl(int to_pid, list_t children);
 
 /////////////////////////////// REQUESTS ///////////////////////////////
 message_t buildRequest(int to_pid, short msg_type);
