@@ -177,9 +177,8 @@ message_t buildResponse(int to_pid, short msg_type) {
     return ret;
 }
 //Metodo generico per info comuni. Ogni componente usa un override del metodo
-message_t buildInfoResponse(int to_pid, const char *text) {
+message_t buildInfoResponse(int to_pid) {
     message_t ret = buildResponse(to_pid, INFO_MSG_TYPE);
-    strcpy(ret.text, text);
     return ret;
 }
 
@@ -211,10 +210,9 @@ message_t buildDeleteResponse(int to_pid) {
     return buildResponse(to_pid, DELETE_MSG_TYPE);
 }
 
-message_t buildListResponse(int to_pid, int id, const char *text, int lv, short stop) {
+message_t buildListResponse(int to_pid, int id, int lv, short stop) {
     message_t ret = buildResponse(to_pid, LIST_MSG_TYPE);
     ret.vals[LIST_VAL_ID] = id;
-    strcpy(ret.text, text);
     ret.vals[LIST_VAL_LEVEL] = lv;
     ret.vals[LIST_VAL_STOP] = stop;
     return ret;

@@ -15,8 +15,8 @@ char *base_dir;
 int id;
 list_t children;
 
-//Override del metodo in IPC.C per il componente Hub
-message_t buildInfoResponseHub(int sender);
+message_t buildInfoResponseHub(int to_pid);
+message_t buildListResponseHub(int to_pid, int lv, short stop);
 
 int main(int argc, char **argv) {
     base_dir = extractBaseDir(argv[0]);
@@ -62,10 +62,10 @@ int main(int argc, char **argv) {
             } else if (msg.type == LIST_MSG_TYPE) {  //  Risponde con i propri dati e inoltra la richiesta ai figli
                 message_t m;
                 if (listEmpty(children)) {
-                    m = buildListResponse(msg.sender, id, HUB, msg.vals[LIST_VAL_LEVEL], 1);
+                    m = buildListResponseHub(msg.sender, msg.vals[LIST_VAL_LEVEL], 1);
                     sendMessage(&m);
                 } else {
-                    m = buildListResponse(msg.sender, id, HUB, msg.vals[LIST_VAL_LEVEL], 0);
+                    m = buildListResponseHub(msg.sender, msg.vals[LIST_VAL_LEVEL], 0);
                     sendMessage(&m);
                     doListControl(msg.sender, children);
                 }
@@ -96,6 +96,14 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-message_t buildInfoResponseHub(int sender) {
-    return buildInfoResponse(sender, HUB);
+message_t buildInfoResponseHub(int to_pid) {
+    message_t ret = buildInfoResponse(to_pid);
+    sprintf(ret.text, "%s, state: %s, registers: TODO", HUB, "TODO override");
+    return ret;
+}
+
+message_t buildListResponseHub(int to_pid, int lv, short stop) {
+    message_t ret = buildListResponse(to_pid, id, lv, stop);
+    sprintf(ret.text, "%s %s", HUB, "TODO override");
+    return ret;
 }

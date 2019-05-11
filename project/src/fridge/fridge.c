@@ -9,26 +9,31 @@ TODO: Remove not-allowed libraries
 
 #include "../include/ipc.h"
 
-/* Override specifico per il metodo definito in IPC */
-message_t buildInfoResponseFridge(int to_pid, short state, int open_time, short del, short temp, short percent);
+int id;
+int mqid;
+
+short state;
+short interruttore;
+int delay;
+int temp;
+int perc;
+unsigned long long last_open_time;
+unsigned long long open_time;
+
+message_t buildInfoResponseFridge(int to_pid);
+message_t buildListResponseFridge(int to_pid, int lv);
 
 int main(int argc, char **argv) {
-    const int id = atoi(argv[1]);
-    const int mqid = getMq();                 //Ottengo accesso per la MailBox
-    const int sessione = (int)atoi(argv[1]);  //Ottengo il valore di sessione passato da mio padre
+    id = atoi(argv[1]);
+    mqid = getMq();  //Ottengo accesso per la MailBox
 
-    short stato = SWITCH_POS_OFF_VALUE;         //0 = chiusa, 1 = aperta
-    short interruttore = SWITCH_POS_OFF_VALUE;  //0 = fermo, 1 = apertura/chiusura (torna subito ad off, ma se azionato apre la porta o la chiude)
-    short delay = 13;                           // tempo di chiusura automatica porta
-    short temperatura = 4;                      // temperatura interna
-    short perc = 22;                            // percentuale riempimento (0-100%)
-    unsigned int last_open_time = 0;            // time ultima apertura
-    unsigned int tempo = 0;                     //tempo apertura porta
-
-    if (sessione == 0) {                       //Sessione diversa da quella corrente.
-        printf("Errore sessione reader = 0");  //TODO: Gestire correttamente la morte  del processo
-        exit(1);
-    }
+    state = SWITCH_POS_OFF_VALUE;         //0 = chiusa, 1 = aperta
+    interruttore = SWITCH_POS_OFF_VALUE;  //0 = fermo, 1 = apertura/chiusura (torna subito ad off, ma se azionato apre la porta o la chiude)
+    delay = 13;                           // tempo di chiusura automatica porta
+    temp = 4;                             // temperatura interna
+    perc = 22;                            // percentuale riempimento (0-100%)
+    last_open_time = 0;                   // time ultima apertura
+    open_time = 0;                        //tempo apertura porta
 
     while (1) {
         message_t msg;
@@ -36,31 +41,26 @@ int main(int argc, char **argv) {
 
         /* UPDATE: ad ogni ricezione di messaggio, aggiorno le proprietà del fridge */
         // controllo se il tempo di chiusura automatica è superato
-        if (stato == SWITCH_POS_ON_VALUE && last_open_time + delay <= time(NULL)) {
+        if (state == SWITCH_POS_ON_VALUE && last_open_time + delay <= time(NULL)) {
             // se sì, sommo il "delay" al tempo di apertura...
-            tempo += delay;
+            open_time += delay;
             // ...e chiudo automaticamente la porta
-            stato = SWITCH_POS_OFF_VALUE;
+            state = SWITCH_POS_OFF_VALUE;
         }
 
-        if (strcmp(msg.text, "ECHO") == 0) {
-            //Message m = {.to = getppid(), .session = sessione, .value = tempo, .state = stato};
-            //sendMessage( mqid, m );
-        } else if (msg.type == INFO_MSG_TYPE) {
-            time_t now = time(NULL);
-            unsigned int open_time = tempo + (now - ((stato == 0) ? now : last_open_time));  //se è chiusa ritorno solo "tempo", altrimenti tempo+differenza da quanto accesa
-            message_t m = buildInfoResponseFridge(msg.sender, stato, open_time, delay, temperatura, perc);
+        if (msg.type == INFO_MSG_TYPE) {
+            message_t m = buildInfoResponseFridge(msg.sender);
             sendMessage(&m);
         } else if (msg.type == SWITCH_MSG_TYPE) {
             int success = -1;
             if (msg.vals[SWITCH_VAL_LABEL] == LABEL_OPEN_VALUE || msg.vals[SWITCH_VAL_LABEL] == LABEL_GENERIC_SWITCH_VALUE) {  // interruttore (apri/chiudi) o generico (da hub ai propri figli)
                 if (msg.vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_VALUE) {                                                        // chiudo
                     // controllo se il tempo di chiusura automatica NON è superato
-                    if (stato == SWITCH_POS_ON_VALUE && last_open_time + delay > time(NULL)) {
+                    if (state == SWITCH_POS_ON_VALUE && last_open_time + delay > time(NULL)) {
                         // se non lo è (quindi deve ancora chiudersi automaticamente), sommo la differenza di tempo attuale al tempo di apertura...
-                        tempo += time(NULL) - last_open_time;
+                        open_time += time(NULL) - last_open_time;
                         // ...e chiudo la porta
-                        stato = SWITCH_POS_OFF_VALUE;
+                        state = SWITCH_POS_OFF_VALUE;
                         interruttore = SWITCH_POS_OFF_VALUE;
                     }
                     // altrimenti è gia su "off"
@@ -68,10 +68,10 @@ int main(int argc, char **argv) {
                 }
                 if (msg.vals[SWITCH_VAL_POS] == SWITCH_POS_ON_VALUE) {  // apro
                     // se è chiuso
-                    if (stato == SWITCH_POS_OFF_VALUE) {
+                    if (state == SWITCH_POS_OFF_VALUE) {
                         // apro la porta e salvo il tempo di apertura
                         last_open_time = time(NULL);
-                        stato = SWITCH_POS_ON_VALUE;
+                        state = SWITCH_POS_ON_VALUE;
                         interruttore = SWITCH_POS_OFF_VALUE;
                     }
                     // altrimenti è gia su "on"
@@ -80,9 +80,9 @@ int main(int argc, char **argv) {
             } else {
                 if (msg.vals[SWITCH_VAL_LABEL] == LABEL_TERM_VALUE) {  // termostato
                     if (msg.vals[SWITCH_VAL_POS] != __LONG_MAX__) {    // cambio valore
-                        temperatura = (short)msg.vals[SWITCH_VAL_POS];
+                        temp = msg.vals[SWITCH_VAL_POS];
                         success = 1;
-                        tempo += time(NULL) - last_open_time;
+                        open_time += time(NULL) - last_open_time;
                     }
                 }
             }
@@ -106,10 +106,10 @@ int main(int argc, char **argv) {
         } else if (msg.type == DELETE_MSG_TYPE) {
             exit(0);
         } else if (msg.type == TRANSLATE_MSG_TYPE) {
-            message_t m = buildTranslateResponse(msg.sender, msg.vals[TRANSLATE_VAL_ID] == id ? 1 : 0);
+            message_t m = buildTranslateResponse(msg.sender, msg.vals[TRANSLATE_VAL_ID] == id ? getpid() : 0);
             sendMessage(&m);
         } else if (msg.type == LIST_MSG_TYPE) {
-            message_t m = buildListResponse(msg.sender, id, FRIDGE, msg.vals[LIST_VAL_LEVEL], 1);
+            message_t m = buildListResponseFridge(msg.sender, msg.vals[LIST_VAL_LEVEL]);
             sendMessage(&m);
         }
     }
@@ -117,12 +117,16 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-message_t buildInfoResponseFridge(int to_pid, short state, int open_time, short del, short temp, short percent) {
-    message_t ret = buildInfoResponse(to_pid, FRIDGE);
-    ret.vals[INFO_VAL_STATE] = state;
-    ret.vals[1] = open_time;
-    ret.vals[2] = del;
-    ret.vals[3] = temp;
-    ret.vals[4] = percent;
+message_t buildInfoResponseFridge(int to_pid) {
+    message_t ret = buildInfoResponse(to_pid);
+    time_t now = time(NULL);
+    unsigned long long open_time = open_time + (now - ((state == 0) ? now : last_open_time));  //se è chiusa ritorno solo "tempo", altrimenti tempo+differenza da quanto accesa
+    sprintf(ret.text, "%s, state: %s, registers: time=%llds delay=%d perc=%d%% temp=%d°C", FRIDGE, state == 1 ? "open" : "closed", open_time, delay, perc, temp);
+    return ret;
+}
+
+message_t buildListResponseFridge(int to_pid, int lv) {
+    message_t ret = buildListResponse(to_pid, id, lv, 1);
+    sprintf(ret.text, "%s %s", FRIDGE, state == 1 ? "open" : "closed");
     return ret;
 }
