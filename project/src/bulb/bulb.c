@@ -109,6 +109,7 @@ message_t buildInfoResponseBulb(int to_pid) {
     time_t now = time(NULL);
     unsigned long long work_time = on_time + (now - ((state == SWITCH_POS_OFF_VALUE) ? now : last_start_time));  // Se è spenta ritorno solo "on_time", altrimenti on_time+differenza da quanto accesa
     sprintf(ret.text, "%s, state: %s, registers: time=%llds", BULB, state == 1 ? "on" : "off", work_time);
+    ret.vals[INFO_VAL_STATE] = state;
     return ret;
 }
 

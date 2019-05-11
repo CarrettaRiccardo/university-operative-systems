@@ -92,6 +92,7 @@ message_t buildInfoResponseWindow(int to_pid) {
     time_t now = time(NULL);
     long long int work_time = open_time + (now - ((state == 0) ? now : last_open_time));  //se è chiusa ritorno solo "open_time", altrimenti open_time+differenza da quanto accesa
     sprintf(ret.text, "%s, state: %s, registers: time=%llds", WINDOW, state == 1 ? "open" : "closed", work_time);
+    ret.vals[INFO_VAL_STATE] = state;
     return ret;
 }
 

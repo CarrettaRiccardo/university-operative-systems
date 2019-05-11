@@ -104,9 +104,15 @@ int main(int argc, char **argv) {
             // link
             // (value = id a cui linkare)
         } else if (msg.type == DELETE_MSG_TYPE) {
+            message_t m = buildDeleteResponse(msg.sender);
+            sendMessage(&m);
+            if (getppid() != msg.sender) {  //sto morendo, invio conferma di ricezione al mittente, e nel caso che il mittente non sia mio padre, invio un messaggio a mio padre di rimuovermi dalla lista dei suoi figli
+                message_t m = buildDieMessage(getppid());
+                sendMessage(&m);
+            }
             exit(0);
         } else if (msg.type == TRANSLATE_MSG_TYPE) {
-            message_t m = buildTranslateResponse(msg.sender, msg.vals[TRANSLATE_VAL_ID] == id ? getpid() : 0);
+            message_t m = buildTranslateResponse(msg.sender, msg.vals[TRANSLATE_VAL_ID] == id ? getpid() : -1);
             sendMessage(&m);
         } else if (msg.type == LIST_MSG_TYPE) {
             message_t m = buildListResponseFridge(msg.sender, msg.vals[LIST_VAL_LEVEL]);
@@ -122,6 +128,7 @@ message_t buildInfoResponseFridge(int to_pid) {
     time_t now = time(NULL);
     unsigned long long open_time = open_time + (now - ((state == 0) ? now : last_open_time));  //se è chiusa ritorno solo "tempo", altrimenti tempo+differenza da quanto accesa
     sprintf(ret.text, "%s, state: %s, registers: time=%llds delay=%d perc=%d%% temp=%d°C", FRIDGE, state == 1 ? "open" : "closed", open_time, delay, perc, temp);
+    ret.vals[INFO_VAL_STATE] = state;
     return ret;
 }
 
