@@ -46,7 +46,7 @@ void listDevices() {
                 } else {
                     int i;
                     for (i = 0; i < response.vals[LIST_VAL_LEVEL] + 1; i++) printf("    ");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
-                    printf("ᶫ(%d) %s\n", response.vals[LIST_VAL_ID], response.text);
+                    printf("|-(%d) %s\n", response.vals[LIST_VAL_ID], response.text);
                 }
             } while (response.vals[LIST_VAL_STOP] != 1);
         }
