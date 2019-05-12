@@ -61,9 +61,9 @@ int addDevice(char *device) {
     int pid = fork();
     /*  Processo figlio */
     if (pid == 0) {
-        char str_id[10];
+        char str_id[20];
         strcat(base_dir, device);             //  Genero il path dell'eseguibile
-        snprintf(str_id, 10, "%d", next_id);  //  Converto id in stringa
+        snprintf(str_id, 20, "%d", next_id);  //  Converto id in stringa
         char *args[] = {base_dir, str_id, NULL};
         return execvp(args[0], args);
     }

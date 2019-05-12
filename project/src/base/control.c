@@ -5,7 +5,7 @@
 #include "../include/list.h"
 #include "../include/utils.h"
 
-/* Metodi da implemantati nei dispositivi di controllo */
+/* Metodi da implemantare nei dispositivi di controllo */
 void init_data();
 void clone_data(char **argv);
 int handleSwitchControl(message_t *msg, list_t children);

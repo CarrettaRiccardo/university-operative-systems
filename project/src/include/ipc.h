@@ -11,7 +11,7 @@
 #include "../include/constants.h"
 #include "../include/list.h"
 #define MAXTEXT 255
-#define NVAL 6
+#define NVAL 10
 #define KEYFILE "progfile"
 
 time_t session;

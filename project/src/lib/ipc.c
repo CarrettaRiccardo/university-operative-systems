@@ -59,7 +59,7 @@ void doLink(list_t children, int to_clone_pid, int sender, const char *base_dir)
             int i;
             for (i = 1; i < NVAL + 1; i++) {
                 args[i] = malloc(sizeof(char) * 20);
-                snprintf(args[i], 10, "%d", response.vals[i - 1]);
+                snprintf(args[i], 20, "%d", response.vals[i - 1]);
             }
             args[NVAL + 1] = NULL;
             if (execvp(args[0], args) == -1) {
@@ -124,50 +124,31 @@ message_t buildSwitchRequest(int to_pid, char *label, char *pos) {
 
     // mappo label (char*) in valori (int) per poterli inserire in un messaggio
     if (strcmp(label, LABEL_LIGHT) == 0) {
-        // 0 = interruttore (luce)
-        label_val = LABEL_LIGHT_VALUE;
+        label_val = LABEL_LIGHT_VALUE;  // 0 = interruttore (luce)
+    } else if (strcmp(label, LABEL_OPEN) == 0) {
+        label_val = LABEL_OPEN_VALUE;  // 1 = interruttore (apri/chiudi)
+    } else if (strcmp(label, LABEL_TERM) == 0) {
+        label_val = LABEL_TERM_VALUE;  // 2 = termostato
+    } else if (strcmp(label, LABEL_DELAY) == 0) {
+        label_val = LABEL_DELAY_VALUE;  // 3 = delay (fridge)
+    } else if (strcmp(label, LABEL_BEGIN) == 0) {
+        label_val = LABEL_BEGIN_VALUE;  // 4 = begin (timer)
+    } else if (strcmp(label, LABEL_END) == 0) {
+        label_val = LABEL_END_VALUE;  // 5 = end (timer)
     } else {
-        if (strcmp(label, LABEL_OPEN) == 0) {
-            // 1 = interruttore (apri/chiudi)
-            label_val = LABEL_OPEN_VALUE;
-        } else {
-            if (strcmp(label, LABEL_TERM) == 0) {
-                // 2 = termostato
-                label_val = LABEL_TERM_VALUE;
-            } else {
-                if (strcmp(label, LABEL_DELAY) == 0) {
-                    // 3 = delay (fridge)
-                    label_val = LABEL_DELAY_VALUE;
-                } else {
-                    if (strcmp(label, LABEL_BEGIN) == 0) {
-                        // 4 = begin (timer)
-                        label_val = LABEL_BEGIN_VALUE;
-                    } else {
-                        if (strcmp(label, LABEL_END) == 0) {
-                            // 5 = end (timer)
-                            label_val = LABEL_END_VALUE;
-                        } else {
-                            // valore non valido
-                        }
-                    }
-                }
-            }
-        }
+        // TODO: valore non valido
     }
 
     if (label_val != __INT_MAX__) {
         // mappo pos (char*) in valori (int) per poterli inserire in un messaggio
-        if (label_val == LABEL_LIGHT_VALUE || label_val == LABEL_OPEN_VALUE) {  // se è un interrutore (luce o apri/chiudi)
-            if (strcmp(pos, SWITCH_POS_OFF) == 0) {                             // "off"
-                // 0 = spento/chiuso (generico)
-                pos_val = SWITCH_POS_OFF_VALUE;
+        if (label_val == LABEL_LIGHT_VALUE || label_val == LABEL_OPEN_VALUE) {
+            // se è un interrutore (luce o apri/chiudi)
+            if (strcmp(pos, SWITCH_POS_OFF) == 0) {        // "off"
+                pos_val = SWITCH_POS_OFF_VALUE;            // 0 = spento/chiuso (generico)
+            } else if (strcmp(pos, SWITCH_POS_ON) == 0) {  // "on"
+                pos_val = SWITCH_POS_ON_VALUE;             // 1 = acceso/aperto (generico)
             } else {
-                if (strcmp(pos, SWITCH_POS_ON) == 0) {  // "on"
-                    // 1 = acceso/aperto (generico)
-                    pos_val = SWITCH_POS_ON_VALUE;
-                } else {
-                    // valore non valido (!= on/off)
-                }
+                // TODO: valore non valido (!= on/off)
             }
         } else {
             if (atoi(pos) != 0) {  // è un valore valido solo se è un numero (la label è therm, delay, begin o end per forza)
@@ -178,7 +159,7 @@ message_t buildSwitchRequest(int to_pid, char *label, char *pos) {
                     pos_val = time(NULL) + atoi(pos);
                 }
             } else {
-                // valore non valido (!= numero)
+                // TODO valore non valido (!= numero)
             }
         }
     }
