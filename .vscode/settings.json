@@ -11,6 +11,7 @@
         "constants.h": "c",
         "msg.h": "c",
         "time.h": "c",
-        "unistd.h": "c"
+        "unistd.h": "c",
+        "fcntl.h": "c"
     }
 }

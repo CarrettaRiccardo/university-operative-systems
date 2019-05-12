@@ -33,7 +33,7 @@ void controllerDestroy() {
 
 /**************************************** LIST ********************************************/
 void listDevices() {
-    printf("(0) controller, register: num = %d\n", listCount(children));
+    printf("(0) controller\n");
     node_t *p = *children;
     while (p != NULL) {
         message_t request = buildListRequest(p->value);
@@ -57,12 +57,12 @@ void listDevices() {
 
 /**************************************** ADD ********************************************/
 /*  Aggiunge un dispositivo al controller in base al tipo specificato   */
-int addDevice(char *file) {
+int addDevice(char *device) {
     int pid = fork();
     /*  Processo figlio */
     if (pid == 0) {
         char str_id[10];
-        strcat(base_dir, file);               //  Genero il path dell'eseguibile
+        strcat(base_dir, device);             //  Genero il path dell'eseguibile
         snprintf(str_id, 10, "%d", next_id);  //  Converto id in stringa
         char *args[] = {base_dir, str_id, NULL};
         return execvp(args[0], args);
@@ -77,10 +77,10 @@ int addDevice(char *file) {
 }
 
 /**************************************** DEL ********************************************/
-void delDevice(char *id) {
-    int pid = getPidById(children, atoi(id));
+void delDevice(int id) {
+    int pid = getPidById(children, id);
     if (pid == -1) {
-        printf("Error: device with id %s not found\n", id);
+        printf("Error: device with id %d not found\n", id);
         return;
     }
     message_t request = buildDeleteRequest(pid);
@@ -90,23 +90,23 @@ void delDevice(char *id) {
     } else if (receiveMessage(&response) == -1) {
         perror("Error deleting device response");
     } else if (response.type == DELETE_MSG_TYPE) {
-        printf("Device %s deleted\n", id);
+        printf("Device %d deleted\n", id);
         listRemove(children, pid);
     } else {
-        printf("Error deleting %s: %s\n", id, response.text);
+        printf("Error deleting %d: %s\n", id, response.text);
     }
 }
 
 /**************************************** LINK ********************************************/
-void linkDevices(char *id1, char *id2) {
-    int src = getPidById(children, atoi(id1));
+void linkDevices(int id1, int id2) {
+    int src = getPidById(children, id1);
     if (src == -1) {
-        printf("Error: device with id %s not found\n", id1);
+        printf("Error: device with id %d not found\n", id1);
         return;
     }
-    int dest = getPidById(children, atoi(id2));
+    int dest = getPidById(children, id2);
     if (dest == -1) {
-        printf("Error: device with id %s not found\n", id2);
+        printf("Error: device with id %d not found\n", id2);
         return;
     }
 
@@ -117,7 +117,7 @@ void linkDevices(char *id1, char *id2) {
     } else if (receiveMessage(&response) == -1) {
         perror("Error linking devices response");
     } else if (response.vals[LINK_VAL_SUCCESS] == -1) {
-        printf("Error: the device with id %s is not a control device\n", id2);
+        printf("Error: the device with id %d is not a control device\n", id2);
     } else {
         //  Killo il processo src già clonato
         request = buildDeleteRequest(src);
@@ -127,17 +127,17 @@ void linkDevices(char *id1, char *id2) {
             perror("Error deleting device response");
         } else if (response.type == DELETE_MSG_TYPE) {
             listRemove(children, src);
-            printf("Device %s linked to %s\n", id1, id2);
+            printf("Device %d linked to %d\n", id1, id2);
         }
     }
 }
 
 /**************************************** SWITCH ********************************************/
-int switchDevice(char *id, char *label, char *pos) {
-    printf("Modifico l'interruttore %s di %s su %s ...\n", label, id, pos);
-    int pid = getPidById(children, atoi(id));
+int switchDevice(int id, char *label, char *pos) {
+    printf("Modifico l'interruttore %s di %d su %s ...\n", label, id, pos);
+    int pid = getPidById(children, id);
     if (pid == -1) {
-        printf("Error: device with id %s not found\n", id);
+        printf("Error: device with id %d not found\n", id);
         return;
     }
     message_t request = buildSwitchRequest(pid, label, pos);
@@ -163,20 +163,24 @@ int switchDevice(char *id, char *label, char *pos) {
 }
 
 /**************************************** INFO ********************************************/
-void infoDevice(char *id) {
-    int pid = getPidById(children, atoi(id));
-    if (pid == -1) {
-        printf("Error: device with id %s not found\n", id);
-        return;
-    }
-    message_t request = buildInfoRequest(pid);
-    message_t response;
-    if (sendMessage(&request) == -1) {
-        perror("Error info request");
-    } else if (receiveMessage(&response) == -1) {
-        perror("Errore info response");
+void infoDevice(int id) {
+    if (id == 0) {
+        printf("Device type: controller, registers: num = %d\n", listCount(children));
     } else {
-        //  Stampo il testo ricevuto dal dispositivo
-        printf("Device type: %s\n", response.text);
+        int pid = getPidById(children, id);
+        if (pid == -1) {
+            printf("Error: device with id %d not found\n", id);
+            return;
+        }
+        message_t request = buildInfoRequest(pid);
+        message_t response;
+        if (sendMessage(&request) == -1) {
+            perror("Error info request");
+        } else if (receiveMessage(&response) == -1) {
+            perror("Errore info response");
+        } else {
+            //  Stampo il testo ricevuto dal dispositivo
+            printf("Device type: %s\n", response.text);
+        }
     }
 }

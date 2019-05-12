@@ -1,90 +1,15 @@
-/*
-TODO: Remove not-allowed libraries
-*/
-#include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-
+#include "../base/control.c"
 #include "../include/ipc.h"
-#include "../include/list.h"
-#include "../include/utils.h"
 
-char *base_dir;
-int id;
-list_t children;
+void init_data() {}
 
-message_t buildInfoResponseHub(int to_pid);
-message_t buildListResponseHub(int to_pid, int lv, short stop);
-void clone(char **argv);
+void clone_data(char **argv) {}
 
-int main(int argc, char **argv) {
-    base_dir = extractBaseDir(argv[0]);
-    id = atoi(argv[1]);
-    children = listInit();
-
-    if (argc > 2) {
-        // Copia dati da argv per clonazione. Usato nel comando link
-        clone(argv);
-    }
-
-    while (1) {
-        message_t msg;
-        if (receiveMessage(&msg) == -1) {
-            perror("HUB: Error receive message");
-        } else {
-            if (msg.type == INFO_MSG_TYPE) {
-                message_t m = buildInfoResponseHub(msg.sender);
-                sendMessage(&m);
-            } else if (msg.type == SWITCH_MSG_TYPE) {
-                // apertura/chiusura
-            } else if (msg.type == LINK_MSG_TYPE) {
-                doLink(children, msg.vals[LINK_VAL_PID], msg.sender, base_dir);
-            } else if (msg.type == DELETE_MSG_TYPE) {
-                message_t m = buildDeleteResponse(msg.sender);
-                sendMessage(&m);
-                exit(0);
-            } else if (msg.type == TRANSLATE_MSG_TYPE) {
-                message_t m = buildTranslateResponseControl(msg.sender, id, msg.vals[TRANSLATE_VAL_ID], children);
-                sendMessage(&m);
-            } else if (msg.type == LIST_MSG_TYPE) {  //  Risponde con i propri dati e inoltra la richiesta ai figli
-                message_t m;
-                if (listEmpty(children)) {
-                    m = buildListResponseHub(msg.sender, msg.vals[LIST_VAL_LEVEL], 1);
-                    sendMessage(&m);
-                } else {
-                    m = buildListResponseHub(msg.sender, msg.vals[LIST_VAL_LEVEL], 0);
-                    sendMessage(&m);
-                    doListControl(msg.sender, children);
-                }
-            } else if (msg.type == CLONE_MSG_TYPE) {
-                int vals[NVAL] = {id, getpid()};
-                message_t m = buildCloneResponse(msg.sender, HUB, vals);
-                sendMessage(&m);
-            } else if (msg.type == GET_CHILDREN_MSG_TYPE) {
-                //  Invio tutti i figli al processo che lo richiede
-                message_t m;
-                node_t *p = *children;
-                while (p != NULL) {
-                    m = buildGetChildResponse(msg.sender, p->value);
-                    sendMessage(&m);
-                    message_t resp;
-                    receiveMessage(&resp);
-                    p = p->next;
-                }
-                m = buildGetChildResponse(msg.sender, -1);
-                sendMessage(&m);
-            } else if (msg.type == DIE_MESG_TYPE) {
-                //  Rimuovo il mittente di questo messaggio dalla lista dei miei figli
-                listRemove(children, msg.sender);
-            }
-        }
-    }
-    return 0;
+int handleSwitchControl(message_t *msg, list_t children) {
+    printf("TODO");
 }
 
-message_t buildInfoResponseHub(int sender) {
+message_t buildInfoResponseControl(int to_pid, list_t children) {
     // Stato = Override <-> lo stato dei componenti ad esso collegati non sono omogenei (intervento esterno all' HUB)
     node_t *p = *children;
     int count_on = 0, count_off = 0;
@@ -128,7 +53,7 @@ message_t buildInfoResponseHub(int sender) {
     } else {
         children_state = (count_off >= count_on) ? 2 : 3;
     }
-    message_t ret = buildInfoResponse(sender);
+    message_t ret = buildInfoResponse(to_pid);
     char *children_str;
     switch (children_state) {
         case 0: children_str = "off"; break;
@@ -136,35 +61,16 @@ message_t buildInfoResponseHub(int sender) {
         case 2: children_str = "off (override)"; break;
         case 3: children_str = "on (override)"; break;
     }
-
     sprintf(ret.text, "%s, state: %s", HUB, children_str);
     ret.vals[INFO_VAL_STATE] = children_state;
     return ret;
 }
-
-message_t buildListResponseHub(int to_pid, int lv, short stop) {
+message_t buildListResponseControl(int to_pid, int id, int lv, short stop) {
     message_t ret = buildListResponse(to_pid, id, lv, stop);
-    sprintf(ret.text, "%s %s", HUB, "");
+    sprintf(ret.text, "%s", HUB);
     return ret;
 }
-
-void clone(char **argv) {
-    int to_clone_pid = atol(argv[2]);
-    message_t request = buildGetChildRequest(to_clone_pid);
-    message_t response;
-    int child_pid;
-    sendMessage(&request);
-    // Linka tutti i figli dell'hub clonato a sè stesso
-    do {
-        receiveMessage(&response);
-        child_pid = response.vals[GET_CHILDREN_VAL_ID];
-        if (child_pid != -1) {
-            doLink(children, child_pid, getppid(), base_dir);
-            message_t ack = buildResponse(to_clone_pid, -1);
-            sendMessage(&ack);
-        }
-    } while (child_pid != -1);
-    //  Invia la conferma al padre
-    message_t confirm_clone = buildLinkResponse(getppid(), 1);
-    sendMessage(&confirm_clone);
+message_t buildCloneResponseControl(int to_pid, int id) {
+    int vals[NVAL] = {id, getpid()};
+    return buildCloneResponse(to_pid, HUB, vals);
 }

@@ -3,7 +3,7 @@
 
 #include "../include/ipc.h"
 
-/* Metodi implemantati nei dispositivi */
+/* Metodi da implemantare nei dispositivi */
 void init_data();
 void clone_data(char **argv);
 int handleSwitchDevice(message_t *msg);
@@ -15,11 +15,12 @@ int id;
 int main(int argc, char **argv) {
     // Inizializzazione
     id = atoi(argv[1]);
-    if (argc <= 2) {  // Creazione nuovo device
+    if (argc <= 2) {
+        // Inzializzazione nuovo device
         init_data();
-    } else {  // Inzializzazione parametri da richiesta clone
+    } else {
+        // Inzializzazione device clonato
         clone_data(argv);
-        // Invia la conferma al padre
         message_t confirm_clone = buildLinkResponse(getppid(), 1);
         sendMessage(&confirm_clone);
     }
@@ -27,7 +28,7 @@ int main(int argc, char **argv) {
     while (1) {
         message_t msg;
         if (receiveMessage(&msg) == -1) {
-            perror("Error receiving message in device");
+            perror("Error receiving message in normal device");
         } else {
             switch (msg.type) {
                 case TRANSLATE_MSG_TYPE: {

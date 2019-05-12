@@ -25,11 +25,11 @@ void printHelp(char *cmd, char *desc);
 void controllerInit(char *file);
 void controllerDestroy();
 void listDevices();
-int addDevice(char *file);
-void delDevice(char *id);
-void linkDevices(char *id1, char *id2);
-int switchDevice(char *id, char *label, char *pos);
-void infoDevice(char *id);
+int addDevice(char *device);
+void delDevice(int id);
+void linkDevices(int id1, int id2);
+int switchDevice(int id, char *label, char *pos);
+void infoDevice(int id);
 
 /* Main */
 int main(int sargc, char **sargv) {
@@ -97,7 +97,7 @@ int main(int sargc, char **sargv) {
             } else if (!isInt(argv[1])) {
                 printf("Error: <id> must be a positive number\n");
             } else {
-                delDevice(argv[1]);
+                delDevice(atoi(argv[1]));
             }
         }
         /**************************************** LINK ********************************************/
@@ -109,7 +109,7 @@ int main(int sargc, char **sargv) {
             } else if (strcmp(argv[1], argv[3]) == 0) {
                 printf("Error: cannot link a device to itself\n");
             } else {
-                linkDevices(argv[1], argv[3]);
+                linkDevices(atoi(argv[1]), atoi(argv[3]));
             }
         }
         /**************************************** SWITCH ********************************************/
@@ -119,7 +119,7 @@ int main(int sargc, char **sargv) {
             } else if (!isInt(argv[1])) {
                 printf("Error: <id> must be a positive number\n");
             } else {
-                switchDevice(argv[1], argv[2], argv[3]);
+                switchDevice(atoi(argv[1]), argv[2], argv[3]);
             }
         }
         /**************************************** INFO ********************************************/
@@ -129,7 +129,7 @@ int main(int sargc, char **sargv) {
             } else if (!isInt(argv[1])) {
                 printf("Error: <id> must be a positive number\n");
             } else {
-                infoDevice(argv[1]);
+                infoDevice(atoi(argv[1]));
             }
         }
         /**************************************** QUIT ********************************************/

@@ -186,22 +186,11 @@ message_t buildSwitchResponse(int to_pid, short success) {
     return ret;
 }
 
-//pid_found = PID processo trovato, <=0 se non trovato
+// pid_found = PID processo trovato, <=0 se non trovato
 message_t buildTranslateResponse(int to_pid, int pid_found) {
     message_t ret = buildResponse(to_pid, TRANSLATE_MSG_TYPE);
     ret.vals[TRANSLATE_VAL_ID] = pid_found;
     return ret;
-}
-
-message_t buildTranslateResponseControl(int sender, int my_id, int search, list_t children) {
-    if (my_id == search) {
-        printf("Sono io\n");
-        return buildTranslateResponse(sender, getpid());
-    } else {
-        int to_pid = getPidById(children, search);
-        printf("Ho trovato %d\n", to_pid);
-        return buildTranslateResponse(sender, to_pid);
-    }
 }
 
 message_t buildDeleteResponse(int to_pid) {
@@ -290,8 +279,8 @@ void closeMq(int id) {
 }
 
 // Traduce un id in un pid
-int getPidById(list_t figli, int id) {
-    node_t *p = *figli;
+int getPidById(list_t children, int id) {
+    node_t *p = *children;
     while (p != NULL) {
         int id_processo = p->value;
         message_t request = buildTranslateRequest(id_processo, id);
