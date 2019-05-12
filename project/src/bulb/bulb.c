@@ -11,29 +11,30 @@ TODO: Gestire i vari stati : 0=spenta 1=accesa 2=spenta manually 3=accesa manual
 
 #include "../include/ipc.h"
 
+int id;
+short state;
+short interruttore;  // valore interruttore che è 1 a 1 con lo stato
+unsigned long long on_time;
+unsigned long long last_start_time;
+unsigned long long controller_pid;  //Aggiunto da Steve in forma temporanea
+
 /* Override specifico per il metodo definito in IPC */
-message_t buildInfoResponseBulb(int to_pid, short state, int work_time);
+message_t buildInfoResponseBulb(int to_pid);
+message_t buildListResponseBulb(int to_pid, int lv);
 
 int main(int argc, char **argv) {
-    int id;
-    short stato;
-    short interruttore;  // valore interruttore che è 1 a 1 con lo stato
-    unsigned int on_time;
-    unsigned int last_start_time;
-    unsigned int controller_pid;  //Aggiunto da Steve in forma temporanea
-
     id = atoi(argv[1]);  // Lettura id da parametro
     //  Creazione nuova bulb
     if (argc <= 2) {
-        stato = SWITCH_POS_OFF_VALUE;  // 0 = spenta, 1 = accesa
-        interruttore = stato;
+        state = SWITCH_POS_OFF_VALUE;  // 0 = spenta, 1 = accesa
+        interruttore = state;
         on_time = 0;                   //TODO: Destro fare lettura on_time da parametro in caso di clonazione
         last_start_time = time(NULL);  // Tempo accensione lampadina
     }
     //  Inzializzazione parametri da richiesta clone
     else {
-        stato = atoi(argv[2]);
-        interruttore = stato;
+        state = atoi(argv[2]);
+        interruttore = state;
         on_time = atoi(argv[3]);
         last_start_time = atoi(argv[4]);
         //  Invia la conferma al padre
@@ -57,9 +58,7 @@ int main(int argc, char **argv) {
                 }
                 exit(0);
             } else if (msg.type == INFO_MSG_TYPE) {
-                time_t now = time(NULL);
-                unsigned int work_time = on_time + (now - ((stato == SWITCH_POS_OFF_VALUE) ? now : last_start_time));  //se è spenta ritorno solo "on_time", altrimenti on_time+differenza da quanto accesa
-                message_t m = buildInfoResponseBulb(msg.sender, stato, work_time);
+                message_t m = buildInfoResponseBulb(msg.sender);
                 sendMessage(&m);
             } else if (msg.type == SWITCH_MSG_TYPE) {
                 int success = -1;
@@ -69,7 +68,7 @@ int main(int argc, char **argv) {
                         if (interruttore == SWITCH_POS_ON_VALUE) {
                             on_time += time(NULL) - last_start_time;
                             interruttore = SWITCH_POS_OFF_VALUE;
-                            stato = interruttore;
+                            state = interruttore;
                         }
                         success = 1;
                     }
@@ -78,7 +77,7 @@ int main(int argc, char **argv) {
                         if (interruttore == SWITCH_POS_OFF_VALUE) {
                             last_start_time = time(NULL);
                             interruttore = SWITCH_POS_ON_VALUE;
-                            stato = interruttore;
+                            state = interruttore;
                         }
                         success = 1;
                     }
@@ -90,13 +89,13 @@ int main(int argc, char **argv) {
                 message_t m = buildTranslateResponse(msg.sender, msg.vals[TRANSLATE_VAL_ID] == id ? getpid() : -1);
                 sendMessage(&m);
             } else if (msg.type == LIST_MSG_TYPE) {  // Caso base per la LIST. value5 = 1 per indicare fine albero
-                message_t m = buildListResponse(msg.sender, id, BULB, msg.vals[LIST_VAL_LEVEL], 1);
+                message_t m = buildListResponseBulb(msg.sender, msg.vals[LIST_VAL_LEVEL]);
                 sendMessage(&m);
             } else if (msg.type == LINK_MSG_TYPE) {
                 message_t m = buildLinkResponse(msg.sender, -1);
                 sendMessage(&m);
             } else if (msg.type == CLONE_MSG_TYPE) {
-                int vals[NVAL] = {id, stato, on_time, last_start_time};
+                int vals[NVAL] = {id, state, on_time, last_start_time};
                 message_t m = buildCloneResponse(msg.sender, BULB, vals);
                 sendMessage(&m);
             }
@@ -105,9 +104,17 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-message_t buildInfoResponseBulb(int to_pid, short state, int work_time) {
-    message_t ret = buildInfoResponse(to_pid, BULB);
+message_t buildInfoResponseBulb(int to_pid) {
+    message_t ret = buildInfoResponse(to_pid);
+    time_t now = time(NULL);
+    unsigned long long work_time = on_time + (now - ((state == SWITCH_POS_OFF_VALUE) ? now : last_start_time));  // Se è spenta ritorno solo "on_time", altrimenti on_time+differenza da quanto accesa
+    sprintf(ret.text, "%s, state: %s, registers: time=%llds", BULB, state == 1 ? "on" : "off", work_time);
     ret.vals[INFO_VAL_STATE] = state;
-    ret.vals[1] = work_time;
+    return ret;
+}
+
+message_t buildListResponseBulb(int to_pid, int lv) {
+    message_t ret = buildListResponse(to_pid, id, lv, 1);
+    sprintf(ret.text, "%s %s", BULB, state == 1 ? "on" : "off");
     return ret;
 }

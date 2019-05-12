@@ -5,6 +5,7 @@
 #include "../include/ipc.h"
 #include "../include/list.h"
 
+int id;
 list_t children;
 int next_id;
 char *base_dir;
@@ -13,6 +14,7 @@ char *base_dir;
 void controllerInit(char *file) {
     children = listInit();
     ipcInit();  //inizializzo componenti comunicazione
+    id = 0;
     next_id = 1;
     //  Uso il percorso relativo al workspace, preso da argv[0] per trovare gli altri eseguibili per i device.
     //  Rimuovo il nome del file dal percorso
@@ -43,8 +45,8 @@ void listDevices() {
                     perror("Error list response");
                 } else {
                     int i;
-                    for (i = 0; i < response.vals[LIST_VAL_LEVEL]; i++) printf("    ");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
-                    printf("|(%d) %s\n", response.vals[LIST_VAL_ID], response.text);
+                    for (i = 0; i < response.vals[LIST_VAL_LEVEL] + 1; i++) printf("    ");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
+                    printf("|-(%d) %s\n", response.vals[LIST_VAL_ID], response.text);
                 }
             } while (response.vals[LIST_VAL_STOP] != 1);
         }
@@ -174,6 +176,6 @@ void infoDevice(char *id) {
         perror("Errore info response");
     } else {
         //  Stampo il testo ricevuto dal dispositivo
-        printf("Type: %s\n", response.text);
+        printf("Device type: %s\n", response.text);
     }
 }
