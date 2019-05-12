@@ -17,31 +17,16 @@ list_t children;
 
 message_t buildInfoResponseHub(int to_pid);
 message_t buildListResponseHub(int to_pid, int lv, short stop);
+void clone(char **argv);
 
 int main(int argc, char **argv) {
     base_dir = extractBaseDir(argv[0]);
     id = atoi(argv[1]);
     children = listInit();
 
-    if (argc > 2) {  //  Clone dell'hub
-        int to_clone_pid = atol(argv[2]);
-        message_t request = buildGetChildRequest(to_clone_pid);
-        message_t response;
-        int child_pid;
-        sendMessage(&request);
-        // Linka tutti i figli dell'hub clonato a sè stesso
-        do {
-            receiveMessage(&response);
-            child_pid = response.vals[GET_CHILDREN_VAL_ID];
-            if (child_pid != -1) {
-                doLink(children, child_pid, getppid(), base_dir);
-                message_t ack = buildResponse(to_clone_pid, -1);
-                sendMessage(&ack);
-            }
-        } while (child_pid != -1);
-        //  Invia la conferma al padre
-        message_t confirm_clone = buildLinkResponse(getppid(), 1);
-        sendMessage(&confirm_clone);
+    if (argc > 2) {
+        // Copia dati da argv per clonazione. Usato nel comando link
+        clone(argv);
     }
 
     while (1) {
@@ -161,4 +146,25 @@ message_t buildListResponseHub(int to_pid, int lv, short stop) {
     message_t ret = buildListResponse(to_pid, id, lv, stop);
     sprintf(ret.text, "%s %s", HUB, "");
     return ret;
+}
+
+void clone(char **argv) {
+    int to_clone_pid = atol(argv[2]);
+    message_t request = buildGetChildRequest(to_clone_pid);
+    message_t response;
+    int child_pid;
+    sendMessage(&request);
+    // Linka tutti i figli dell'hub clonato a sè stesso
+    do {
+        receiveMessage(&response);
+        child_pid = response.vals[GET_CHILDREN_VAL_ID];
+        if (child_pid != -1) {
+            doLink(children, child_pid, getppid(), base_dir);
+            message_t ack = buildResponse(to_clone_pid, -1);
+            sendMessage(&ack);
+        }
+    } while (child_pid != -1);
+    //  Invia la conferma al padre
+    message_t confirm_clone = buildLinkResponse(getppid(), 1);
+    sendMessage(&confirm_clone);
 }
