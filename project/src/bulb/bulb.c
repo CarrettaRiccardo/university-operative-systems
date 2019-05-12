@@ -13,11 +13,11 @@ void init_data() {
     last_on_time = time(NULL);
 }
 
-void clone_data(char **argv) {
-    state = atoi(argv[2]);
+void clone_data(char **vals) {
+    state = atoi(vals[0]);
     interruttore = state;
-    on_time = atoi(argv[3]);
-    last_on_time = atoi(argv[4]);
+    on_time = atoi(vals[1]);
+    last_on_time = atoi(vals[2]);
 }
 
 int handleSwitchDevice(message_t *msg) {
@@ -62,6 +62,6 @@ message_t buildListResponseDevice(int to_pid, int id, int lv) {
 }
 
 message_t buildCloneResponseDevice(int to_pid, int id) {
-    int vals[NVAL] = {id, state, on_time, last_on_time};
-    return buildCloneResponse(to_pid, BULB, vals);
+    int vals[] = {state, on_time, last_on_time};
+    return buildCloneResponse(to_pid, BULB, id, vals, 0);
 }

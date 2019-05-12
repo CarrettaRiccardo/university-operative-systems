@@ -3,7 +3,7 @@
 
 void init_data() {}
 
-void clone_data(char **argv) {}
+void clone_data(char **vals) {}
 
 int handleSwitchControl(message_t *msg, list_t children) {
     printf("TODO");
@@ -65,12 +65,14 @@ message_t buildInfoResponseControl(int to_pid, list_t children) {
     ret.vals[INFO_VAL_STATE] = children_state;
     return ret;
 }
+
 message_t buildListResponseControl(int to_pid, int id, int lv, short stop) {
     message_t ret = buildListResponse(to_pid, id, lv, stop);
     sprintf(ret.text, "%s", HUB);
     return ret;
 }
+
 message_t buildCloneResponseControl(int to_pid, int id) {
-    int vals[NVAL] = {id, getpid()};
-    return buildCloneResponse(to_pid, HUB, vals);
+    int vals[] = {};
+    return buildCloneResponse(to_pid, HUB, id, vals, 1);
 }

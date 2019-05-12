@@ -5,7 +5,7 @@
 
 /* Metodi da implemantare nei dispositivi */
 void init_data();
-void clone_data(char **argv);
+void clone_data(char **vals);
 int handleSwitchDevice(message_t *msg);
 message_t buildInfoResponseDevice(int to_pid);
 message_t buildListResponseDevice(int to_pid, int id, int lv);
@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
         init_data();
     } else {
         // Inzializzazione device clonato
-        clone_data(argv);
+        clone_data(argv + 2);  // Salto i parametri [0] (percorso file) e [1] (id)
         message_t confirm_clone = buildLinkResponse(getppid(), 1);
         sendMessage(&confirm_clone);
     }

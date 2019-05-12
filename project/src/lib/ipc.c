@@ -216,11 +216,14 @@ message_t buildListResponse(int to_pid, int id, int lv, short stop) {
     return ret;
 }
 
-message_t buildCloneResponse(int to_pid, const char *component_type, const int vals[]) {
+message_t buildCloneResponse(int to_pid, const char *component_type, int id, const int vals[], short is_control_device) {
     message_t ret = buildResponse(to_pid, CLONE_MSG_TYPE);
     strcpy(ret.text, component_type);
+    ret.vals[0] = id;
+    if (is_control_device) ret.vals[1] = getpid();
+    int s = is_control_device ? 2 : 1;
     int i;
-    for (i = 0; i < NVAL; i++) ret.vals[i] = vals[i];  // Copio i valori nella risposta
+    for (i = s; i < NVAL; i++) ret.vals[i] = vals[i - s];  // Copio i valori nella risposta
     return ret;
 }
 

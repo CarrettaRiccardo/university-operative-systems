@@ -10,7 +10,7 @@
 
 char *base_dir;
 int id;
-list_t child;// conterrà al max 1 figlio; uso una list_t perchè è compatibile con i metodi usati per hub
+list_t child;  // conterrà al max 1 figlio; uso una list_t perchè è compatibile con i metodi usati per hub
 
 long begin = 0;  //momento temporale di attivazione
 long end = 0;    //momento temporale di disattivazione
@@ -63,21 +63,26 @@ int main(int argc, char **argv) {
                 sendMessage(&m);
             } else if (msg.type == SWITCH_MSG_TYPE) {
                 int success = -1;
-                if (msg.vals[SWITCH_VAL_POS] != __INT_MAX__){// se è un valore valido
-                    switch (msg.vals[SWITCH_VAL_LABEL]) {  // set begin/end/stato del figlio
-                        case LABEL_BEGIN_VALUE: begin = msg.vals[SWITCH_VAL_POS]; success = 1; break;
-                        case LABEL_END_VALUE: end = msg.vals[SWITCH_VAL_POS]; success = 1; break;
-                        case LABEL_GENERIC_SWITCH_VALUE: /**/ success = 1; break;// TODO
+                if (msg.vals[SWITCH_VAL_POS] != __INT_MAX__) {  // se è un valore valido
+                    switch (msg.vals[SWITCH_VAL_LABEL]) {       // set begin/end/stato del figlio
+                        case LABEL_BEGIN_VALUE:
+                            begin = msg.vals[SWITCH_VAL_POS];
+                            success = 1;
+                            break;
+                        case LABEL_END_VALUE:
+                            end = msg.vals[SWITCH_VAL_POS];
+                            success = 1;
+                            break;
+                        case LABEL_GENERIC_SWITCH_VALUE: /**/ success = 1; break;  // TODO
                     }
                 }
                 // return success or not
                 message_t m = buildSwitchResponse(msg.sender, success);
                 sendMessage(&m);
             } else if (msg.type == LINK_MSG_TYPE) {
-                if (listCount(child) < 1){// se non ha figlio
+                if (listCount(child) < 1) {  // se non ha figlio
                     doLink(child, msg.vals[LINK_VAL_PID], msg.sender, base_dir);
-                }
-                else{// non può avere più di un figlio
+                } else {  // non può avere più di un figlio
                     message_t fail = buildBusyResponse(msg.sender);
                     fail.vals[LINK_VAL_SUCCESS] = LINK_MAX_CHILD;
                     sendMessage(&fail);
@@ -101,7 +106,7 @@ int main(int argc, char **argv) {
                 }
             } else if (msg.type == CLONE_MSG_TYPE) {
                 int vals[NVAL] = {id, getpid()};
-                message_t m = buildCloneResponse(msg.sender, TIMER, vals);
+                message_t m = buildCloneResponse(msg.sender, TIMER, id, vals, 1);
                 sendMessage(&m);
             } else if (msg.type == GET_CHILDREN_MSG_TYPE) {
                 //  Invio il figlio al processo che lo richiede
@@ -128,8 +133,8 @@ int main(int argc, char **argv) {
 message_t buildInfoResponseTimer(int sender) {
     // Stato = Override <-> ??? -- TODO
     node_t *p = *child;
-    int child_State = 0;// 0 = figlio spento, 1 = figlio acceso
-    short override = 0;// 0 = no override, 1 = si override
+    int child_State = 0;  // 0 = figlio spento, 1 = figlio acceso
+    short override = 0;   // 0 = no override, 1 = si override
     while (p != NULL) {
         message_t request = buildInfoRequest(p->value);
         message_t response;

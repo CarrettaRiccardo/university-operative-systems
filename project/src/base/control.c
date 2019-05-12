@@ -7,7 +7,7 @@
 
 /* Metodi da implemantare nei dispositivi di controllo */
 void init_data();
-void clone_data(char **argv);
+void clone_data(char **vals);
 int handleSwitchControl(message_t *msg, list_t children);
 message_t buildInfoResponseControl(int to_pid, list_t children);
 message_t buildListResponseControl(int to_pid, int id, int lv, short stop);
@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
         init_data();
     } else {
         // Inzializzazione control device clonato
-        clone_data(argv);
+        clone_data(argv + 3);  // Salto i parametri [0] (percorso file), [1] (id) e [2] (to_clone_pid)
         // Clonazione ricorsiva dei figli
         int to_clone_pid = atol(argv[2]);
         message_t request = buildGetChildRequest(to_clone_pid);

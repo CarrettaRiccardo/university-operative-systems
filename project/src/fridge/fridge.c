@@ -19,14 +19,14 @@ void init_data() {
     last_open_time = 0;                   // tempo ultima apertura
 }
 
-void clone_data(char **argv) {
-    state = atoi(argv[2]);
-    interruttore = atoi(argv[3]);
-    delay = atoi(argv[4]);
-    temp = atoi(argv[5]);
-    perc = atoi(argv[6]);
-    open_time = atoi(argv[7]);
-    last_open_time = atoi(argv[8]);
+void clone_data(char **vals) {
+    state = atoi(vals[0]);
+    interruttore = atoi(vals[1]);
+    delay = atoi(vals[2]);
+    temp = atoi(vals[3]);
+    perc = atoi(vals[4]);
+    open_time = atoi(vals[5]);
+    last_open_time = atoi(vals[6]);
 }
 
 int handleSwitchDevice(message_t *msg) {
@@ -43,8 +43,7 @@ int handleSwitchDevice(message_t *msg) {
             }
             // altrimenti è gia su "off"
             success = 1;
-        }
-        if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_ON_VALUE) {  // apro
+        } else if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_ON_VALUE) {  // apro
             // se è chiuso
             if (state == SWITCH_POS_OFF_VALUE) {
                 // apro la porta e salvo il tempo di apertura
@@ -55,15 +54,14 @@ int handleSwitchDevice(message_t *msg) {
             // altrimenti è gia su "on"
             success = 1;
         }
-    } else {
-        if (msg->vals[SWITCH_VAL_LABEL] == LABEL_TERM_VALUE) {  // termostato
-            if (msg->vals[SWITCH_VAL_POS] != __INT_MAX__) {     // cambio valore
-                temp = msg->vals[SWITCH_VAL_POS];
-                success = 1;
-                open_time += time(NULL) - last_open_time;
-            }
+    } else if (msg->vals[SWITCH_VAL_LABEL] == LABEL_TERM_VALUE) {  // termostato
+        if (msg->vals[SWITCH_VAL_POS] != __INT_MAX__) {            // cambio valore
+            temp = msg->vals[SWITCH_VAL_POS];
+            success = 1;
+            open_time += time(NULL) - last_open_time;
         }
     }
+
     return success;
 }
 
@@ -83,6 +81,6 @@ message_t buildListResponseDevice(int to_pid, int id, int lv) {
 }
 
 message_t buildCloneResponseDevice(int to_pid, int id) {
-    int vals[NVAL] = {id, state, interruttore, delay, temp, perc, open_time, last_open_time};
-    return buildCloneResponse(to_pid, FRIDGE, vals);
+    int vals[] = {state, interruttore, delay, temp, perc, open_time, last_open_time};
+    return buildCloneResponse(to_pid, FRIDGE, id, vals, 0);
 }
