@@ -11,14 +11,15 @@ void doListControl(int to_pid, list_t children) {
         int son = p->value;
         message_t request = buildListRequest(son);
         if (sendMessage(&request) == -1)
-            printf("Errore invio msg LIST al pid %d: %s\n", son, strerror(errno));
+            printf("Error sending list control request to pid %d: %s\n", son, strerror(errno));
 
         message_t response;
         int stop = 0;
         do {
-            do {  //se ricevo un messaggio diverso da quello che mi aspetto, rispondo BUSY
+            // TODO: implemntare BUSY globalmente
+            do {  // Se ricevo un messaggio diverso da quello che mi aspetto, rispondo BUSY
                 if (receiveMessage(&response) == -1)
-                    perror("Error list control response");
+                    perror("Error receiving list control response");
                 if (response.type != LIST_MSG_TYPE) {
                     message_t busy = buildBusyResponse(response.sender);
                     sendMessage(&busy);
@@ -32,10 +33,7 @@ void doListControl(int to_pid, list_t children) {
             if (stop == 1 && p->next == NULL) {
                 //  Ultimo figlio, imposto lo stop
                 response.vals[LIST_VAL_STOP] = 1;
-            } else {
-                stop = 0;
             }
-
             sendMessage(&response);
         } while (stop != 1);
         p = p->next;
@@ -46,9 +44,9 @@ void doLink(list_t children, int to_clone_pid, int sender, const char *base_dir)
     message_t request = buildCloneRequest(to_clone_pid);
     message_t response;
     if (sendMessage(&request) == -1) {
-        printf("Error sending CloneRequest to %d from %d: %s\n", to_clone_pid, getpid(), strerror(errno));
+        printf("Error sending clone request to %d from %d: %s\n", to_clone_pid, getpid(), strerror(errno));
     } else if (receiveMessage(&response) == -1) {
-        printf("Error receiving CloneRequest in %d from %d: %s\n", getpid(), to_clone_pid, strerror(errno));
+        printf("Error receiving clone response in %d from %d: %s\n", getpid(), to_clone_pid, strerror(errno));
     } else {
         int pid = fork();
         char exec_file[50];
@@ -298,7 +296,7 @@ int getPidById(list_t figli, int id) {
         int id_processo = p->value;
         message_t request = buildTranslateRequest(id_processo, id);
         message_t response;
-        
+
         if (sendMessage(&request) == -1) {
             perror("Error get pid by id request");
         } else if (receiveMessage(&response) == -1) {
