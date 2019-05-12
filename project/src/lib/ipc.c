@@ -135,15 +135,30 @@ message_t buildSwitchRequest(int to_pid, char *label, char *pos) {
                 // 2 = termostato
                 label_val = LABEL_TERM_VALUE;
             } else {
-                // valore non valido
+                if (strcmp(label, LABEL_DELAY) == 0) {
+                    // 3 = delay (fridge)
+                    label_val = LABEL_DELAY_VALUE;
+                } else {
+                    if (strcmp(label, LABEL_BEGIN) == 0) {
+                        // 4 = begin (timer)
+                        label_val = LABEL_BEGIN_VALUE;
+                    } else {
+                        if (strcmp(label, LABEL_END) == 0) {
+                            // 5 = end (timer)
+                            label_val = LABEL_END_VALUE;
+                        } else{
+                            // valore non valido
+                        }
+                    }
+                }
             }
         }
     }
 
-    if (label_val != __LONG_MAX__) {
+    if (label_val != __INT_MAX__) {
         // mappo pos (char*) in valori (int) per poterli inserire in un messaggio
         if (label_val == LABEL_LIGHT_VALUE || label_val == LABEL_OPEN_VALUE) {  // se è un interrutore (luce o apri/chiudi)
-            if (strcmp(pos, SWITCH_POS_OFF) == 0) {                             // "off"
+            if (strcmp(pos, SWITCH_POS_OFF) == 0) {  // "off"
                 // 0 = spento/chiuso (generico)
                 pos_val = SWITCH_POS_OFF_VALUE;
             } else {
@@ -151,15 +166,20 @@ message_t buildSwitchRequest(int to_pid, char *label, char *pos) {
                     // 1 = acceso/aperto (generico)
                     pos_val = SWITCH_POS_ON_VALUE;
                 } else {
-                    // valore non valido
+                    // valore non valido (!= on/off)
                 }
             }
         } else {
-            if (label_val == LABEL_TERM_VALUE && atol(pos) != 0) {  // è un valore valido solo se è un numero e la label è termostato (2)
-                // x = valore termostato
-                pos_val = atol(pos);
+            if (atoi(pos) != 0) {  // è un valore valido solo se è un numero (la label è therm, delay, begin o end per forza)
+                // valore termostato, del delay, di inizio o fine timer
+                if (label_val == LABEL_TERM_VALUE || label_val == LABEL_DELAY_VALUE){// valore inserito
+                    pos_val = atoi(pos);
+                }
+                else{// se è begin/end, il numero inserito indica quanti seconda da ORA
+                    pos_val = time(NULL) + atoi(pos);
+                }
             } else {
-                // valore non valido
+                // valore non valido (!= numero)
             }
         }
     }
