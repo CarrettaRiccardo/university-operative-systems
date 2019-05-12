@@ -22,6 +22,7 @@ int main(int argc, char **argv) {
     base_dir = extractBaseDir(argv[0]);
     id = atoi(argv[1]);
     children = listInit();
+
     if (argc > 2) {  //  Clone dell'hub
         int to_clone_pid = atol(argv[2]);
         message_t request = buildGetChildRequest(to_clone_pid);
@@ -38,6 +39,9 @@ int main(int argc, char **argv) {
                 sendMessage(&ack);
             }
         } while (child_pid != -1);
+        //  Invia la conferma al padre
+        message_t confirm_clone = buildLinkResponse(getppid(), 1);
+        sendMessage(&confirm_clone);
     }
 
     while (1) {
@@ -92,47 +96,69 @@ int main(int argc, char **argv) {
             }
         }
     }
-
     return 0;
 }
 
-//Stato = Override <-> lo stato dei componenti ad esso collegati non sono omogenei (intervento esterno all' HUB)
 message_t buildInfoResponseHub(int sender) {
+    // Stato = Override <-> lo stato dei componenti ad esso collegati non sono omogenei (intervento esterno all' HUB)
     node_t *p = *children;
-    short stato_figli = -1;
-
+    int count_on = 0, count_off = 0;
+    short override = 0;
     while (p != NULL) {
-        int id_processo = p->value;
-        message_t request = buildInfoRequest(id_processo);
+        message_t request = buildInfoRequest(p->value);
         message_t response;
-
         if (sendMessage(&request) == -1) {
-            perror("Error get pid by id request");
+            perror("Error sending info request in buildInfoResponseHub");
         } else if (receiveMessage(&response) == -1) {
-            perror("Error get pid by id response");
+            perror("Error receiving info response in buildInfoResponseHub");
         } else {
             if (response.type != INFO_MSG_TYPE) {
                 message_t busy = buildBusyResponse(response.sender);
                 sendMessage(&busy);
-                continue;  //per evitare annidamento di if e parentesi, faccio ripartire il ciclo sullo stesso figlio. Letto un messaggio non pertinente
+                continue;  // Faccio ripartire il ciclo sullo stesso figlio se leggo un messaggio non pertinente
             }
-            if (stato_figli != -1 && stato_figli != response.vals[INFO_VAL_STATE]) {
-                stato_figli = 3;
-                break;
-            } else {
-                stato_figli = response.vals[INFO_VAL_STATE];
+            switch (response.vals[INFO_VAL_STATE]) {
+                case 0: count_off++; break;
+                case 1: count_on++; break;
+                case 2:
+                    count_off++;
+                    override = 1;
+                    break;
+                case 3:
+                    count_on++;
+                    override = 1;
+                    break;
             }
         }
         p = p->next;
     }
+    short children_state;
+    if (override == 0) {
+        if (count_on == 0)
+            children_state = 0;
+        else if (count_off == 0)
+            children_state = 1;
+        else
+            children_state = (count_off >= count_on) ? 2 : 3;
+    } else {
+        children_state = (count_off >= count_on) ? 2 : 3;
+    }
     message_t ret = buildInfoResponse(sender);
-    sprintf(ret.text, "%s, state: %s", HUB, stato_figli == 3 ? "override" : (stato_figli == 1 ? "on" : "off"));
-    ret.vals[INFO_VAL_STATE] = stato_figli;  //stato di override
+    char *children_str;
+    switch (children_state) {
+        case 0: children_str = "off"; break;
+        case 1: children_str = "on"; break;
+        case 2: children_str = "off (override)"; break;
+        case 3: children_str = "on (override)"; break;
+    }
+
+    sprintf(ret.text, "%s, state: %s", HUB, children_str);
+    ret.vals[INFO_VAL_STATE] = children_state;
     return ret;
 }
 
 message_t buildListResponseHub(int to_pid, int lv, short stop) {
     message_t ret = buildListResponse(to_pid, id, lv, stop);
-    sprintf(ret.text, "%s %s", HUB, "TODO override");
+    sprintf(ret.text, "%s %s", HUB, "");
     return ret;
 }
