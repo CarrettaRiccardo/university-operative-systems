@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include "../include/ipc.h"
 #include "../include/list.h"
+#include "./shell.c"
 
 int id;
 list_t children;

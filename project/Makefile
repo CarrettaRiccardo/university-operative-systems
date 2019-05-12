@@ -12,8 +12,9 @@ OBJ_DIR = ./obj
 BIN_DIR = ./bin
 
 # File da compilare
-LIB = list utils ipc					# Librerie
-BIN = bulb fridge hub timer window		# Eseguibili (tranne "controller" che deve essere compilato con il main)
+LIB = list utils ipc								# Librerie
+BIN = bulb fridge window hub timer controller     	# Eseguibili 
+
 
 # Lista file oggetto librerie. Necessario per linkare le librerie agli eseguibili
 OBJ = $(patsubst %,$(OBJ_DIR)/%.o,$(LIB))
@@ -29,7 +30,7 @@ help:
 $(LIB):
 	$(CC) $(FLAGS) -c -o $(OBJ_DIR)/$@.o $(LIB_DIR)/$@.c
 
-# Macro per compilazione eseguibili
+# Macro per compilazione eseguibili dispositivi
 $(BIN):
 	$(CC) $(FLAGS) -o $(BIN_DIR)/$@ $(SRC_DIR)/$@/$@.c $(OBJ)
 
@@ -38,13 +39,8 @@ prepare:
 	@mkdir -p $(BIN_DIR)
 	@mkdir -p $(OBJ_DIR)
 
-
-controller:
-	$(CC) $(FLAGS) -o $(BIN_DIR)/controller $(SRC_DIR)/controller/main.c $(SRC_DIR)/controller/controller.c $(OBJ)
-
-
 # Compila le librerie e gli eseguibili utilizzando le macro
-build: prepare $(LIB) controller $(BIN)
+build: prepare $(LIB) $(BIN)
 
 
 # Rimuove i file compilati

@@ -21,6 +21,16 @@ void getArgs(char *line, int *argc, char **argv);
 /*  Print con identazione   */
 void printHelp(char *cmd, char *desc);
 
+/*  Metodi implementati nel controller   */
+void controllerInit(char *file);
+void controllerDestroy();
+void listDevices();
+int addDevice(char *file);
+void delDevice(char *id);
+void linkDevices(char *id1, char *id2);
+int switchDevice(char *id, char *label, char *pos);
+void infoDevice(char *id);
+
 /* Main */
 int main(int sargc, char **sargv) {
     controllerInit(sargv[0]);
