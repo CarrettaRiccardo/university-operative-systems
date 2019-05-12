@@ -117,6 +117,8 @@ void linkDevices(char *id1, char *id2) {
         perror("Error linking devices response");
     } else if (response.vals[LINK_VAL_SUCCESS] == -1) {
         printf("Error: the device with id %s is not a control device\n", id2);
+    } else if (response.vals[LINK_VAL_SUCCESS] == LINK_MAX_CHILD) {
+        printf("Error: the device with id %s already has a child\n", id2);
     } else {
         //  Killo il processo src già clonato
         request = buildDeleteRequest(src);
@@ -143,7 +145,7 @@ int switchDevice(char *id, char *label, char *pos) {
     message_t response;
 
     // Se i parametri creano dei valori validi
-    if (request.vals[SWITCH_VAL_LABEL] != __LONG_MAX__ && request.vals[SWITCH_VAL_POS] != __LONG_MAX__) {
+    if (request.vals[SWITCH_VAL_LABEL] != __INT_MAX__ && request.vals[SWITCH_VAL_POS] != __INT_MAX__) {
         if (sendMessage(&request) == -1)
             printf("Errore comunicazione, riprova\n");
 

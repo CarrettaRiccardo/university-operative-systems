@@ -28,6 +28,7 @@
 #define LINK_MSG_TYPE 3
 #define LINK_VAL_PID 0
 #define LINK_VAL_SUCCESS 1
+#define LINK_MAX_CHILD 98
 
 // CLONE (ogni dispositivo manderà valori diversi)
 #define CLONE_MSG_TYPE 4
@@ -53,9 +54,15 @@
 #define LABEL_LIGHT "light"
 #define LABEL_OPEN "open"
 #define LABEL_TERM "therm"
+#define LABEL_DELAY "delay"
+#define LABEL_BEGIN "begin"
+#define LABEL_END "end"
 #define LABEL_LIGHT_VALUE 0
 #define LABEL_OPEN_VALUE 1
 #define LABEL_TERM_VALUE 2
+#define LABEL_DELAY_VALUE 3
+#define LABEL_BEGIN_VALUE 4
+#define LABEL_END_VALUE 5
 #define LABEL_GENERIC_SWITCH_VALUE 3
 #define SWITCH_POS_OFF "off"
 #define SWITCH_POS_ON "on"
