@@ -17,7 +17,7 @@ message_t buildListResponseControl(int to_pid, int id, int lv, short stop) {
     return ret;
 }
 
-message_t buildCloneResponsseControl(int to_pid, int id) {
+message_t buildCloneResponseControl(int to_pid, int id) {
     int vals[] = {};
     return buildCloneResponse(to_pid, HUB, id, vals, 1);
 }
