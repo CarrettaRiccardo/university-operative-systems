@@ -65,12 +65,6 @@ int main(int argc, char **argv) {
                 case DELETE_MSG_TYPE: {
                     message_t m = buildDeleteResponse(msg.sender);
                     sendMessage(&m);
-                    if (getppid() != msg.sender) {
-                        // Sto morendo, invio conferma di ricezione al mittente, e nel caso che il mittente non sia mio padre, invio un messaggio a mio padre di
-                        // rimuovermi dalla lista dei suoi figli
-                        message_t m = buildDieMessage(getppid());
-                        sendMessage(&m);
-                    }
                     exit(0);
                 } break;
             }

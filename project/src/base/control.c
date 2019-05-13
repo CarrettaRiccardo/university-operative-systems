@@ -1,3 +1,4 @@
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -12,11 +13,16 @@ message_t buildInfoResponseControl(int to_pid, char *children_state);
 message_t buildListResponseControl(int to_pid, int id, int lv, short stop);
 message_t buildCloneResponseControl(int to_pid, int id);
 
+/* Gestione figlio eliminato */
+void sigchldHandler(int signum);
+
 char *base_dir;
 int id;
 list_t children;
 
 int main(int argc, char **argv) {
+    signal(SIGCHLD, sigchldHandler);
+
     base_dir = extractBaseDir(argv[0]);
     id = atoi(argv[1]);
     children = listInit();
@@ -51,7 +57,7 @@ int main(int argc, char **argv) {
     while (1) {
         message_t msg;
         if (receiveMessage(&msg) == -1) {
-            perror("Error receiving message in normal device");
+            continue;
         } else {
             switch (msg.type) {
                 case TRANSLATE_MSG_TYPE: {
@@ -121,6 +127,7 @@ int main(int argc, char **argv) {
                         case 2: children_str = "off (override)"; break;
                         case 3: children_str = "on (override)"; break;
                     }
+                    listPrint(children);
                     message_t m = buildInfoResponseControl(msg.sender, children_str);  // Implementazione specifica dispositivo
                     m.vals[INFO_VAL_STATE] = children_state;
                     sendMessage(&m);
@@ -163,17 +170,28 @@ int main(int argc, char **argv) {
                 } break;
 
                 case DELETE_MSG_TYPE: {
-                    printf("TODO eliminazione ricorsiva afigli\n");
+                    signal(SIGCHLD, NULL);  // Rimuovo l'handler in modo da non interrompere l'esecuzione mentre leimino ricorsivamente i figli
+                    node_t *p = *children;
+                    message_t kill_req, kill_resp;
+                    while (p != NULL) {
+                        kill_req = buildDeleteRequest(p->value);
+                        sendMessage(&kill_req);
+                        receiveMessage(&kill_resp);
+                        p = p->next;
+                    }
                     message_t m = buildDeleteResponse(msg.sender);
                     sendMessage(&m);
-                } break;
-
-                case DIE_MESG_TYPE: {
-                    //  Rimuovo il mittente di questo messaggio dalla lista dei miei figli
-                    listRemove(children, msg.sender);
+                    exit(0);
                 } break;
             }
         }
     }
     return 0;
+}
+
+void sigchldHandler(int signum) {
+    int pid;
+    while ((pid = waitpid(-1, NULL, WNOHANG)) != -1) {
+        listRemove(children, pid);
+    }
 }
