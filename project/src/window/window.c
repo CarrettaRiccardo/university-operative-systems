@@ -6,14 +6,14 @@ short interruttore;
 int open_time;
 int last_open_time;
 
-void init_data() {
+void initData() {
     state = SWITCH_POS_OFF_VALUE;
     interruttore = state;
     open_time = 0;
     last_open_time = time(NULL);
 }
 
-void clone_data(char **vals) {
+void cloneData(char **vals) {
     state = atoi(vals[0]);
     interruttore = state;
     open_time = atoi(vals[1]);

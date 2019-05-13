@@ -9,7 +9,7 @@ int perc;
 int open_time;
 int last_open_time;
 
-void init_data() {
+void initData() {
     state = SWITCH_POS_OFF_VALUE;         // 0 = chiusa, 1 = aperta
     interruttore = SWITCH_POS_OFF_VALUE;  // 0 = fermo, 1 = apertura/chiusura (torna subito ad off, ma se azionato apre la porta o la chiude)
     delay = 13;                           // tempo di chiusura automatica porta
@@ -19,7 +19,7 @@ void init_data() {
     last_open_time = 0;                   // tempo ultima apertura
 }
 
-void clone_data(char **vals) {
+void cloneData(char **vals) {
     state = atoi(vals[0]);
     interruttore = atoi(vals[1]);
     delay = atoi(vals[2]);

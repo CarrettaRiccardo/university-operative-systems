@@ -6,10 +6,9 @@
 #include "../include/utils.h"
 
 /* Metodi da implemantare nei dispositivi di controllo */
-void init_data();
-void clone_data(char **vals);
-int handleSwitchControl(message_t *msg, list_t children);
-message_t buildInfoResponseControl(int to_pid, list_t children);
+void initData();
+void cloneData(char **vals);
+message_t buildInfoResponseControl(int to_pid, char *children_state);
 message_t buildListResponseControl(int to_pid, int id, int lv, short stop);
 message_t buildCloneResponseControl(int to_pid, int id);
 
@@ -24,10 +23,10 @@ int main(int argc, char **argv) {
 
     if (argc <= 2) {
         // Inizializzazione nuovo control device
-        init_data();
+        initData();
     } else {
         // Inzializzazione control device clonato
-        clone_data(argv + 3);  // Salto i parametri [0] (percorso file), [1] (id) e [2] (to_clone_pid)
+        cloneData(argv + 3);  // Salto i parametri [0] (percorso file), [1] (id) e [2] (to_clone_pid)
         // Clonazione ricorsiva dei figli
         int to_clone_pid = atol(argv[2]);
         message_t request = buildGetChildRequest(to_clone_pid);
@@ -58,25 +57,72 @@ int main(int argc, char **argv) {
                 case TRANSLATE_MSG_TYPE: {
                     message_t m;
                     if (id == msg.vals[TRANSLATE_VAL_ID]) {
-                        printf("CONTROL: sono io\n");
                         m = buildTranslateResponse(msg.sender, getpid());
                     } else {
                         // Inoltro la richiesta ai figli
                         int to_pid = getPidById(children, msg.vals[TRANSLATE_VAL_ID]);
-                        printf("CONTROL: ho trovato %d\n", to_pid);
                         m = buildTranslateResponse(msg.sender, to_pid);
                     }
                     sendMessage(&m);
                 } break;
 
                 case SWITCH_MSG_TYPE: {
-                    int success = handleSwitchControl(&msg, children);
+                    int success = 1;
+                    printf("TODO switch in control.c\n");
+                    /*node_t *p = *children;
+                    while (p != NULL) {
+                        message_t m = buildSwitchRequest(msg.sender, success);
+                        sendMessage(&m);
+                        p = p->next;
+                    }*/
                     message_t m = buildSwitchResponse(msg.sender, success);
                     sendMessage(&m);
                 } break;
 
                 case INFO_MSG_TYPE: {
-                    message_t m = buildInfoResponseControl(msg.sender, children);  // Implementazione specifica dispositivo
+                    // Stato = Override <-> lo stato dei componenti ad esso collegati non sono omogenei (intervento esterno all' HUB)
+                    node_t *p = *children;
+                    int count_on = 0, count_off = 0;
+                    short override = 0;
+                    while (p != NULL) {
+                        message_t request = buildInfoRequest(p->value);
+                        message_t response;
+                        if (sendMessage(&request) == -1) {
+                            perror("Error sending info request in control device");
+                        } else if (receiveMessage(&response) == -1) {
+                            perror("Error receiving info response in control device");
+                        } else {
+                            switch (response.vals[INFO_VAL_STATE]) {
+                                case 0: count_off++; break;
+                                case 1: count_on++; break;
+                                case 2:
+                                    count_off++;
+                                    override = 1;
+                                    break;
+                                case 3:
+                                    count_on++;
+                                    override = 1;
+                                    break;
+                            }
+                        }
+                        p = p->next;
+                    }
+                    short children_state;
+                    if (override == 0 && count_on == 0)
+                        children_state = 0;  // off
+                    else if (override == 0 && count_off == 0)
+                        children_state = 1;  // on
+                    else
+                        children_state = (count_off >= count_on) ? 2 : 3;  // off (override) / on (override)
+                    char *children_str;
+                    switch (children_state) {
+                        case 0: children_str = "off"; break;
+                        case 1: children_str = "on"; break;
+                        case 2: children_str = "off (override)"; break;
+                        case 3: children_str = "on (override)"; break;
+                    }
+                    message_t m = buildInfoResponseControl(msg.sender, children_str);  // Implementazione specifica dispositivo
+                    m.vals[INFO_VAL_STATE] = children_state;
                     sendMessage(&m);
                 } break;
 
@@ -117,7 +163,7 @@ int main(int argc, char **argv) {
                 } break;
 
                 case DELETE_MSG_TYPE: {
-                    printf("TODO");
+                    printf("TODO eliminazione ricorsiva afigli\n");
                     message_t m = buildDeleteResponse(msg.sender);
                     sendMessage(&m);
                 } break;
