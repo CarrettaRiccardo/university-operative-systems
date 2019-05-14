@@ -118,7 +118,7 @@ void linkDevices(int id1, int id2) {
     } else if (receiveMessage(&response) == -1) {
         perror("Error get pid by id response");
     } else if (response.vals[TRANSLATE_VAL_ID] > 0) {
-        printf("Error: cycle identified, the device %d is a child of %d\n", id1, id2);
+        printf("Error: cycle identified, %d is a child of %d\n", id2, id1);
         return;
     }
 
