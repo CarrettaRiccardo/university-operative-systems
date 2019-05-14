@@ -260,9 +260,10 @@ void infoDevice(int id) {
     if (id == 0) {
         printf("Device type: controller, registers: num = %d\n", listCount(connected_children));
     } else {
-        int pid = getPidById(connected_children, id);
+        int pid = getPidById(disconnected_children, id);
+        if (pid == -1) pid = getPidById(connected_children, id);
         if (pid == -1) {
-            printf("Error: device with id %d not found or not connected to the controller\n", id);
+            printf("Error: device with id %d not found\n", id);
             return;
         }
         message_t request = buildInfoRequest(pid);
