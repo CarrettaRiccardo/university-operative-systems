@@ -17,6 +17,8 @@
 #define LIST_VAL_OVERRIDE 4 
 
 // INFO
+#define INFO_VAL_LEVEL 3
+#define INFO_VAL_STOP 2
 #define INFO_MSG_TYPE 1
 #define INFO_VAL_STATE 0
 
