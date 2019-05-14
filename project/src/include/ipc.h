@@ -27,7 +27,7 @@ typedef struct msg {
 } message_t;
 
 /////////////////////////////// WORKERS ///////////////////////////////
-void doLink(list_t children, int to_clone_pid, int sender, const char* base_dir);
+void doLink(list_t children, int to_clone_pid, const char* base_dir);
 void doListControl(int to_pid, list_t children);
 
 /////////////////////////////// REQUESTS ///////////////////////////////

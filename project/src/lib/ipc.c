@@ -40,7 +40,7 @@ void doListControl(int to_pid, list_t children) {
     }
 }
 
-void doLink(list_t children, int to_clone_pid, int sender, const char *base_dir) {
+void doLink(list_t children, int to_clone_pid, const char *base_dir) {
     message_t request = buildCloneRequest(to_clone_pid);
     message_t response;
     if (sendMessage(&request) == -1) {
@@ -69,14 +69,7 @@ void doLink(list_t children, int to_clone_pid, int sender, const char *base_dir)
         }
         // Padre
         else {
-            if (pid != -1) {
-                listPush(children, pid);
-            }
-            //  Attendo una conferma dal figlio clonato e la inoltro al padre.
-            message_t ack;
-            receiveMessage(&ack);
-            ack.to = sender;
-            sendMessage(&ack);
+            if (pid != -1) listPush(children, pid);
         }
     }
 }
