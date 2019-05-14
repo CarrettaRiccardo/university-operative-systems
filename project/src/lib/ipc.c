@@ -202,11 +202,6 @@ message_t buildBusyResponse(const int to) {
     return ret;
 }
 
-message_t buildDieMessage(int to) {
-    message_t ret = buildResponse(to, DIE_MESG_TYPE);
-    return ret;
-}
-
 ////////////////////////////////////////////////////////////////// SEND/RECEIVE //////////////////////////////////////////////////////////////////
 int sendMessage(const message_t *msg) {
     if (msg->to <= 0) return -1;
@@ -269,7 +264,6 @@ int getPidById(list_t children, int id) {
     }
     return -1;
 }
-
 // stampa nel file con nome della session il messaggio
 int printLog(const message_t *msg) {
     char f_name[30];

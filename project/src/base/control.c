@@ -107,7 +107,7 @@ int main(int argc, char **argv) {
 
             case LINK_MSG_TYPE: {
                 doLink(children, msg.vals[LINK_VAL_PID], base_dir);
-                //  Attendo una conferma dal figlio clonato e la inoltro al padre
+                //  Attendo una conferma dal figlio clonato e la inoltro al padre.
                 message_t ack;
                 receiveMessage(&ack);
                 ack.sender = getpid();
@@ -135,7 +135,7 @@ int main(int argc, char **argv) {
             } break;
 
             case DELETE_MSG_TYPE: {
-                signal(SIGCHLD, NULL);  // Rimuovo l'handler in modo da non interrompere l'esecuzione mentre leimino ricorsivamente i figli
+                signal(SIGCHLD, NULL);  // Rimuovo l'handler in modo da non interrompere l'esecuzione mentre elimino ricorsivamente i figli
                 node_t *p = *children;
                 message_t kill_req, kill_resp;
                 while (p != NULL) {
