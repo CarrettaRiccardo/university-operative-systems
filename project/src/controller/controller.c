@@ -59,9 +59,7 @@ void listDevicesInList(list_t children, short show_tree) {
 }
 
 void listDevices() {
-    printf("Not connected devices:\n");
     listDevicesInList(disconnected_children, 0);
-    printf("\nConnected devices:\n");
     printf("(0) controller\n");
     listDevicesInList(connected_children, 1);
 }
