@@ -7,13 +7,15 @@
 #include "./shell.c"
 
 int id;
-list_t children;
+list_t connected_children;
+list_t disconnected_children;
 int next_id;
 char *base_dir;
 
 /*  Inizializza le variabili del controller   */
 void controllerInit(char *file) {
-    children = listInit();
+    connected_children = listInit();
+    disconnected_children = listInit();
     ipcInit();  //inizializzo componenti comunicazione
     id = 0;
     next_id = 1;
@@ -27,13 +29,13 @@ void controllerInit(char *file) {
 
 /*  Dealloca il controller  */
 void controllerDestroy() {
-    listDestroy(children);
+    listDestroy(connected_children);
+    listDestroy(disconnected_children);
     free(base_dir);
 }
 
 /**************************************** LIST ********************************************/
-void listDevices() {
-    printf("(0) controller\n");
+void listDevicesInList(list_t children, short show_tree) {
     node_t *p = *children;
     while (p != NULL) {
         message_t request = buildListRequest(p->value);
@@ -46,13 +48,22 @@ void listDevices() {
                     perror("Error list response");
                 } else {
                     int i;
-                    for (i = 0; i < response.vals[LIST_VAL_LEVEL] + 1; i++) printf("    ");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
-                    printf("|-(%d) %s\n", response.vals[LIST_VAL_ID], response.text);
+                    for (i = 0; i < response.vals[LIST_VAL_LEVEL] + show_tree; i++) printf("    ");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
+                    if (show_tree == 1 || response.vals[LIST_VAL_LEVEL] > 0) printf("|-");
+                    printf("(%d) %s\n", response.vals[LIST_VAL_ID], response.text);
                 }
             } while (response.vals[LIST_VAL_STOP] != 1);
         }
         p = p->next;
     }
+}
+
+void listDevices() {
+    printf("Not connected devices:\n");
+    listDevicesInList(disconnected_children, 0);
+    printf("\nConnected devices:\n");
+    printf("(0) controller\n");
+    listDevicesInList(connected_children, 1);
 }
 
 /**************************************** ADD ********************************************/
@@ -71,14 +82,15 @@ int addDevice(char *device) {
     else {
         if (pid == -1) return -1;
         next_id++;
-        listPush(children, pid);
+        listPush(disconnected_children, pid);
         return next_id - 1;
     }
 }
 
 /**************************************** DEL ********************************************/
 void delDevice(int id) {
-    int pid = getPidById(children, id);
+    int pid = getPidById(disconnected_children, id);
+    if (pid == -1) pid = getPidById(connected_children, id);
     if (pid == -1) {
         printf("Error: device with id %d not found\n", id);
         return;
@@ -91,7 +103,8 @@ void delDevice(int id) {
         perror("Error deleting device response");
     } else if (response.type == DELETE_MSG_TYPE) {
         printf("Device %d deleted\n", id);
-        listRemove(children, pid);
+        listRemove(disconnected_children, pid);
+        listRemove(connected_children, pid);
     } else {
         printf("Error deleting %d: %s\n", id, response.text);
     }
@@ -99,59 +112,80 @@ void delDevice(int id) {
 
 /**************************************** LINK ********************************************/
 void linkDevices(int id1, int id2) {
-    int src = getPidById(children, id1);
+    if (id1 == 0) {
+        printf("Error: cannot connect the controller to other devices\n");
+        return;
+    }
+    int src = getPidById(disconnected_children, id1);
+    if (src == -1) src = getPidById(connected_children, id1);
     if (src == -1) {
         printf("Error: device with id %d not found\n", id1);
         return;
     }
-    int dest = getPidById(children, id2);
-    if (dest == -1) {
-        printf("Error: device with id %d not found\n", id2);
-        return;
-    }
 
-    // Se il src contiene dest tra i sui figli, sto creando un ciclo.
-    message_t request = buildTranslateRequest(src, id2);
-    message_t response;
-    if (sendMessage(&request) == -1) {
-        perror("Error get pid by id request");
-    } else if (receiveMessage(&response) == -1) {
-        perror("Error get pid by id response");
-    } else if (response.vals[TRANSLATE_VAL_ID] > 0) {
-        printf("Error: cycle identified, %d is a child of %d\n", id2, id1);
-        return;
-    }
-
-    // Effettuo il link
-    request = buildLinkRequest(dest, src);
-    if (sendMessage(&request) == -1) {
-        perror("Error linking devices request");
-    } else if (receiveMessage(&response) == -1) {
-        perror("Error linking devices response");
-    } else if (response.vals[LINK_VAL_SUCCESS] == -1) {
-        printf("Error: the device with id %d is not a control device\n", id2);
-    } else if (response.vals[LINK_VAL_SUCCESS] == LINK_MAX_CHILD) {
-        printf("Error: the device with id %d already has a child\n", id2);
+    message_t request, response;
+    if (id2 == 0) {
+        // Connetto src al controller
+        doLink(connected_children, src, base_dir);
+        receiveMessage(NULL);  //  Attendo una conferma dal figlio clonato.
     } else {
-        //  Killo il processo src già clonato
-        request = buildDeleteRequest(src);
-        if (sendMessage(&request) == -1) {
-            perror("Error deleting device request");
-        } else if (receiveMessage(&response) == -1) {
-            perror("Error deleting device response");
-        } else if (response.type == DELETE_MSG_TYPE) {
-            listRemove(children, src);
-            printf("Device %d linked to %d\n", id1, id2);
+        int dest = getPidById(disconnected_children, id2);
+        if (dest == -1) dest = getPidById(connected_children, id2);
+        if (dest == -1) {
+            printf("Error: device with id %d not found\n", id2);
+            return;
         }
+
+        // Se il src contiene dest tra i sui figli, sto creando un ciclo.
+        request = buildTranslateRequest(src, id2);
+        if (sendMessage(&request) == -1) {
+            perror("Error get pid by id request");
+            return;
+        } else if (receiveMessage(&response) == -1) {
+            perror("Error get pid by id response");
+            return;
+        } else if (response.vals[TRANSLATE_VAL_ID] > 0) {
+            printf("Error: cycle identified, %d is a child of %d\n", id2, id1);
+            return;
+        }
+        request = buildLinkRequest(dest, src);
+        // Effettuo il link
+        if (sendMessage(&request) == -1) {
+            perror("Error linking devices request");
+            return;
+        } else if (receiveMessage(&response) == -1) {
+            perror("Error linking devices response");
+            return;
+        } else if (response.vals[LINK_VAL_SUCCESS] == -1) {
+            printf("Error: the device with id %d is not a control device\n", id2);
+            return;
+        } else if (response.vals[LINK_VAL_SUCCESS] == LINK_MAX_CHILD) {
+            printf("Error: the device with id %d already has a child\n", id2);
+            return;
+        }
+    }
+    //  Killo il processo src già clonato
+    request = buildDeleteRequest(src);
+    if (sendMessage(&request) == -1) {
+        perror("Error deleting device request");
+    } else if (receiveMessage(&response) == -1) {
+        perror("Error deleting device response");
+    } else if (response.type == DELETE_MSG_TYPE) {
+        listRemove(disconnected_children, src);
+        listRemove(connected_children, src);
+        printf("Device %d linked to %d\n", id1, id2);
     }
 }
 
 /**************************************** SWITCH ********************************************/
 int switchDevice(int id, char *label, char *pos) {
-    printf("Modifico l'interruttore %s di %d su %s ...\n", label, id, pos);
-    int pid = getPidById(children, id);
+    int pid = getPidById(connected_children, id);
     if (pid == -1) {
-        printf("Error: device with id %d not found\n", id);
+        if (getPidById(disconnected_children, id) != -1) {
+            printf("Error: device with id %d not connected to the controller\n", id);
+        } else {
+            printf("Error: device with id %d not found\n", id);
+        }
         return;
     }
     message_t request = buildSwitchRequest(pid, label, pos);
@@ -159,31 +193,30 @@ int switchDevice(int id, char *label, char *pos) {
 
     // Se i parametri creano dei valori validi
     if (request.vals[SWITCH_VAL_LABEL] != __INT_MAX__ && request.vals[SWITCH_VAL_POS] != __INT_MAX__) {
-        if (sendMessage(&request) == -1)
-            printf("Errore comunicazione, riprova\n");
-
-        if (receiveMessage(&response) == -1) {
-            perror("Errore switch\n");
+        if (sendMessage(&request) == -1) {
+            perror("Error switch request");
+        } else if (receiveMessage(&response) == -1) {
+            perror("Error switch response");
         } else {
             if (response.vals[SWITCH_VAL_SUCCESS] != -1) {
-                printf("Modifica effettuata con successo\n");
+                printf("Switch executed\n");
             } else {
-                printf("Errore nella modifica\n");
+                printf("Error\n");
             }
         }
     } else {
-        perror("Parametri non corretti o coerenti\n");
+        perror("Incorrect parameters\n");
     }
 }
 
 /**************************************** INFO ********************************************/
 void infoDevice(int id) {
     if (id == 0) {
-        printf("Device type: controller, registers: num = %d\n", listCount(children));
+        printf("Device type: controller, registers: num = %d\n", listCount(connected_children));
     } else {
-        int pid = getPidById(children, id);
+        int pid = getPidById(connected_children, id);
         if (pid == -1) {
-            printf("Error: device with id %d not found\n", id);
+            printf("Error: device with id %d not found or not connected to the controller\n", id);
             return;
         }
         message_t request = buildInfoRequest(pid);
