@@ -36,7 +36,7 @@ message_t buildInfoRequest(int to_pid);
 message_t buildTranslateRequest(int to_pid, int search_id);
 message_t buildDeleteRequest(int to_pid);
 message_t buildListRequest(int to_pid);
-message_t buildSwitchRequest(int to_pid, char* label, char* pos);
+message_t buildSwitchRequest(int to_pid, int label_val, int pos_val);
 message_t buildCloneRequest(int to_pid);
 message_t buildGetChildRequest(int to_pid);
 message_t buildLinkRequest(int to_pid, int to_clone_pid);

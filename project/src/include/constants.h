@@ -57,13 +57,14 @@
 #define LABEL_DELAY "delay"
 #define LABEL_BEGIN "begin"
 #define LABEL_END "end"
+#define LABEL_ALL "all"
 #define LABEL_LIGHT_VALUE 0
 #define LABEL_OPEN_VALUE 1
 #define LABEL_TERM_VALUE 2
 #define LABEL_DELAY_VALUE 3
 #define LABEL_BEGIN_VALUE 4
 #define LABEL_END_VALUE 5
-#define LABEL_GENERIC_SWITCH_VALUE 3
+#define LABEL_ALL_VALUE 6
 #define SWITCH_POS_OFF "off"
 #define SWITCH_POS_ON "on"
 #define SWITCH_POS_OFF_VALUE 0

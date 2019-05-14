@@ -31,7 +31,7 @@ void cloneData(char **vals) {
 
 int handleSwitchDevice(message_t *msg) {
     int success = -1;
-    if (msg->vals[SWITCH_VAL_LABEL] == LABEL_OPEN_VALUE || msg->vals[SWITCH_VAL_LABEL] == LABEL_GENERIC_SWITCH_VALUE) {  // interruttore (apri/chiudi) o generico (da hub ai propri figli)
+    if (msg->vals[SWITCH_VAL_LABEL] == LABEL_OPEN_VALUE || msg->vals[SWITCH_VAL_LABEL] == LABEL_ALL_VALUE) {  // interruttore (apri/chiudi) o generico (da hub ai propri figli)
         if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_VALUE) {                                                         // chiudo
             // controllo se il tempo di chiusura automatica NON è superato
             if (state == SWITCH_POS_ON_VALUE && last_open_time + delay > time(NULL)) {

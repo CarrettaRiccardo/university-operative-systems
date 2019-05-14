@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <signal.h>
 
 #include "../include/ipc.h"
 #include "../include/list.h"
@@ -14,17 +15,19 @@ list_t child;  // conterrà al max 1 figlio; uso una list_t perchè è compatibi
 
 long begin = 0;  //momento temporale di attivazione
 long end = 0;    //momento temporale di disattivazione
+short waitForBegin = 0;// 0 = prossimo evento è begin (NOW < begin), 1 = prossimo evento è end (begin < NOW < end)
 
+void switchAlarm();
 message_t buildInfoResponseTimer(int to_pid);
 message_t buildListResponseTimer(int to_pid, int lv, short stop);
 
-// ------ BOZZA ------
-//int switchDevice2(char *id, char *label, char *pos);
 
 int main(int argc, char **argv) {
     base_dir = extractBaseDir(argv[0]);
     id = atoi(argv[1]);
     child = listInit();
+    // associo il metodo switch al segnare alarm per il begin/end automatico
+    signal(SIGALRM, switchAlarm);
     if (argc > 2) {  //  Clone del timer
         int to_clone_pid = atol(argv[2]);
         message_t request = buildGetChildRequest(to_clone_pid);
@@ -49,15 +52,6 @@ int main(int argc, char **argv) {
         if (receiveMessage(&msg) == -1) {
             perror("TIMER: Error receive message");
         } else {
-            // ------ BOZZA ------
-            /* UPDATE: ad ogni ricezione di messaggio, aggiorno lo stato del figlio in base a begi e end */
-            // controllo se il tempo di accensione automatica è superato
-            /*printf("%d <= %d\n", begin, time(NULL));
-            if (begin <= time(NULL)) {
-                // se sì, accendo il figlio
-                switchDevice2("1", "light", "on");// TODO
-            }*/
-
             if (msg.type == INFO_MSG_TYPE) {
                 message_t m = buildInfoResponseTimer(msg.sender);
                 sendMessage(&m);
@@ -66,14 +60,35 @@ int main(int argc, char **argv) {
                 if (msg.vals[SWITCH_VAL_POS] != __INT_MAX__) {  // se è un valore valido
                     switch (msg.vals[SWITCH_VAL_LABEL]) {       // set begin/end/stato del figlio
                         case LABEL_BEGIN_VALUE:
-                            begin = msg.vals[SWITCH_VAL_POS];
+                            begin = msg.vals[SWITCH_VAL_POS];// set begin
                             success = 1;
                             break;
                         case LABEL_END_VALUE:
-                            end = msg.vals[SWITCH_VAL_POS];
+                            end = msg.vals[SWITCH_VAL_POS];// set end
                             success = 1;
                             break;
-                        case LABEL_GENERIC_SWITCH_VALUE: /**/ success = 1; break;  // TODO
+                        case LABEL_ALL_VALUE: /**/ success = 1; break;  // TODO
+                    }
+                    if (success == 1){
+                        // faccio partire il primo evento automatico (sovrascriverà la precendente alarm(..), ma il tempo di attesa rimanente è ricalcolato)
+                        if (begin > time(NULL)){
+                            if (begin < end || (begin >= end && end <= time(NULL))){// attendo il begin
+                                alarm(begin - time(NULL));
+                                waitForBegin = 0;
+                            }
+                            else
+                            {// attendo l'end
+                                alarm(end - time(NULL));
+                                waitForBegin = 1;
+                            }
+                        }
+                        else {
+                            if (end > time(NULL)){// attendo l'end
+                                alarm(end - time(NULL));
+                                waitForBegin = 1;
+                            }
+                            // altrimenti sono tutti e due eventi passati
+                        }
                     }
                 }
                 // return success or not
@@ -161,7 +176,7 @@ message_t buildInfoResponseTimer(int sender) {
         case 3: children_str = "on (override)"; break;
     }
 
-    sprintf(ret.text, "%s, state: %s", TIMER, children_str);
+    sprintf(ret.text, "%s, state: %s, begin: %ld, end: %ld", TIMER, children_str, begin, end);
     ret.vals[INFO_VAL_STATE] = child_State;
     return ret;
 }
@@ -172,33 +187,47 @@ message_t buildListResponseTimer(int to_pid, int lv, short stop) {
     return ret;
 }
 
-// ------ BOZZA ------
-/**************************************** SWITCH ********************************************/
-/*int switchDevice2(char *id, char *label, char *pos) {
-    printf("Modifico l'interruttore %s di %s su %s ...\n", label, id, pos);
-    int pid = getPidById(child, atoi(id));
-    if (pid == -1) {
-        printf("Error: device with id %s not found\n", id);
-        return;
-    }
-    message_t request = buildSwitchRequest(pid, label, pos);
-    message_t response;
-
-    // Se i parametri creano dei valori validi
-    if (request.vals[SWITCH_VAL_LABEL] != __INT_MAX__ && request.vals[SWITCH_VAL_POS] != __INT_MAX__) {
-        if (sendMessage(&request) == -1)
-            printf("Errore comunicazione, riprova\n");
-
-        if (receiveMessage(&response) == -1) {
-            perror("Errore switch\n");
-        } else {
-            if (response.vals[SWITCH_VAL_SUCCESS] != -1) {
-                printf("Modifica effettuata con successo\n");
-            } else {
-                printf("Errore nella modifica\n");
+void switchAlarm(){
+    if (waitForBegin == 0){// da accendere (begin)
+        // se ha figlio lo accendo
+        if (listCount(child) == 1){
+            node_t *p = *child;
+            if (p != NULL) {
+                message_t m = buildSwitchRequest(p->value, LABEL_ALL_VALUE, SWITCH_POS_ON_VALUE);
+                sendMessage(&m);
+                message_t resp;
+                receiveMessage(&resp);
             }
         }
-    } else {
-        perror("Parametri non corretti o coerenti\n");
+        // setto il timer di spegnimento (end) se è maggiore dell'accensione (begin)
+        if (time(NULL) < end){
+            alarm(end - time(NULL));
+            waitForBegin = 1;
+        }
+        else{// o termino gli alarm automatici
+            alarm(0);
+        }
     }
-}*/
+    else{// da spegnere (end)
+        if (waitForBegin == 1){
+            // se ha figlio lo spengo
+            if (listCount(child) == 1){
+                node_t *p = *child;
+                if (p != NULL) {
+                    message_t m = buildSwitchRequest(p->value, LABEL_ALL_VALUE, SWITCH_POS_OFF_VALUE);
+                    sendMessage(&m);
+                    message_t resp;
+                    receiveMessage(&resp);
+                }
+            }
+            // setto il timer di accensione (begin) se è maggiore dello spegnimento (end)
+            if (time(NULL) < begin){
+                alarm(begin - time(NULL));
+                waitForBegin = 0;
+            }
+            else{// o termino gli alarm automatici
+                alarm(0);
+            }
+        }
+    }
+}
