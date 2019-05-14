@@ -4,41 +4,6 @@
 
 ///////////////////////////////////////////////  WORKERS ///////////////////////////////////////////////
 
-//Implementa il metodo LIST per un dispositivo di Controllo (Hub o Timer)
-void doListControl(int to_pid, list_t children) {
-    node_t *p = *children;
-    while (p != NULL) {
-        int son = p->value;
-        message_t request = buildListRequest(son);
-        if (sendMessage(&request) == -1)
-            printf("Error sending list control request to pid %d: %s\n", son, strerror(errno));
-
-        message_t response;
-        int stop = 0;
-        do {
-            // TODO: implemntare BUSY globalmente
-            do {  // Se ricevo un messaggio diverso da quello che mi aspetto, rispondo BUSY
-                if (receiveMessage(&response) == -1)
-                    perror("Error receiving list control response");
-                if (response.type != LIST_MSG_TYPE) {
-                    message_t busy = buildBusyResponse(response.sender);
-                    sendMessage(&busy);
-                }
-            } while (response.type != LIST_MSG_TYPE);
-
-            response.to = to_pid;                // Cambio il destinatario per farlo arrivare a mio padre
-            response.vals[LIST_VAL_LEVEL] += 1;  //  Aumento il valore "livello"
-            stop = response.vals[LIST_VAL_STOP];
-            response.vals[LIST_VAL_STOP] = 0;  //  Tolgo lo stop dalla risposta
-            if (stop == 1 && p->next == NULL) {
-                //  Ultimo figlio, imposto lo stop
-                response.vals[LIST_VAL_STOP] = 1;
-            }
-            sendMessage(&response);
-        } while (stop != 1);
-        p = p->next;
-    }
-}
 
 void doLink(list_t children, int to_clone_pid, const char *base_dir) {
     message_t request = buildCloneRequest(to_clone_pid);
@@ -111,51 +76,7 @@ message_t buildLinkRequest(int to_pid, int to_clone_pid) {
     return ret;
 }
 
-message_t buildSwitchRequest(int to_pid, char *label, char *pos) {
-    int label_val = __INT_MAX__;  // 0 = interruttore (generico), 1 = termostato
-    int pos_val = __INT_MAX__;    // 0 = spento, 1 = acceso; x = termostato
-
-    // mappo label (char*) in valori (int) per poterli inserire in un messaggio
-    if (strcmp(label, LABEL_LIGHT) == 0) {
-        label_val = LABEL_LIGHT_VALUE;  // 0 = interruttore (luce)
-    } else if (strcmp(label, LABEL_OPEN) == 0) {
-        label_val = LABEL_OPEN_VALUE;  // 1 = interruttore (apri/chiudi)
-    } else if (strcmp(label, LABEL_TERM) == 0) {
-        label_val = LABEL_TERM_VALUE;  // 2 = termostato
-    } else if (strcmp(label, LABEL_DELAY) == 0) {
-        label_val = LABEL_DELAY_VALUE;  // 3 = delay (fridge)
-    } else if (strcmp(label, LABEL_BEGIN) == 0) {
-        label_val = LABEL_BEGIN_VALUE;  // 4 = begin (timer)
-    } else if (strcmp(label, LABEL_END) == 0) {
-        label_val = LABEL_END_VALUE;  // 5 = end (timer)
-    } else {
-        // TODO: valore non valido
-    }
-
-    if (label_val != __INT_MAX__) {
-        // mappo pos (char*) in valori (int) per poterli inserire in un messaggio
-        if (label_val == LABEL_LIGHT_VALUE || label_val == LABEL_OPEN_VALUE) {
-            // se è un interrutore (luce o apri/chiudi)
-            if (strcmp(pos, SWITCH_POS_OFF) == 0) {        // "off"
-                pos_val = SWITCH_POS_OFF_VALUE;            // 0 = spento/chiuso (generico)
-            } else if (strcmp(pos, SWITCH_POS_ON) == 0) {  // "on"
-                pos_val = SWITCH_POS_ON_VALUE;             // 1 = acceso/aperto (generico)
-            } else {
-                // TODO: valore non valido (!= on/off)
-            }
-        } else {
-            if (atoi(pos) != 0) {  // è un valore valido solo se è un numero (la label è therm, delay, begin o end per forza)
-                // valore termostato, del delay, di inizio o fine timer
-                if (label_val == LABEL_TERM_VALUE || label_val == LABEL_DELAY_VALUE) {  // valore inserito
-                    pos_val = atoi(pos);
-                } else {  // se è begin/end, il numero inserito indica quanti seconda da ORA
-                    pos_val = time(NULL) + atoi(pos);
-                }
-            } else {
-                // TODO valore non valido (!= numero)
-            }
-        }
-    }
+message_t buildSwitchRequest(int to_pid, int label_val, int pos_val) {
     message_t ret = buildRequest(to_pid, SWITCH_MSG_TYPE);
     ret.vals[SWITCH_VAL_LABEL] = label_val;
     ret.vals[SWITCH_VAL_POS] = pos_val;
