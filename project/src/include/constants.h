@@ -14,9 +14,11 @@
 #define LIST_VAL_LEVEL 1
 #define LIST_VAL_STATE 2
 #define LIST_VAL_STOP 3
-#define LIST_VAL_OVERRIDE 4 
+#define LIST_VAL_OVERRIDE 4
 
 // INFO
+#define INFO_VAL_LEVEL 3
+#define INFO_VAL_STOP 2
 #define INFO_MSG_TYPE 1
 #define INFO_VAL_STATE 0
 
@@ -48,7 +50,6 @@
 #define TRANSLATE_MSG_TYPE 7
 #define TRANSLATE_VAL_FOUND 0
 #define TRANSLATE_VAL_ID 1
-//  Parametri messaggi
 
 //  Tipi interruttori
 #define LABEL_LIGHT "light"

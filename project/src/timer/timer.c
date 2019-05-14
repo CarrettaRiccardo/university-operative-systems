@@ -181,12 +181,6 @@ message_t buildInfoResponseTimer(int sender) {
     return ret;
 }
 
-message_t buildListResponseTimer(int to_pid, int lv, short stop) {
-    message_t ret = buildListResponse(to_pid, id, lv, stop);
-    sprintf(ret.text, "%s %s", TIMER, "");
-    return ret;
-}
-
 void switchAlarm(){
     if (waitForBegin == 0){// da accendere (begin)
         // se ha figlio lo accendo

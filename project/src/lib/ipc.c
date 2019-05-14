@@ -4,43 +4,8 @@
 
 ///////////////////////////////////////////////  WORKERS ///////////////////////////////////////////////
 
-//Implementa il metodo LIST per un dispositivo di Controllo (Hub o Timer)
-void doListControl(int to_pid, list_t children) {
-    node_t *p = *children;
-    while (p != NULL) {
-        int son = p->value;
-        message_t request = buildListRequest(son);
-        if (sendMessage(&request) == -1)
-            printf("Error sending list control request to pid %d: %s\n", son, strerror(errno));
 
-        message_t response;
-        int stop = 0;
-        do {
-            // TODO: implemntare BUSY globalmente
-            do {  // Se ricevo un messaggio diverso da quello che mi aspetto, rispondo BUSY
-                if (receiveMessage(&response) == -1)
-                    perror("Error receiving list control response");
-                if (response.type != LIST_MSG_TYPE) {
-                    message_t busy = buildBusyResponse(response.sender);
-                    sendMessage(&busy);
-                }
-            } while (response.type != LIST_MSG_TYPE);
-
-            response.to = to_pid;                // Cambio il destinatario per farlo arrivare a mio padre
-            response.vals[LIST_VAL_LEVEL] += 1;  //  Aumento il valore "livello"
-            stop = response.vals[LIST_VAL_STOP];
-            response.vals[LIST_VAL_STOP] = 0;  //  Tolgo lo stop dalla risposta
-            if (stop == 1 && p->next == NULL) {
-                //  Ultimo figlio, imposto lo stop
-                response.vals[LIST_VAL_STOP] = 1;
-            }
-            sendMessage(&response);
-        } while (stop != 1);
-        p = p->next;
-    }
-}
-
-void doLink(list_t children, int to_clone_pid, int sender, const char *base_dir) {
+void doLink(list_t children, int to_clone_pid, const char *base_dir) {
     message_t request = buildCloneRequest(to_clone_pid);
     message_t response;
     if (sendMessage(&request) == -1) {
@@ -69,14 +34,7 @@ void doLink(list_t children, int to_clone_pid, int sender, const char *base_dir)
         }
         // Padre
         else {
-            if (pid != -1) {
-                listPush(children, pid);
-            }
-            //  Attendo una conferma dal figlio clonato e la inoltro al padre.
-            message_t ack;
-            receiveMessage(&ack);
-            ack.to = sender;
-            sendMessage(&ack);
+            if (pid != -1) listPush(children, pid);
         }
     }
 }
@@ -200,11 +158,6 @@ message_t buildBusyResponse(const int to) {
     return ret;
 }
 
-message_t buildDieMessage(int to) {
-    message_t ret = buildResponse(to, DIE_MESG_TYPE);
-    return ret;
-}
-
 ////////////////////////////////////////////////////////////////// SEND/RECEIVE //////////////////////////////////////////////////////////////////
 int sendMessage(const message_t *msg) {
     if (msg->to <= 0) return -1;
@@ -267,7 +220,6 @@ int getPidById(list_t children, int id) {
     }
     return -1;
 }
-
 // stampa nel file con nome della session il messaggio
 int printLog(const message_t *msg) {
     char f_name[30];
