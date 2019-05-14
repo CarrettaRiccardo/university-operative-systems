@@ -53,7 +53,6 @@ message_t buildCloneResponse(int to_pid, const char* component_type, int id, con
 message_t buildGetChildResponse(int to_pid, int child_pid);
 message_t buildLinkResponse(int to_pid, short success);
 message_t buildBusyResponse(int to_pid);
-message_t buildDieMessage(int to_pid);
 
 /////////////////////////////// IPC ///////////////////////////////
 int sendMessage(const message_t* request);
@@ -72,8 +71,11 @@ int getMq();
 /* Close message queue */
 void closeMq(int id);
 
-/* Traduzione id-pid */
+/* Traduzione id-pid, ritorna il pid corrispondente all'id passato o -1 se non esiste */
 int getPidById(list_t figli, int id);
+
+/* Controlla se il processo child_pid è tra i figli, percorrendo tutto l'albero */
+int containsChild(list_t figli, int child_pid);
 
 //////////////////////////////// DEBUG /////////////////////////////////////
 /*  Print struct (per debug) */

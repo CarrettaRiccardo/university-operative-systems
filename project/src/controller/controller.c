@@ -110,8 +110,20 @@ void linkDevices(int id1, int id2) {
         return;
     }
 
-    message_t request = buildLinkRequest(dest, src);
+    // Se il src contiene dest tra i sui figli, sto creando un ciclo.
+    message_t request = buildTranslateRequest(src, id2);
     message_t response;
+    if (sendMessage(&request) == -1) {
+        perror("Error get pid by id request");
+    } else if (receiveMessage(&response) == -1) {
+        perror("Error get pid by id response");
+    } else if (response.vals[TRANSLATE_VAL_ID] > 0) {
+        printf("Error: cycle identified, the device %d is a child of %d\n", id1, id2);
+        return;
+    }
+
+    // Effettuo il link
+    request = buildLinkRequest(dest, src);
     if (sendMessage(&request) == -1) {
         perror("Error linking devices request");
     } else if (receiveMessage(&response) == -1) {
