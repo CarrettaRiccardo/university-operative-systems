@@ -67,7 +67,19 @@ int main(int argc, char **argv) {
                             end = msg.vals[SWITCH_VAL_POS];// set end
                             success = 1;
                             break;
-                        case LABEL_ALL_VALUE: /**/ success = 1; break;  // TODO
+                        case LABEL_ALL_VALUE: 
+                            // se ha un figlio, fa lo switch generico di esso
+                            if (listCount(child) == 1){
+                                node_t *p = *child;
+                                if (p != NULL) {
+                                    message_t m = buildSwitchRequest(p->value, LABEL_ALL_VALUE, msg.vals[SWITCH_VAL_POS]);
+                                    sendMessage(&m);
+                                    message_t resp;
+                                    receiveMessage(&resp);
+                                }
+                            }
+                            success = 1;
+                            break;
                     }
                     if (success == 1){
                         // faccio partire il primo evento automatico (sovrascriverà la precendente alarm(..), ma il tempo di attesa rimanente è ricalcolato)
@@ -146,7 +158,6 @@ int main(int argc, char **argv) {
 }
 
 message_t buildInfoResponseTimer(int sender) {
-    // Stato = Override <-> ??? -- TODO
     node_t *p = *child;
     int child_State = 0;  // 0 = figlio spento, 1 = figlio acceso
     short override = 0;   // 0 = no override, 1 = si override
