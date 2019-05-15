@@ -227,7 +227,7 @@ int switchDevice(int id, char *label, char *pos) {
     }
 
     // Map valore pos (char*) in valori (int) per poterli inserire in un messaggio
-    if (label_val == LABEL_LIGHT_VALUE || label_val == LABEL_OPEN_VALUE) {
+    if (label_val == LABEL_LIGHT_VALUE || label_val == LABEL_OPEN_VALUE || label_val == LABEL_ALL_VALUE) {
         // Se è un interrutore on/off
         if (strcmp(pos, SWITCH_POS_OFF) == 0) {
             pos_val = SWITCH_POS_OFF_VALUE;  // 0 = spento/chiuso
