@@ -226,30 +226,6 @@ int switchDevice(int id, char *label, char *pos) {
         label_val = LABEL_ALL_VALUE;  // 6 = all (generico)
     }
 
-<<<<<<< HEAD
-    if (label_val != __INT_MAX__) {
-        // mappo pos (char*) in valori (int) per poterli inserire in un messaggio
-        if (label_val == LABEL_LIGHT_VALUE || label_val == LABEL_OPEN_VALUE || label_val == LABEL_ALL_VALUE) {
-            // se è un interrutore (luce o apri/chiudi)
-            if (strcmp(pos, SWITCH_POS_OFF) == 0) {        // "off"
-                pos_val = SWITCH_POS_OFF_VALUE;            // 0 = spento/chiuso (generico)
-            } else if (strcmp(pos, SWITCH_POS_ON) == 0) {  // "on"
-                pos_val = SWITCH_POS_ON_VALUE;             // 1 = acceso/aperto (generico)
-            } else {
-                // valore non valido (!= on/off)
-            }
-        } else {
-            if (atoi(pos) != 0) {  // è un valore valido solo se è un numero (la label è therm, delay, begin o end per forza)
-                // valore termostato, del delay, di inizio o fine timer
-                if (label_val == LABEL_TERM_VALUE || label_val == LABEL_DELAY_VALUE) {  // valore inserito
-                    pos_val = atoi(pos);
-                } else {  // se è begin/end, il numero inserito indica quanti seconda da ORA
-                    pos_val = time(NULL) + atoi(pos);
-                }
-            } else {
-                // valore non valido (!= numero)
-            }
-=======
     // Map valore pos (char*) in valori (int) per poterli inserire in un messaggio
     if (label_val == LABEL_LIGHT_VALUE || label_val == LABEL_OPEN_VALUE || label_val == LABEL_ALL_VALUE) {
         // Se è un interrutore on/off
@@ -264,7 +240,6 @@ int switchDevice(int id, char *label, char *pos) {
             pos_val = atoi(pos);
         } else if (label_val == LABEL_BEGIN_VALUE || label_val == LABEL_END_VALUE) {  // se è begin/end, il numero inserito indica quanti seconda da ORA
             pos_val = time(NULL) + atoi(pos);
->>>>>>> 7478694627e85b1baad78a353c5724a1b7293f64
         }
     }
 
