@@ -1,3 +1,4 @@
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,14 +7,27 @@
 #include "../include/list.h"
 #include "./shell.c"
 
-int id;
-list_t connected_children;
+int id, next_id;
 list_t disconnected_children;
-int next_id;
+list_t connected_children;
 char *base_dir;
 
-/*  Inizializza le variabili del controller   */
+/* Handler segnale eliminazione figli */
+void sigchldHandler(int signum) {
+    int pid;
+    do {
+        pid = waitpid(-1, NULL, WNOHANG);
+        listRemove(disconnected_children, pid);
+        listRemove(connected_children, pid);
+    } while (pid != -1 && pid != 0);
+}
+
+/**************************************** INIT ********************************************/
+/* Inizializzazione valori controller                                                     */
+/******************************************************************************************/
 void controllerInit(char *file) {
+    signal(SIGCHLD, sigchldHandler);
+
     connected_children = listInit();
     disconnected_children = listInit();
     ipcInit();  //inizializzo componenti comunicazione
@@ -35,6 +49,8 @@ void controllerDestroy() {
 }
 
 /**************************************** LIST ********************************************/
+/* Stampa l'albero dei dispositivi con l'id e lostato                                     */
+/******************************************************************************************/
 void listDevicesInList(list_t children, short show_tree) {
     node_t *p = *children;
     while (p != NULL) {
@@ -65,7 +81,8 @@ void listDevices() {
 }
 
 /**************************************** ADD ********************************************/
-/*  Aggiunge un dispositivo al controller in base al tipo specificato   */
+/* Aggiunge un dispositivo al controller in base al tipo specificato                     */
+/*****************************************************************************************/
 int addDevice(char *device) {
     int pid = fork();
     /*  Processo figlio */
@@ -86,6 +103,8 @@ int addDevice(char *device) {
 }
 
 /**************************************** DEL ********************************************/
+/* Elimina un dispositivo in base all'id specificato                                     */
+/*****************************************************************************************/
 void delDevice(int id) {
     int pid = getPidById(disconnected_children, id);
     if (pid == -1) pid = getPidById(connected_children, id);
@@ -101,14 +120,14 @@ void delDevice(int id) {
         perror("Error deleting device response");
     } else if (response.type == DELETE_MSG_TYPE) {
         printf("Device %d deleted\n", id);
-        listRemove(disconnected_children, pid);
-        listRemove(connected_children, pid);
     } else {
         printf("Error deleting %d: %s\n", id, response.text);
     }
 }
 
 /**************************************** LINK ********************************************/
+/* Effettua il link di id1 a id2                                                          */
+/******************************************************************************************/
 void linkDevices(int id1, int id2) {
     if (id1 == 0) {
         printf("Error: cannot connect the controller to other devices\n");
@@ -169,13 +188,13 @@ void linkDevices(int id1, int id2) {
     } else if (receiveMessage(&response) == -1) {
         perror("Error deleting device response");
     } else if (response.type == DELETE_MSG_TYPE) {
-        listRemove(disconnected_children, src);
-        listRemove(connected_children, src);
         printf("Device %d linked to %d\n", id1, id2);
     }
 }
 
 /**************************************** SWITCH ********************************************/
+/* Cambia lo stato dell'interruttore "label" del dispositivo "id" al valore "pos"           */
+/********************************************************************************************/
 int switchDevice(int id, char *label, char *pos) {
     int pid = getPidById(connected_children, id);
     if (pid == -1) {
@@ -187,9 +206,8 @@ int switchDevice(int id, char *label, char *pos) {
         return;
     }
     int label_val = __INT_MAX__;  // 0 = interruttore (generico), 1 = termostato
-    int pos_val = __INT_MAX__;    // 0 = spento, 1 = acceso; x = termostato
-
-    // mappo label (char*) in valori (int) per poterli inserire in un messaggio
+    int pos_val = __INT_MAX__;    // 0 = spento, 1 = acceso; x = valore termostato (°C)
+    // Map delle label (char*) in valori (int) per poterli inserire in un messaggio
     if (strcmp(label, LABEL_LIGHT) == 0) {
         label_val = LABEL_LIGHT_VALUE;  // 0 = interruttore (luce)
     } else if (strcmp(label, LABEL_OPEN) == 0) {
@@ -204,39 +222,36 @@ int switchDevice(int id, char *label, char *pos) {
         label_val = LABEL_END_VALUE;  // 5 = end (timer)
     } else if (strcmp(label, LABEL_ALL) == 0) {
         label_val = LABEL_ALL_VALUE;  // 6 = all (generico)
-    } else {
-        // valore non valido
     }
 
-    if (label_val != __INT_MAX__) {
-        // mappo pos (char*) in valori (int) per poterli inserire in un messaggio
-        if (label_val == LABEL_LIGHT_VALUE || label_val == LABEL_OPEN_VALUE) {
-            // se è un interrutore (luce o apri/chiudi)
-            if (strcmp(pos, SWITCH_POS_OFF) == 0) {        // "off"
-                pos_val = SWITCH_POS_OFF_VALUE;            // 0 = spento/chiuso (generico)
-            } else if (strcmp(pos, SWITCH_POS_ON) == 0) {  // "on"
-                pos_val = SWITCH_POS_ON_VALUE;             // 1 = acceso/aperto (generico)
-            } else {
-                // valore non valido (!= on/off)
-            }
-        } else {
-            if (atoi(pos) != 0) {  // è un valore valido solo se è un numero (la label è therm, delay, begin o end per forza)
-                // valore termostato, del delay, di inizio o fine timer
-                if (label_val == LABEL_TERM_VALUE || label_val == LABEL_DELAY_VALUE) {  // valore inserito
-                    pos_val = atoi(pos);
-                } else {  // se è begin/end, il numero inserito indica quanti seconda da ORA
-                    pos_val = time(NULL) + atoi(pos);
-                }
-            } else {
-                // valore non valido (!= numero)
-            }
+    // Map valore pos (char*) in valori (int) per poterli inserire in un messaggio
+    if (label_val == LABEL_LIGHT_VALUE || label_val == LABEL_OPEN_VALUE) {
+        // Se è un interrutore on/off
+        if (strcmp(pos, SWITCH_POS_OFF) == 0) {
+            pos_val = SWITCH_POS_OFF_VALUE;  // 0 = spento/chiuso
+        } else if (strcmp(pos, SWITCH_POS_ON) == 0) {
+            pos_val = SWITCH_POS_ON_VALUE;  // 1 = acceso/aperto
+        }
+    } else if (isInt(pos)) {  // E' un valore valido solo se è un numero (la label è therm, delay, begin o end)
+        // valore termostato, del delay, di inizio o fine timer
+        if (label_val == LABEL_TERM_VALUE || label_val == LABEL_DELAY_VALUE) {  // valore inserito
+            pos_val = atoi(pos);
+        } else if (label_val == LABEL_BEGIN_VALUE || label_val == LABEL_END_VALUE) {  // se è begin/end, il numero inserito indica quanti seconda da ORA
+            pos_val = time(NULL) + atoi(pos);
         }
     }
+
     message_t request = buildSwitchRequest(pid, label_val, pos_val);
     message_t response;
 
     // Se i parametri creano dei valori validi
-    if (request.vals[SWITCH_VAL_LABEL] != __INT_MAX__ && request.vals[SWITCH_VAL_POS] != __INT_MAX__) {
+    if (request.vals[SWITCH_VAL_LABEL] == __INT_MAX__) {
+        printf("Error: invalid label value \"%s\"\n", label);
+        return;
+    } else if (request.vals[SWITCH_VAL_POS] != __INT_MAX__) {
+        printf("Error: invalid pos value \"%s\"\n", pos);
+        return;
+    } else {
         if (sendMessage(&request) == -1) {
             perror("Error switch request");
         } else if (receiveMessage(&response) == -1) {
@@ -245,15 +260,15 @@ int switchDevice(int id, char *label, char *pos) {
             if (response.vals[SWITCH_VAL_SUCCESS] != -1) {
                 printf("Switch executed\n");
             } else {
-                printf("Error\n");
+                printf("Error: switch not executed\n");
             }
         }
-    } else {
-        perror("Incorrect parameters\n");
     }
 }
 
-/**************************************** INFO ********************************************/
+/**************************************** INFO ************************************************/
+/* Ottiene il sottoalbero a partire dal device "id" con tutte le informazioni dei dispositivi */
+/**********************************************************************************************/
 void infoDevice(int id) {
     if (id == 0) {
         printf("Device type: controller, registers: num = %d\n", listCount(connected_children));
