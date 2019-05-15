@@ -74,53 +74,8 @@ int main(int argc, char **argv) {
             } break;
 
             case SWITCH_MSG_TYPE: {
-                int success = -1;
-                if (msg.vals[SWITCH_VAL_POS] != __INT_MAX__) {  // se è un valore valido
-                    switch (msg.vals[SWITCH_VAL_LABEL]) {
-                        /*case LABEL_BEGIN_VALUE:
-                            begin = msg.vals[SWITCH_VAL_POS];  // set begin
-                            success = 1;
-                            break;
-                        case LABEL_END_VALUE:
-                            end = msg.vals[SWITCH_VAL_POS];  // set end
-                            success = 1;
-                            break;*/
-                        case LABEL_ALL_VALUE:
-                            // se ha un figlio, fa lo switch generico di esso
-                            if (listCount(children) > 0) {
-                                node_t *p = children->head;
-                                while (p != NULL) {
-                                    message_t m = buildSwitchRequest(*(int *)p->value, LABEL_ALL_VALUE, msg.vals[SWITCH_VAL_POS]);
-                                    sendMessage(&m);
-                                    message_t resp;
-                                    receiveMessage(&resp);
-                                    p = p->next;
-                                }
-                            }
-                            success = 1;
-                            break;
-                    }
-                    // TODO spostare in comando apposito
-                    /*if (success == 1) {
-                        // faccio partire il primo evento automatico (sovrascriverà la precendente alarm(..), ma il tempo di attesa rimanente è ricalcolato)
-                        if (begin > time(NULL)) {
-                            if (begin < end || (begin >= end && end <= time(NULL))) {  // attendo il begin
-                                alarm(begin - time(NULL));
-                                waitForBegin = 0;
-                            } else {  // attendo l'end
-                                alarm(end - time(NULL));
-                                waitForBegin = 1;
-                            }
-                        } else {
-                            if (end > time(NULL)) {  // attendo l'end
-                                alarm(end - time(NULL));
-                                waitForBegin = 1;
-                            }
-                            // altrimenti sono tutti e due eventi passati
-                        }
-                    }*/
-                }
                 // return success or not
+                int success = doSwitchChildren(msg.vals[SWITCH_VAL_LABEL], msg.vals[SWITCH_VAL_POS]);
                 message_t m = buildSwitchResponse(msg.sender, success);
                 sendMessage(&m);
             } break;
@@ -273,4 +228,23 @@ void sigchldHandler(int signum) {
         pid = waitpid(-1, NULL, WNOHANG);
         listRemove(children, &pid);
     } while (pid != -1 && pid != 0);
+}
+
+int doSwitchChildren(int label, int pos) {
+    int success = -1;
+    switch (label) {
+        case LABEL_ALL_VALUE: {
+            // Fa lo switch di tutti i figli
+            node_t *p = children->head;
+            while (p != NULL) {
+                message_t m = buildSwitchRequest(*(int *)p->value, label, pos);
+                sendMessage(&m);
+                message_t resp;
+                receiveMessage(&resp);
+                p = p->next;
+            }
+            success = 1;
+        } break;
+    }
+    return success;
 }

@@ -243,17 +243,16 @@ int switchDevice(int id, char *label, char *pos) {
         }
     }
 
-    message_t request = buildSwitchRequest(pid, label_val, pos_val);
-    message_t response;
-
     // Se i parametri creano dei valori validi
-    if (request.vals[SWITCH_VAL_LABEL] == __INT_MAX__) {
+    if (label_val == __INT_MAX__) {
         printf("Error: invalid label value \"%s\"\n", label);
         return;
-    } else if (request.vals[SWITCH_VAL_POS] == __INT_MAX__) {
+    } else if (pos_val == __INT_MAX__) {
         printf("Error: invalid pos value \"%s\"\n", pos);
         return;
     } else {
+        message_t request = buildSwitchRequest(pid, label_val, pos_val);
+        message_t response;
         if (sendMessage(&request) == -1) {
             perror("Error switch request");
         } else if (receiveMessage(&response) == -1) {
