@@ -118,10 +118,8 @@ void delDevice(int id) {
         perror("Error deleting device request");
     } else if (receiveMessage(&response) == -1) {
         perror("Error deleting device response");
-    } else if (response.type == DELETE_MSG_TYPE) {
-        printf("Device %d deleted\n", id);
     } else {
-        printf("Error deleting %d: %s\n", id, response.text);
+        printf("Device %d deleted\n", id);
     }
 }
 
@@ -133,6 +131,8 @@ void linkDevices(int id1, int id2) {
         printf("Error: cannot connect the controller to other devices\n");
         return;
     }
+
+    // Risolvo l'id1 in un PID valido
     int src = getPidById(disconnected_children, id1);
     if (src == -1) src = getPidById(connected_children, id1);
     if (src == -1) {
@@ -142,10 +142,11 @@ void linkDevices(int id1, int id2) {
 
     message_t request, response;
     if (id2 == 0) {
-        // Connetto src al controller
+        // Connetto src al controller (id = 0)
         doLink(connected_children, src, base_dir);
         receiveMessage(NULL);  //  Attendo una conferma dal figlio clonato.
     } else {
+        // Risolvo l'id2 in un PID valido
         int dest = getPidById(disconnected_children, id2);
         if (dest == -1) dest = getPidById(connected_children, id2);
         if (dest == -1) {
@@ -165,18 +166,19 @@ void linkDevices(int id1, int id2) {
             printf("Error: cycle identified, %d is a child of %d\n", id2, id1);
             return;
         }
+
+        // Invio la richiesta di link a dest con il PID di src
         request = buildLinkRequest(dest, src);
-        // Effettuo il link
         if (sendMessage(&request) == -1) {
             perror("Error linking devices request");
             return;
         } else if (receiveMessage(&response) == -1) {
             perror("Error linking devices response");
             return;
-        } else if (response.vals[LINK_VAL_SUCCESS] == -1) {
+        } else if (response.vals[LINK_VAL_SUCCESS] == LINK_ERROR_NOT_CONTROL) {
             printf("Error: the device with id %d is not a control device\n", id2);
             return;
-        } else if (response.vals[LINK_VAL_SUCCESS] == LINK_MAX_CHILD) {
+        } else if (response.vals[LINK_VAL_SUCCESS] == LINK_ERROR_MAX_CHILD) {
             printf("Error: the device with id %d already has a child\n", id2);
             return;
         }
@@ -187,7 +189,7 @@ void linkDevices(int id1, int id2) {
         perror("Error deleting device request");
     } else if (receiveMessage(&response) == -1) {
         perror("Error deleting device response");
-    } else if (response.type == DELETE_MSG_TYPE) {
+    } else {
         printf("Device %d linked to %d\n", id1, id2);
     }
 }

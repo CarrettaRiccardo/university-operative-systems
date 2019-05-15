@@ -1,9 +1,9 @@
 #include <fcntl.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <signal.h>
 
 #include "../include/ipc.h"
 #include "../include/list.h"
@@ -11,16 +11,15 @@
 
 char *base_dir;
 int id;
-list_t child;  // conterrà al max 1 figlio; uso una list_t perchè è compatibile con i metodi usati per hub
+list_t child;  // Conterrà al max 1 figlio; uso una list_t perchè è compatibile con i metodi usati per hub
 
-long begin = 0;  //momento temporale di attivazione
-long end = 0;    //momento temporale di disattivazione
-short waitForBegin = 0;// 0 = prossimo evento è begin (NOW < begin), 1 = prossimo evento è end (begin < NOW < end)
+long begin = 0;          //momento temporale di attivazione
+long end = 0;            //momento temporale di disattivazione
+short waitForBegin = 0;  // 0 = prossimo evento è begin (NOW < begin), 1 = prossimo evento è end (begin < NOW < end)
 
 void switchAlarm();
 message_t buildInfoResponseTimer(int to_pid);
 message_t buildListResponseTimer(int to_pid, int lv, short stop);
-
 
 int main(int argc, char **argv) {
     base_dir = extractBaseDir(argv[0]);
@@ -60,30 +59,27 @@ int main(int argc, char **argv) {
                 if (msg.vals[SWITCH_VAL_POS] != __INT_MAX__) {  // se è un valore valido
                     switch (msg.vals[SWITCH_VAL_LABEL]) {       // set begin/end/stato del figlio
                         case LABEL_BEGIN_VALUE:
-                            begin = msg.vals[SWITCH_VAL_POS];// set begin
+                            begin = msg.vals[SWITCH_VAL_POS];  // set begin
                             success = 1;
                             break;
                         case LABEL_END_VALUE:
-                            end = msg.vals[SWITCH_VAL_POS];// set end
+                            end = msg.vals[SWITCH_VAL_POS];  // set end
                             success = 1;
                             break;
                         case LABEL_ALL_VALUE: /**/ success = 1; break;  // TODO
                     }
-                    if (success == 1){
+                    if (success == 1) {
                         // faccio partire il primo evento automatico (sovrascriverà la precendente alarm(..), ma il tempo di attesa rimanente è ricalcolato)
-                        if (begin > time(NULL)){
-                            if (begin < end || (begin >= end && end <= time(NULL))){// attendo il begin
+                        if (begin > time(NULL)) {
+                            if (begin < end || (begin >= end && end <= time(NULL))) {  // attendo il begin
                                 alarm(begin - time(NULL));
                                 waitForBegin = 0;
-                            }
-                            else
-                            {// attendo l'end
+                            } else {  // attendo l'end
                                 alarm(end - time(NULL));
                                 waitForBegin = 1;
                             }
-                        }
-                        else {
-                            if (end > time(NULL)){// attendo l'end
+                        } else {
+                            if (end > time(NULL)) {  // attendo l'end
                                 alarm(end - time(NULL));
                                 waitForBegin = 1;
                             }
@@ -181,10 +177,10 @@ message_t buildInfoResponseTimer(int sender) {
     return ret;
 }
 
-void switchAlarm(){
-    if (waitForBegin == 0){// da accendere (begin)
+void switchAlarm() {
+    if (waitForBegin == 0) {  // da accendere (begin)
         // se ha figlio lo accendo
-        if (listCount(child) == 1){
+        if (listCount(child) == 1) {
             node_t *p = *child;
             if (p != NULL) {
                 message_t m = buildSwitchRequest(p->value, LABEL_ALL_VALUE, SWITCH_POS_ON_VALUE);
@@ -194,18 +190,16 @@ void switchAlarm(){
             }
         }
         // setto il timer di spegnimento (end) se è maggiore dell'accensione (begin)
-        if (time(NULL) < end){
+        if (time(NULL) < end) {
             alarm(end - time(NULL));
             waitForBegin = 1;
-        }
-        else{// o termino gli alarm automatici
+        } else {  // o termino gli alarm automatici
             alarm(0);
         }
-    }
-    else{// da spegnere (end)
-        if (waitForBegin == 1){
+    } else {  // da spegnere (end)
+        if (waitForBegin == 1) {
             // se ha figlio lo spengo
-            if (listCount(child) == 1){
+            if (listCount(child) == 1) {
                 node_t *p = *child;
                 if (p != NULL) {
                     message_t m = buildSwitchRequest(p->value, LABEL_ALL_VALUE, SWITCH_POS_OFF_VALUE);
@@ -215,11 +209,10 @@ void switchAlarm(){
                 }
             }
             // setto il timer di accensione (begin) se è maggiore dello spegnimento (end)
-            if (time(NULL) < begin){
+            if (time(NULL) < begin) {
                 alarm(begin - time(NULL));
                 waitForBegin = 0;
-            }
-            else{// o termino gli alarm automatici
+            } else {  // o termino gli alarm automatici
                 alarm(0);
             }
         }
