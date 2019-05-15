@@ -68,6 +68,7 @@ message_t buildInfoResponseDevice(int to_pid) {
     int tot_time = open_time + (now - ((state == 0) ? now : last_open_time));  //se è chiusa ritorno solo "tempo", altrimenti tempo+differenza da quanto accesa
     sprintf(ret.text, "%s, state: %s, registers: time=%ds delay=%ds perc=%d%% temp=%d°C", FRIDGE, state == 1 ? "open" : "closed", tot_time, delay, perc, temp);
     ret.vals[INFO_VAL_STATE] = state;
+    ret.vals[INFO_VAL_STOP] = 1;
     return ret;
 }
 

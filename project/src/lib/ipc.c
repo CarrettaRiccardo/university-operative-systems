@@ -90,6 +90,7 @@ message_t buildResponse(int to_pid, short msg_type) {
 //Metodo generico per info comuni. Ogni componente usa un override del metodo
 message_t buildInfoResponse(int to_pid) {
     message_t ret = buildResponse(to_pid, INFO_MSG_TYPE);
+    ret.vals[INFO_VAL_STOP] = 1; 
     return ret;
 }
 

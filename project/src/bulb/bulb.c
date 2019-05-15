@@ -52,6 +52,7 @@ message_t buildInfoResponseDevice(int to_pid) {
     int tot_time = on_time + (now - ((state == SWITCH_POS_OFF_VALUE) ? now : last_on_time));  // Se è spenta ritorno solo "on_time", altrimenti on_time+differenza da quanto accesa
     sprintf(ret.text, "%s, state: %s, registers: time=%ds", BULB, state == 1 ? "on" : "off", tot_time);
     ret.vals[INFO_VAL_STATE] = state;
+    ret.vals[INFO_VAL_STOP] = 1;
     return ret;
 }
 

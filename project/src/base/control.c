@@ -91,13 +91,35 @@ int main(int argc, char **argv) {
                 while (p != NULL) {
                     message_t request = buildInfoRequest(*(int *)p->value);
                     message_t response;
-                    if (sendMessage(&request) == -1) {
-                        perror("Error sending info request in control device");
-                    } else if (receiveMessage(&response) == -1) {
-                        perror("Error receiving info response in control device");
-                    } else {
+                    if (sendMessage(&request) == -1)
+                        perror("Errore invio messaggio control.c INFO");
+
+                    int stop = 0;
+                    do
+                    {    // TODO: implementare BUSY globalmente
+                        do
+                        { // Se ricevo un messaggio diverso da quello che mi aspetto, rispondo BUSY
+                            if (receiveMessage(&response) == -1)
+                                perror("Error receiving list control response");
+                            if (response.type != INFO_MSG_TYPE)
+                            {
+                                message_t busy = buildBusyResponse(response.sender);
+                                sendMessage(&busy);
+                            }
+                        } while (response.type != INFO_MSG_TYPE);
+
+                        response.to = msg.sender;           // Cambio il destinatario per rispondere al mittente
+                        response.vals[LIST_VAL_LEVEL] += 1; //  Aumento il valore "livello"
+                        stop = response.vals[LIST_VAL_STOP];
+                        if (stop == 1 && p->next == NULL){ //  Ultimo figlio, imposto lo stop
+                            response.vals[LIST_VAL_STOP] = 1;
+                        }
+                        else{
+                            response.vals[LIST_VAL_STOP] = 0; //  Tolgo lo stop dalla risposta
+                        }
+
                         listPush(msg_list, &response, sizeof(message_t));
-                        switch (response.vals[INFO_VAL_STATE]) {
+                        switch (response.vals[INFO_VAL_STATE]) {  //devo stabilire lo stato dell'HUB in base allo stato dei figli
                             case 0: count_off++; break;
                             case 1: count_on++; break;
                             case 2:
@@ -109,9 +131,11 @@ int main(int argc, char **argv) {
                                 override = 1;
                                 break;
                         }
-                    }
+                    } while (stop != 1);
+
                     p = p->next;
                 }
+
                 short children_state;
                 if (override == 0 && count_on == 0)
                     children_state = 0;  // off
@@ -129,8 +153,12 @@ int main(int argc, char **argv) {
                 message_t m = buildInfoResponseControl(msg.sender, children_str);  // Implementazione specifica dispositivo
                 m.vals[INFO_VAL_STATE] = children_state;
                 sendMessage(&m);
+
+                message_t *p = msg_list->head;
+                while (p != NULL){
+                    sendMessage(&p);
+                }
                 listDestroy(msg_list);
-                // TODO: inoltro messaggi
             } break;
 
             case LIST_MSG_TYPE: {
