@@ -32,7 +32,7 @@ void doLink(list_t children, int to_clone_pid, const char *base_dir) {
         }
         // Padre
         else {
-            if (pid != -1) listPush(children, pid);
+            if (pid != -1) listPush(children, &pid, sizeof(int));
         }
     }
 }
@@ -201,9 +201,9 @@ void closeMq(int id) {
 
 // Traduce un id in un pid
 int getPidById(list_t children, int id) {
-    node_t *p = *children;
+    node_t *p = children->head;
     while (p != NULL) {
-        int id_processo = p->value;
+        int id_processo = *(int *)p->value;
         message_t request = buildTranslateRequest(id_processo, id);
         message_t response;
 

@@ -17,8 +17,8 @@ void sigchldHandler(int signum) {
     int pid;
     do {
         pid = waitpid(-1, NULL, WNOHANG);
-        listRemove(disconnected_children, pid);
-        listRemove(connected_children, pid);
+        listRemove(disconnected_children, &pid);
+        listRemove(connected_children, &pid);
     } while (pid != -1 && pid != 0);
 }
 
@@ -28,8 +28,8 @@ void sigchldHandler(int signum) {
 void controllerInit(char *file) {
     signal(SIGCHLD, sigchldHandler);
 
-    connected_children = listInit();
-    disconnected_children = listInit();
+    connected_children = listIntInit();
+    disconnected_children = listIntInit();
     ipcInit();  //inizializzo componenti comunicazione
     id = 0;
     next_id = 1;
@@ -52,9 +52,9 @@ void controllerDestroy() {
 /* Stampa l'albero dei dispositivi con l'id e lostato                                     */
 /******************************************************************************************/
 void listDevicesInList(list_t children, short show_tree) {
-    node_t *p = *children;
+    node_t *p = children->head;
     while (p != NULL) {
-        message_t request = buildListRequest(p->value);
+        message_t request = buildListRequest(*(int *)p->value);
         message_t response;
         if (sendMessage(&request) == -1) {
             perror("Error list request");
@@ -97,7 +97,7 @@ int addDevice(char *device) {
     else {
         if (pid == -1) return -1;
         next_id++;
-        listPush(disconnected_children, pid);
+        listPush(disconnected_children, &pid, sizeof(int));
         return next_id - 1;
     }
 }

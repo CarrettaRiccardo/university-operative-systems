@@ -1,44 +1,11 @@
 #ifndef _LIST_
 #define _LIST_
-#include <stdlib.h>  //tmp da Steve
+#include <stdlib.h>
+#include "../include/constants.h"
+
 #define MAXTEXT 255
 #define NVAL 10
-#define KEYFILE "progfile"
-//#include "../include/ipc.h" tmp da Steve
 
-typedef struct node {
-    int value;
-    struct node *next;
-} node_t;
-
-typedef node_t **list_t;
-
-/* Inizializza la lista */
-list_t listInit();
-
-/* Dealloca la lista */
-void listDestroy(list_t l);
-
-/*  Aggiunge "value" all'inizio della lista */
-int listPush(list_t l, int value);
-
-/*  Rimuove il primo elemento con valore "value" dalla lista */
-int listRemove(list_t l, int value);
-
-/*  Ritorna 1 se la lista contiene il valore, 0 altrimenti */
-int listContains(list_t l, int value);
-
-/*  Ritorna il numero di elementi nella lista */
-int listCount(list_t l);
-
-/*  Ritorna 1 se la lista è vuota, 0 altrimenti */
-int listEmpty(list_t l);
-
-/*  Stampa la lista (per debug) */
-void listPrint(list_t l);
-
-
-//tmp da Steve
 typedef struct msg {
     long to;
     int sender;
@@ -48,35 +15,46 @@ typedef struct msg {
     int vals[NVAL];
 } message_t;
 
-typedef struct node_msg {
-    message_t value;
-    struct node_msg *next;
-} node_msg_t;
+typedef struct node {
+    void *value;
+    struct node *next;
+} node_t;
 
-typedef node_t **list_msg_t;
+struct list {
+    struct node *head;
+    int (*equal)(const void *, const void *);
+};
 
-/* Inizializza la lista */
-list_msg_t listInit();
+typedef struct list *list_t;
+
+/* Inizializza una lista (generale) */
+list_t listInit(int (*equal)(const void *, const void *));
+
+/* Inizializza una lista di int */
+list_t listIntInit();
+
+/* Inizializza una lista di messsage_t */
+list_t listMsgInit();
 
 /* Dealloca la lista */
-void listMsgDestroy(list_msg_t l);
+void listDestroy(list_t l);
 
 /*  Aggiunge "value" all'inizio della lista */
-int listMsgPush(list_msg_t l, message_t m);
+int listPush(list_t l, void *value, size_t size);
 
 /*  Rimuove il primo elemento con valore "value" dalla lista */
-int listMsgRemove(list_msg_t l, message_t m);
+int listRemove(list_t l, void *value);
 
 /*  Ritorna 1 se la lista contiene il valore, 0 altrimenti */
-int listMsgContains(list_msg_t l, message_t m);
+int listContains(list_t l, void *value);
 
 /*  Ritorna il numero di elementi nella lista */
-int listMsgCount(list_msg_t l);
+int listCount(list_t l);
 
 /*  Ritorna 1 se la lista è vuota, 0 altrimenti */
-int listMsgEmpty(list_msg_t l);
+int listEmpty(list_t l);
 
 /*  Stampa la lista (per debug) */
-void listMsgPrint(list_msg_t l);
+void listIntPrint(list_t l);
 
 #endif

@@ -10,22 +10,10 @@
 
 #include "../include/constants.h"
 #include "../include/list.h"
-#define MAXTEXT 255
-#define NVAL 10
 #define KEYFILE "progfile"
 
 time_t session;
 int mqid;
-
-/* tmp da Steve
-typedef struct msg {
-    long to;
-    int sender;
-    short type;
-    time_t session;
-    char text[MAXTEXT];
-    int vals[NVAL];
-} message_t;*/
 
 /////////////////////////////// WORKERS ///////////////////////////////
 void doLink(list_t children, int to_clone_pid, const char* base_dir);
