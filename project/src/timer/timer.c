@@ -70,8 +70,8 @@ message_t buildCloneResponseControl(int to_pid, int id) {
 void switchAlarm() {
     if (waitForBegin == 0) {  // da accendere (begin)
         // se ha figlio lo accendo
-        if (listCount(child) == 1) {
-            node_t *p = *child;
+        if (listCount(children) == 1) {
+            node_t *p = *children;
             if (p != NULL) {
                 message_t m = buildSwitchRequest(p->value, LABEL_ALL_VALUE, SWITCH_POS_ON_VALUE);
                 sendMessage(&m);
@@ -89,8 +89,8 @@ void switchAlarm() {
     } else {  // da spegnere (end)
         if (waitForBegin == 1) {
             // se ha figlio lo spengo
-            if (listCount(child) == 1) {
-                node_t *p = *child;
+            if (listCount(children) == 1) {
+                node_t *p = *children;
                 if (p != NULL) {
                     message_t m = buildSwitchRequest(p->value, LABEL_ALL_VALUE, SWITCH_POS_OFF_VALUE);
                     sendMessage(&m);
