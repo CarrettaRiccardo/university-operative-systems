@@ -129,6 +129,7 @@ int main(int argc, char **argv) {
                 message_t m = buildInfoResponseControl(msg.sender, children_str);  // Implementazione specifica dispositivo
                 m.vals[INFO_VAL_STATE] = children_state;
                 sendMessage(&m);
+                listDestroy(msg_list);
                 // TODO: inoltro messaggi
             } break;
 
