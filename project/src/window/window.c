@@ -23,15 +23,15 @@ void cloneData(char **vals) {
 int handleSwitchDevice(message_t *msg) {
     int success = 0;
     if (msg->vals[SWITCH_VAL_LABEL] == LABEL_OPEN_VALUE || msg->vals[SWITCH_VAL_LABEL] == LABEL_ALL_VALUE) {  // interruttore (apri/chiudi) o generico (da hub ai propri figli)
-        // apro/chiudo (invertendo) solo se preme "on" in quanto l'interruttore sarà sempre "off"
+        // Apro/chiudo (invertendo) solo se preme "on" in quanto l'interruttore sarà sempre "off"
         if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_ON_VALUE) {
-            // se è chiuso, apro e salvo il tempo di apertura
+            // Se è chiuso, apro e salvo il tempo di apertura
             if (state == SWITCH_POS_OFF_VALUE) {
                 last_open_time = time(NULL);
                 state = SWITCH_POS_ON_VALUE;
                 interruttore = SWITCH_POS_OFF_VALUE;
             } else {
-                // se è aperto, sommo il tempo di apertura e chiudo
+                // Se è aperto, sommo il tempo di apertura e chiudo
                 if (state == SWITCH_POS_ON_VALUE) {
                     open_time += time(NULL) - last_open_time;
                     state = SWITCH_POS_OFF_VALUE;
@@ -40,7 +40,7 @@ int handleSwitchDevice(message_t *msg) {
             }
             success = 1;
         } else {
-            // se inserisce "off" non deve fare nulla in quanto l'interruttore è sempre a "off"
+            // Se inserisce "off" non deve fare nulla in quanto l'interruttore è sempre a "off"
             if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_VALUE) {
                 success = 1;
             }

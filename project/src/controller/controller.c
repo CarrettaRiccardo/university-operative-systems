@@ -106,6 +106,11 @@ int addDevice(char *device) {
 /* Elimina un dispositivo in base all'id specificato                                     */
 /*****************************************************************************************/
 void delDevice(int id) {
+    if (id == 0) {
+        printf("Error: cannot delete the controller\n");
+        return;
+    }
+
     int pid = getPidById(disconnected_children, id);
     if (pid == -1) pid = getPidById(connected_children, id);
     if (pid == -1) {

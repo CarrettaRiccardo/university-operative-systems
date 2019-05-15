@@ -177,6 +177,7 @@ int main(int argc, char **argv) {
             } break;
 
             case LINK_MSG_TYPE: {
+                // Controllo sul numero di figli massimo supportato
                 if (max_children_count == -1 || listCount(children) < max_children_count) {
                     doLink(children, msg.vals[LINK_VAL_PID], base_dir);
                     //  Attendo una conferma dal figlio clonato e la inoltro al mittente.
