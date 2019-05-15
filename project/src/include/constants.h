@@ -30,7 +30,9 @@
 #define LINK_MSG_TYPE 3
 #define LINK_VAL_PID 0
 #define LINK_VAL_SUCCESS 1
-#define LINK_MAX_CHILD 98
+
+#define LINK_ERROR_NOT_CONTROL -1
+#define LINK_ERROR_MAX_CHILD -2
 
 // CLONE (ogni dispositivo manderà valori diversi)
 #define CLONE_MSG_TYPE 4

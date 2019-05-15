@@ -3,8 +3,6 @@
 #include "../include/constants.h"
 
 ///////////////////////////////////////////////  WORKERS ///////////////////////////////////////////////
-
-
 void doLink(list_t children, int to_clone_pid, const char *base_dir) {
     message_t request = buildCloneRequest(to_clone_pid);
     message_t response;
