@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
                 } break;
 
                 case LINK_MSG_TYPE: {
-                    message_t m = buildLinkResponse(msg.sender, -1);  // I device non di controllo non accettano collegamenti da altri dispositivi
+                    message_t m = buildLinkResponse(msg.sender, LINK_ERROR_NOT_CONTROL);  // I device non di controllo non accettano collegamenti da altri dispositivi
                     sendMessage(&m);
                 } break;
 

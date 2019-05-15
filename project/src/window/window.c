@@ -21,7 +21,7 @@ void cloneData(char **vals) {
 }
 
 int handleSwitchDevice(message_t *msg) {
-    int success = -1;
+    int success = 0;
     if (msg->vals[SWITCH_VAL_LABEL] == LABEL_OPEN_VALUE || msg->vals[SWITCH_VAL_LABEL] == LABEL_ALL_VALUE) {  // interruttore (apri/chiudi) o generico (da hub ai propri figli)
         // apro/chiudo (invertendo) solo se preme "on" in quanto l'interruttore sarà sempre "off"
         if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_ON_VALUE) {

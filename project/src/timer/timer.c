@@ -10,6 +10,7 @@ void switchAlarm();
 void initData() {
     // Associo il metodo switch al segnare alarm per il begin/end automatico (se TIMER)
     signal(SIGALRM, switchAlarm);
+    max_children_count = 1;
     begin = 0;
     end = 0;
     waitForBegin = 0;
@@ -17,6 +18,7 @@ void initData() {
 
 void cloneData(char **vals) {
     signal(SIGALRM, switchAlarm);
+    max_children_count = 1;
     begin = atoi(vals[0]);
     end = atoi(vals[1]);
     waitForBegin = atoi(vals[2]);
@@ -24,7 +26,7 @@ void cloneData(char **vals) {
 
 message_t buildInfoResponseControl(int to_pid, char *children_state) {
     message_t ret = buildInfoResponse(to_pid);
-    sprintf(ret.text, "%s, state: %s, Registers: begin= %s, end= %s", TIMER, children_state, begin, end);
+    sprintf(ret.text, "%s, state: %s, registers: begin=%d, end=%d", TIMER, children_state, begin, end);
     return ret;
 }
 

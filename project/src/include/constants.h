@@ -4,7 +4,7 @@
 #define SET_TEMPERATURE "set_temperature"
 #define SET_PERC_FILLED "set_filled"
 
-/*************  Tipi messaggi e parametri *************/
+/*************************  Tipi messaggi e parametri *************************/
 //BUSY: per segnalare che un dispositivo non può eseguire il comando che riceve
 #define BUSY_MSG_TYPE 99
 
@@ -24,7 +24,6 @@
 
 // DELETE
 #define DELETE_MSG_TYPE 2
-#define DIE_MESG_TYPE 98
 
 // LINK
 #define LINK_MSG_TYPE 3
@@ -53,7 +52,7 @@
 #define TRANSLATE_VAL_FOUND 0
 #define TRANSLATE_VAL_ID 1
 
-//  Tipi interruttori
+/*************************  Tipi interruttori  *************************/
 #define LABEL_LIGHT "light"
 #define LABEL_OPEN "open"
 #define LABEL_TERM "therm"
@@ -73,12 +72,7 @@
 #define SWITCH_POS_OFF_VALUE 0
 #define SWITCH_POS_ON_VALUE 1
 
-//  Tipit dispositivo
-#define CONTROLLER "CONTROLLER"
-#define CONTROL_DEVICE "CONTROL_DEVICE"
-#define NORMAL_DEVICE "NORMAL_DEVICE"
-
-//  Dispositivi
+/*************************  Tipi dispositivi  *************************/
 #define MAX_DEVICE_NAME_LENGTH 20
 
 #define BULB "bulb"

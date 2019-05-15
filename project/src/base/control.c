@@ -19,10 +19,12 @@ void sigchldHandler(int signum);
 char *base_dir;
 int id;
 list_t children;
+int max_children_count;  // Numero massimo di figli supportati. -1 = inf
 
 int main(int argc, char **argv) {
     signal(SIGCHLD, sigchldHandler);
 
+    max_children_count = -1;  // Valore di default. I device specifici possono impostare altri valori
     base_dir = extractBaseDir(argv[0]);
     id = atoi(argv[1]);
     children = listIntInit();
@@ -175,13 +177,19 @@ int main(int argc, char **argv) {
             } break;
 
             case LINK_MSG_TYPE: {
-                doLink(children, msg.vals[LINK_VAL_PID], base_dir);
-                //  Attendo una conferma dal figlio clonato e la inoltro al padre.
-                message_t ack;
-                receiveMessage(&ack);
-                ack.sender = getpid();
-                ack.to = msg.sender;
-                sendMessage(&ack);
+                if (max_children_count == -1 || listCount(children) < max_children_count) {
+                    doLink(children, msg.vals[LINK_VAL_PID], base_dir);
+                    //  Attendo una conferma dal figlio clonato e la inoltro al mittente.
+                    message_t ack;
+                    receiveMessage(&ack);
+                    ack.sender = getpid();
+                    ack.to = msg.sender;
+                    sendMessage(&ack);
+                } else {
+                    //  Invia l'errore MAX_CHILD al mittente
+                    message_t confirm_clone = buildLinkResponse(msg.sender, LINK_ERROR_MAX_CHILD);
+                    sendMessage(&confirm_clone);
+                }
             } break;
 
             case CLONE_MSG_TYPE: {
@@ -231,7 +239,7 @@ void sigchldHandler(int signum) {
 }
 
 int doSwitchChildren(int label, int pos) {
-    int success = -1;
+    int success = 0;
     switch (label) {
         case LABEL_ALL_VALUE: {
             // Fa lo switch di tutti i figli
@@ -241,6 +249,7 @@ int doSwitchChildren(int label, int pos) {
                 sendMessage(&m);
                 message_t resp;
                 receiveMessage(&resp);
+                if (!resp.vals[SWITCH_VAL_SUCCESS]) return 0;  // Un figlio ha avuto un errore nello switch
                 p = p->next;
             }
             success = 1;
