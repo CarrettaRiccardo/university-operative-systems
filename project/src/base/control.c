@@ -154,9 +154,9 @@ int main(int argc, char **argv) {
                 m.vals[INFO_VAL_STATE] = children_state;
                 sendMessage(&m);
 
-                message_t *p = msg_list->head;
-                while (p != NULL){
-                    sendMessage(&p);
+                node_t *b = msg_list->head;
+                while (b != NULL){
+                    sendMessage(&  *((message_t*) b->value) );
                 }
                 listDestroy(msg_list);
             } break;
