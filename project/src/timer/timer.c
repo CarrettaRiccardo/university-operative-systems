@@ -24,7 +24,7 @@ void cloneData(char **vals) {
 
 message_t buildInfoResponseControl(int to_pid, char *children_state) {
     message_t ret = buildInfoResponse(to_pid);
-    sprintf(ret.text, "%s, state: %s", TIMER, children_state);
+    sprintf(ret.text, "%s, state: %s, Registers: begin= %s, end= %s", TIMER, children_state, begin, end);
     return ret;
 }
 
