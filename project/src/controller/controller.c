@@ -250,7 +250,7 @@ int switchDevice(int id, char *label, char *pos) {
     if (request.vals[SWITCH_VAL_LABEL] == __INT_MAX__) {
         printf("Error: invalid label value \"%s\"\n", label);
         return;
-    } else if (request.vals[SWITCH_VAL_POS] != __INT_MAX__) {
+    } else if (request.vals[SWITCH_VAL_POS] == __INT_MAX__) {
         printf("Error: invalid pos value \"%s\"\n", pos);
         return;
     } else {

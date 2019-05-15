@@ -86,6 +86,7 @@ message_t buildResponse(int to_pid, short msg_type) {
     message_t ret = {.to = to_pid, .sender = getpid(), .session = session, .type = msg_type};
     return ret;
 }
+
 //Metodo generico per info comuni. Ogni componente usa un override del metodo
 message_t buildInfoResponse(int to_pid) {
     message_t ret = buildResponse(to_pid, INFO_MSG_TYPE);
@@ -218,6 +219,7 @@ int getPidById(list_t children, int id) {
     }
     return -1;
 }
+
 // stampa nel file con nome della session il messaggio
 int printLog(const message_t *msg) {
     char f_name[30];

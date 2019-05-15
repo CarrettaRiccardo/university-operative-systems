@@ -87,7 +87,7 @@ int main(int argc, char **argv) {
                         case LABEL_ALL_VALUE: 
                             // se ha un figlio, fa lo switch generico di esso
                             if (listCount(children) > 0){
-                                node_t *p = *child;
+                                node_t *p = *children;
                                 while (p != NULL) {
                                     message_t m = buildSwitchRequest(p->value, LABEL_ALL_VALUE, msg.vals[SWITCH_VAL_POS]);
                                     sendMessage(&m);
@@ -158,7 +158,7 @@ int main(int argc, char **argv) {
                                 }
                             } while (response.type != LIST_MSG_TYPE);
 
-                            response.to = to_pid;                // Cambio il destinatario per farlo arrivare a mio padre
+                            response.to = getppid();             // Cambio il destinatario per farlo arrivare a mio padre 
                             response.vals[LIST_VAL_LEVEL] += 1;  //  Aumento il valore "livello"
                             stop = response.vals[LIST_VAL_STOP];
                             response.vals[LIST_VAL_STOP] = 0;  //  Tolgo lo stop dalla risposta
@@ -294,14 +294,14 @@ void doInfoControl(int to_pid) {
     m.vals[INFO_VAL_STOP] = 0;
     sendMessage(&m);
 
-    *p = *messaggi;
+    /**p = *messaggi;
     while (p != NULL) {
-        message_t response = p->value;
+        message_t response = buildResponse(p->value, );
         if (sendMessage(&response) == -1) {
             perror("Error sending info request in control device");
         }
         p = p->next;
-    }
+    }*/
     freeMsgList(&messaggi);
 }
 
