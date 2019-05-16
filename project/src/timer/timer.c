@@ -1,6 +1,7 @@
 #include "../base/control.c"
 #include "../include/ipc.h"
 
+short state;
 int begin;           //momento temporale di attivazione
 int end;             //momento temporale di disattivazione
 short waitForBegin;  // 0 = prossimo evento è begin ([end] < NOW < begin < [end]), 1 = prossimo evento è end ([begin] < NOW < end < [begin])
@@ -11,6 +12,7 @@ void initData() {
     // Associo il metodo switch al segnare alarm per il begin/end automatico (se TIMER)
     signal(SIGALRM, switchAlarm);
     max_children_count = 1;
+    state = SWITCH_POS_OFF_VALUE;
     begin = 0;
     end = 0;
     waitForBegin = 0;
@@ -19,9 +21,10 @@ void initData() {
 void cloneData(char **vals) {
     signal(SIGALRM, switchAlarm);
     max_children_count = 1;
-    begin = atoi(vals[0]);
-    end = atoi(vals[1]);
-    waitForBegin = atoi(vals[2]);
+    state = atoi(vals[0]);
+    begin = atoi(vals[1]);
+    end = atoi(vals[2]);
+    waitForBegin = atoi(vals[3]);
 }
 
 message_t buildInfoResponseControl(int to_pid, char *children_state, char *available_labels) {
@@ -37,7 +40,7 @@ message_t buildListResponseControl(int to_pid, int id, int lv, short stop) {
 }
 
 message_t buildCloneResponseControl(int to_pid, int id) {
-    int vals[] = {begin, end, waitForBegin};
+    int vals[] = {state, begin, end, waitForBegin};
     return buildCloneResponse(to_pid, TIMER, id, vals, 1);
 }
 
