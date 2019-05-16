@@ -135,9 +135,10 @@ message_t buildListResponse(int to_pid, int id, int lv, short stop) {
 message_t buildCloneResponse(int to_pid, const char *component_type, int id, const int vals[], short is_control_device) {
     message_t ret = buildResponse(to_pid, CLONE_MSG_TYPE);
     strcpy(ret.text, component_type);
-    ret.vals[0] = id;
-    if (is_control_device) ret.vals[1] = getpid();
-    int s = is_control_device ? 2 : 1;
+    ret.vals[0] = mqid;
+    ret.vals[1] = id;
+    if (is_control_device) ret.vals[2] = getpid();
+    int s = is_control_device ? 3 : 2;
     int i;
     for (i = s; i < NVAL; i++) ret.vals[i] = vals[i - s];  // Copio i valori nella risposta
     return ret;
