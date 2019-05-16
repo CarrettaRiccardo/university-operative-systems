@@ -82,6 +82,13 @@ message_t buildSwitchRequest(int to_pid, int label_val, int pos_val) {
     return ret;
 }
 
+message_t buildSetRequest(int to_pid, int label_val, int val_val) {
+    message_t ret = buildRequest(to_pid, SET_MSG_TYPE);
+    ret.vals[SET_VAL_LABEL] = label_val;
+    ret.vals[SET_VAL_VALUE] = val_val;
+    return ret;
+}
+
 ///////////////////////////////////////////////  RESPONSE ///////////////////////////////////////////////
 message_t buildResponse(int to_pid, short msg_type) {
     message_t ret = {.to = to_pid, .sender = getpid(), .session = session, .type = msg_type};
@@ -99,6 +106,12 @@ message_t buildInfoResponse(int to_pid, int id, int lv, short stop) {
 message_t buildSwitchResponse(int to_pid, short success) {
     message_t ret = buildResponse(to_pid, SWITCH_MSG_TYPE);
     ret.vals[SWITCH_VAL_SUCCESS] = success;
+    return ret;
+}
+
+message_t buildSetResponse(int to_pid, short success) {
+    message_t ret = buildResponse(to_pid, SET_MSG_TYPE);
+    ret.vals[SET_VAL_SUCCESS] = success;
     return ret;
 }
 

@@ -12,9 +12,9 @@ int last_open_time;  // Tempo ultima apertura
 void initData() {
     state = SWITCH_POS_OFF_VALUE;
     interruttore = SWITCH_POS_OFF_VALUE;
-    delay = 13;
+    delay = 10;
     temp = 4;
-    perc = 22;
+    perc = 0;
     open_time = 0;
     last_open_time = 0;
 }
@@ -30,7 +30,7 @@ void cloneData(char **vals) {
 }
 
 int handleSwitchDevice(message_t *msg) {
-    int success = 0;
+    int success = -1;
     if (msg->vals[SWITCH_VAL_LABEL] == LABEL_OPEN_VALUE || msg->vals[SWITCH_VAL_LABEL] == LABEL_ALL_VALUE) {
         if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_VALUE) {  // Chiudo
             // Controllo se il tempo di chiusura automatica NON è superato
@@ -57,7 +57,18 @@ int handleSwitchDevice(message_t *msg) {
     } else if (msg->vals[SWITCH_VAL_LABEL] == LABEL_TERM_VALUE) {  // Valore Termostato
         temp = msg->vals[SWITCH_VAL_POS];
         success = 1;
-        open_time += time(NULL) - last_open_time;
+    }
+    return success;
+}
+
+int handleSetDevice(message_t *msg) {
+    int success = -1;
+    if (msg->vals[SET_VAL_LABEL] == LABEL_DELAY_VALUE) {  // Tempo chiusura porta
+        delay = msg->vals[SET_VAL_VALUE];
+        success = 1;
+    } else if (msg->vals[SET_VAL_VALUE] == LABEL_PERC_VALUE) {  // Percentuale riempimento
+        perc = msg->vals[SET_VAL_VALUE];
+        success = 1;
     }
     return success;
 }

@@ -31,6 +31,7 @@ void controllerDestroy();
 void delDevice(int id);
 void linkDevices(int id1, int id2);
 int switchDevice(int id, char *label, char *pos);
+int setDevice(int id, char *label, char *val);
 int setRegisterDevice(int id, char *reg, char *val);
 void infoDevice(int id);
 
@@ -104,7 +105,7 @@ int main(int sargc, char **sargv) {
             } else if (!isInt(argv[1])) {
                 printf("Error: <id> must be a positive number\n");
             } else {
-                switchDevice(atoi(argv[1]), argv[2], argv[3]);
+                setDevice(atoi(argv[1]), argv[2], argv[3]);
             }
         }
         /**************************************** INFO ********************************************/

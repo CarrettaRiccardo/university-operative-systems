@@ -46,6 +46,11 @@ int handleSwitchDevice(message_t *msg) {
     return success;
 }
 
+int handleSetDevice(message_t *msg) {
+    // la bulb non ha registri da modificare
+    return -1;
+}
+
 message_t buildInfoResponseDevice(int to_pid, int id, int lv) {
     message_t ret = buildInfoResponse(to_pid, id, lv, 1);
     time_t now = time(NULL);

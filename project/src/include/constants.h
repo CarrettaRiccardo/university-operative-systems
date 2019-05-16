@@ -48,6 +48,12 @@
 #define SWITCH_VAL_POS 1
 #define SWITCH_VAL_SUCCESS 2
 
+// SET
+#define SET_MSG_TYPE 8
+#define SET_VAL_LABEL 0
+#define SET_VAL_VALUE 1
+#define SET_VAL_SUCCESS 2
+
 // TRANSLATE
 #define TRANSLATE_MSG_TYPE 7
 #define TRANSLATE_VAL_FOUND 0
@@ -74,10 +80,12 @@
 #define LABEL_DELAY "delay"
 #define LABEL_BEGIN "begin"
 #define LABEL_END "end"
+#define LABEL_PERC "perc"
 
 #define LABEL_DELAY_VALUE 1
 #define LABEL_BEGIN_VALUE 2
 #define LABEL_END_VALUE 4
+#define LABEL_PERC_VALUE 8
 
 /*************************  Tipi dispositivi  *************************/
 #define MAX_DEVICE_NAME_LENGTH 20

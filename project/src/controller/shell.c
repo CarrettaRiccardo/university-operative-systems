@@ -13,6 +13,7 @@
 #define ARGC_DEL 2
 #define ARGC_LINK 4
 #define ARGC_SWITCH 4
+#define ARGC_SET 4
 #define ARGC_INFO 2
 #define ARGC_QUIT 1
 
@@ -29,6 +30,7 @@ int addDevice(char *device);
 void delDevice(int id);
 void linkDevices(int id1, int id2);
 int switchDevice(int id, char *label, char *pos);
+int setDevice(int id, char *label, char *val);
 void infoDevice(int id);
 
 /* Main */
@@ -55,6 +57,7 @@ int main(int sargc, char **sargv) {
             printHelp("del <id>", "Remove device <id>. If the device is a control device, remove also the linked devices.");
             printHelp("link <id> to <id>", "Link two devices.");
             printHelp("switch <id> <label> <pos>", "Change the value of the switch <label> of the device <id> to <pos>.");
+            printHelp("set <id> <register> <val>", "Change the value of the switch <register> of the device <id> to <val>.");
             printHelp("info <id>", "Print device <id> info.");
             printHelp("quit", "Close the controller and kill all processes.");
         }
@@ -121,6 +124,16 @@ int main(int sargc, char **sargv) {
                 printf("Error: <id> must be a positive number\n");
             } else {
                 switchDevice(atoi(argv[1]), argv[2], argv[3]);
+            }
+        }
+        /**************************************** SET ********************************************/
+        else if (strcmp(argv[0], "set") == 0) {
+            if (argc != ARGC_SET) {
+                printf("Unknown parameters, usage: set <id> <register> <pos>\n");
+            } else if (!isInt(argv[1])) {
+                printf("Error: <id> must be a positive number\n");
+            } else {
+                setDevice(atoi(argv[1]), argv[2], argv[3]);
             }
         }
         /**************************************** INFO ********************************************/

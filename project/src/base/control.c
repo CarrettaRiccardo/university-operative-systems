@@ -82,6 +82,13 @@ int main(int argc, char **argv) {
                 sendMessage(&m);
             } break;
 
+            case SET_MSG_TYPE: {
+                // return success or not
+                int success = doSetChildren(msg.vals[SET_VAL_LABEL], msg.vals[SET_VAL_VALUE]);
+                message_t m = buildSetResponse(msg.sender, success);
+                sendMessage(&m);
+            } break;
+
             case INFO_MSG_TYPE: {
                 // Stato = Override <=> lo stato dei componenti ad esso collegati non sono omogenei (intervento esterno all' HUB)
                 list_t msg_list = listMsgInit();  // Salvo tutti i messaggi ricevuti dai figli per reinviarli dopo
@@ -283,6 +290,21 @@ int doSwitchChildren(int label, int pos) {
         message_t resp;
         receiveMessage(&resp);
         if (resp.vals[SWITCH_VAL_SUCCESS] != -1) success = 1;  // Un figlio ha modificato il proprio stato con successo
+        p = p->next;
+    }
+    return success;
+}
+
+int doSetChildren(int label, int val) {
+    int success = -1;
+    // Fa il set di tutti i figli
+    node_t *p = children->head;
+    while (p != NULL) {
+        message_t m = buildSetRequest(*(int *)p->value, label, val);
+        sendMessage(&m);
+        message_t resp;
+        receiveMessage(&resp);
+        if (resp.vals[SET_VAL_SUCCESS] != -1) success = 1;  // Un figlio ha modificato il proprio registro con successo
         p = p->next;
     }
     return success;

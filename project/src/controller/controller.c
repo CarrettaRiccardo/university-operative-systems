@@ -222,26 +222,23 @@ void linkDevices(int id1, int id2) {
 /* Cambia lo stato dell'interruttore "label" del dispositivo "id" al valore "pos"           */
 /********************************************************************************************/
 int switchDevice(int id, char *label, char *pos) {
-    int pid = getPidById(connected_children, id);
+    int pid = getPidById(disconnected_children, id);
+    if (pid == -1) pid = getPidById(connected_children, id);
     if (pid == -1) {
-        if (getPidById(disconnected_children, id) != -1) {
-            printf("Error: device with id %d not connected to the controller\n", id);
-        } else {
-            printf("Error: device with id %d not found\n", id);
-        }
+        printf("Error: device with id %d not found or not connected to the controller\n", id);
         return;
     }
     int label_val = __INT_MAX__;  // 0 = interruttore (generico), 1 = termostato
     int pos_val = __INT_MAX__;    // 0 = spento, 1 = acceso; x = valore termostato (°C)
     // Map delle label (char*) in valori (int) per poterli inserire in un messaggio
     if (strcmp(label, LABEL_LIGHT) == 0) {
-        label_val = LABEL_LIGHT_VALUE;  // 0 = interruttore (luce)
+        label_val = LABEL_LIGHT_VALUE;  // 1 = interruttore (luce)
     } else if (strcmp(label, LABEL_OPEN) == 0) {
-        label_val = LABEL_OPEN_VALUE;  // 1 = interruttore (apri/chiudi)
+        label_val = LABEL_OPEN_VALUE;  // 2 = interruttore (apri/chiudi)
     } else if (strcmp(label, LABEL_TERM) == 0) {
-        label_val = LABEL_TERM_VALUE;  // 2 = termostato
+        label_val = LABEL_TERM_VALUE;  // 4 = termostato
     } else if (strcmp(label, LABEL_ALL) == 0) {
-        label_val = LABEL_ALL_VALUE;  // 6 = all (generico)
+        label_val = LABEL_ALL_VALUE;  // 8 = all (generico)
     }
 
     // Map valore pos (char*) in valori (int) per poterli inserire in un messaggio
@@ -252,22 +249,14 @@ int switchDevice(int id, char *label, char *pos) {
         } else if (strcmp(pos, SWITCH_POS_ON) == 0) {
             pos_val = SWITCH_POS_ON_VALUE;  // 1 = acceso/aperto
         }
-    } else if (isInt(pos)) {  // E' un valore valido solo se è un numero (la label è therm, delay, begin o end)
-        // valore termostato, del delay, di inizio o fine timer
-        if (label_val == LABEL_TERM_VALUE || label_val == LABEL_DELAY_VALUE) {  // valore inserito
-            pos_val = atoi(pos);
-        }
-        // } else if (label_val == LABEL_BEGIN_VALUE || label_val == LABEL_END_VALUE) {  // se è begin/end, il numero inserito indica quanti seconda da ORA
-        //     pos_val = time(NULL) + atoi(pos);
-        // }
     }
 
     // Se i parametri creano dei valori validi
     if (label_val == __INT_MAX__) {
-        printf("Error: invalid label value \"%s\"\n", label);
+        printf("Error: invalid 'label' value \"%s\"\n", label);
         return;
     } else if (pos_val == __INT_MAX__) {
-        printf("Error: invalid pos value \"%s\"\n", pos);
+        printf("Error: invalid 'pos' value \"%s\"\n", pos);
         return;
     } else {
         message_t request = buildSwitchRequest(pid, label_val, pos_val);
@@ -281,6 +270,64 @@ int switchDevice(int id, char *label, char *pos) {
                 printf("Switch executed\n");
             } else {
                 printf("Error: switch not executed\n");
+            }
+        }
+    }
+}
+
+/**************************************** SET ***********************************************/
+/* Cambia lo stato dell'interruttore "label" del dispositivo "id" al valore "val"           */
+/********************************************************************************************/
+int setDevice(int id, char *label, char *val) {
+    int pid = getPidById(disconnected_children, id);
+    if (pid == -1) pid = getPidById(connected_children, id);
+    if (pid == -1) {
+        printf("Error: device with id %d not found\n", id);
+        return;
+    }
+    if (pid == -1) {
+        printf("Error: device with id %d not found or not connected to the controller\n", id);
+        return;
+    }
+    int label_val = __INT_MAX__;  // 0 = interruttore (generico), 1 = termostato
+    int pos_val = __INT_MAX__;    // 0 = spento, 1 = acceso; x = valore termostato (°C)
+    // Map delle label (char*) in valori (int) per poterli inserire in un messaggio
+    if (strcmp(label, LABEL_DELAY) == 0) {
+        label_val = LABEL_DELAY_VALUE;  // 1 = delay (fridge)
+    } else if (strcmp(label, LABEL_BEGIN) == 0) {
+        label_val = LABEL_BEGIN_VALUE;  // 2 = begin (timer)
+    } else if (strcmp(label, LABEL_END) == 0) {
+        label_val = LABEL_END_VALUE;  // 4 = end (timer)
+    } 
+
+    if (isInt(val)) {  // E' un valore valido solo se è un numero (la label è therm, delay, begin o end)
+        // valore termostato, del delay, di inizio o fine timer
+        if (label_val == LABEL_TERM_VALUE || label_val == LABEL_DELAY_VALUE) {  // valore inserito
+            pos_val = atoi(val);
+        } else if (label_val == LABEL_BEGIN_VALUE || label_val == LABEL_END_VALUE) {  // se è begin/end, il numero inserito indica quanti seconda da ORA
+            pos_val = time(NULL) + atoi(val);
+        }
+
+        // Se i parametri creano dei valori validi
+        if (label_val == __INT_MAX__) {
+            printf("Error: invalid 'register' value \"%s\"\n", label);
+            return;
+        } else if (pos_val == __INT_MAX__) {
+            printf("Error: invalid 'val' value \"%s\"\n", val);
+            return;
+        } else {
+            message_t request = buildSetRequest(pid, label_val, pos_val);
+            message_t response;
+            if (sendMessage(&request) == -1) {
+                perror("Error set request");
+            } else if (receiveMessage(&response) == -1) {
+                perror("Error set response");
+            } else {
+                if (response.vals[SET_VAL_SUCCESS] != -1) {
+                    printf("Set executed\n");
+                } else {
+                    printf("Error: set not executed\n");
+                }
             }
         }
     }

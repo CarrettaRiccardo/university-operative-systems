@@ -7,6 +7,7 @@
 void initData();
 void cloneData(char **vals);
 int handleSwitchDevice(message_t *msg);
+int handleSetDevice(message_t *msg);
 message_t buildInfoResponseDevice(int to_pid, int id, int lv);
 message_t buildListResponseDevice(int to_pid, int id, int lv);
 message_t buildCloneResponseDevice(int to_pid, int id);
@@ -40,6 +41,12 @@ int main(int argc, char **argv) {
                 case SWITCH_MSG_TYPE: {
                     int success = handleSwitchDevice(&msg);
                     message_t m = buildSwitchResponse(msg.sender, success);
+                    sendMessage(&m);
+                } break;
+
+                case SET_MSG_TYPE: {
+                    int success = handleSetDevice(&msg);
+                    message_t m = buildSetResponse(msg.sender, success);
                     sendMessage(&m);
                 } break;
 
