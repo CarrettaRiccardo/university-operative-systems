@@ -304,11 +304,16 @@ void infoDevice(int id) {
         message_t response;
         if (sendMessage(&request) == -1) {
             perror("Error info request");
-        } else if (receiveMessage(&response) == -1) {
-            perror("Errore info response");
         } else {
-            //  Stampo il testo ricevuto dal dispositivo
-            printf("Device type: %s\n", response.text);
+            do {
+                if (receiveMessage(&response) == -1) {
+                    perror("Error info response");
+                } else {
+                    int i;
+                    for (i = 0; i < response.vals[INFO_VAL_LEVEL]; i++) printf("    |-");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
+                    printf("(%d) %s\n", response.vals[INFO_VAL_ID], response.text);
+                }
+            } while (response.vals[INFO_VAL_STOP] != 1);
         }
     }
 }
