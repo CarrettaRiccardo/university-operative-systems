@@ -46,6 +46,10 @@ message_t buildBusyResponse(int to_pid);
 int sendMessage(const message_t* request);
 int receiveMessage(message_t* response);
 
+/////////////////////////////// SIGNALS ///////////////////////////////
+/* Invia la richiesta di traduzione id in pid al controller / invia il pid risolto alla shell manuale */
+int sendGetPidByIdSignal(int to_pid, int id);
+
 /////////////////////////////// INIT ///////////////////////////////
 /* Inizializza i componenti per comunicare */
 void ipcInit();

@@ -1,4 +1,5 @@
 #include "../include/ipc.h"
+#include <signal.h>
 #include <unistd.h>
 #include "../include/constants.h"
 
@@ -90,7 +91,7 @@ message_t buildResponse(int to_pid, short msg_type) {
 //Metodo generico per info comuni. Ogni componente usa un override del metodo
 message_t buildInfoResponse(int to_pid) {
     message_t ret = buildResponse(to_pid, INFO_MSG_TYPE);
-    ret.vals[INFO_VAL_STOP] = 1; 
+    ret.vals[INFO_VAL_STOP] = 1;
     return ret;
 }
 
@@ -166,6 +167,13 @@ int sendMessage(const message_t *msg) {
 
 int receiveMessage(message_t *msg) {
     return msgrcv(mqid, msg, sizeof(message_t) - sizeof(int), getpid(), 0);
+}
+
+///////////////////////////////////////////////  SIGNALS ///////////////////////////////////////////////
+int sendGetPidByIdSignal(int to_pid, int id) {
+    union sigval sv;
+    sv.sival_int = id;
+    return sigqueue(to_pid, SIGUSR1, sv);
 }
 
 ///////////////////////////////////////////////  INIT ///////////////////////////////////////////////

@@ -39,6 +39,7 @@ int main(int sargc, char **sargv) {
     char line[MAX_LEN];
     int argc = 0;
     char *argv[MAX_ARGC];
+    printf("Controller identifier (use this for manual commands): %d\n", getpid());
     printf("Type \"help\" for more information.\n\n");
 
     while (run) {
