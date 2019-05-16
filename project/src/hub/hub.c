@@ -8,11 +8,11 @@ void initData() {
 }
 
 void cloneData(char **vals) {
-    state = vals[0];
+    state = atoi(vals[0]);
 }
 
-message_t buildInfoResponseControl(int to_pid, char *children_state, char *available_labels) {
-    message_t ret = buildInfoResponse(to_pid);
+message_t buildInfoResponseControl(int to_pid, int id, char *children_state, char *available_labels, int lv, short stop) {
+    message_t ret = buildInfoResponse(to_pid, id, lv, stop);
     sprintf(ret.text, "%s, state: %s, labels: %s", HUB, children_state, available_labels);
     return ret;
 }

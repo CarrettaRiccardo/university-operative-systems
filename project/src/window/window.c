@@ -49,8 +49,8 @@ int handleSwitchDevice(message_t *msg) {
     return success;
 }
 
-message_t buildInfoResponseDevice(int to_pid) {
-    message_t ret = buildInfoResponse(to_pid);
+message_t buildInfoResponseDevice(int to_pid, int id, int lv) {
+    message_t ret = buildInfoResponse(to_pid, id, lv, 1);
     time_t now = time(NULL);
     int tot_time = open_time + (now - ((state == SWITCH_POS_OFF_VALUE) ? now : last_open_time));  // Se è spenta ritorno solo "on_time", altrimenti on_time+differenza da quanto accesa
     sprintf(ret.text, "%s, state: %s, labels: %s, registers: time=%ds", WINDOW, state == 1 ? "open" : "closed", LABEL_OPEN, tot_time);

@@ -9,7 +9,7 @@
 /* Metodi da implemantare nei dispositivi di controllo */
 void initData();
 void cloneData(char **vals);
-message_t buildInfoResponseControl(int to_pid, char *children_state, char *available_labels);
+message_t buildInfoResponseControl(int to_pid, int id, char *children_state, char *available_labels, int lv, short stop);
 message_t buildListResponseControl(int to_pid, int id, int lv, short stop);
 message_t buildCloneResponseControl(int to_pid, int id);
 
@@ -130,7 +130,6 @@ int main(int argc, char **argv) {
                                 break;
                         }
                     } while (stop != 1);
-
                     p = p->next;
                 }
 
@@ -155,7 +154,7 @@ int main(int argc, char **argv) {
                 if (label_values & LABEL_OPEN_VALUE) strcat(labels_str, LABEL_OPEN " ");
                 if (label_values & LABEL_TERM_VALUE) strcat(labels_str, LABEL_TERM " ");
 
-                message_t m = buildInfoResponseControl(msg.sender, children_str, labels_str);  // Implementazione specifica dispositivo
+                message_t m = buildInfoResponseControl(msg.sender, id, children_str, labels_str, msg.vals[INFO_VAL_LEVEL], (listCount(msg_list) > 0) ? 0 : 1);  // Implementazione specifica dispositivo
                 m.vals[INFO_VAL_STATE] = children_state;
                 m.vals[INFO_VAL_LABELS] = label_values;
                 sendMessage(&m);

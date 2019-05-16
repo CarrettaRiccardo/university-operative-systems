@@ -62,8 +62,8 @@ int handleSwitchDevice(message_t *msg) {
     return success;
 }
 
-message_t buildInfoResponseDevice(int to_pid) {
-    message_t ret = buildInfoResponse(to_pid);
+message_t buildInfoResponseDevice(int to_pid, int id, int lv) {
+    message_t ret = buildInfoResponse(to_pid, id, lv, 1);
     time_t now = time(NULL);
     int tot_time = open_time + (now - ((state == 0) ? now : last_open_time));  //se è chiusa ritorno solo "tempo", altrimenti tempo+differenza da quanto accesa
     sprintf(ret.text, "%s, state: %s, labels: %s %s, registers: time=%ds delay=%ds perc=%d%% temp=%d°C", FRIDGE, state == 1 ? "open" : "closed", LABEL_OPEN, LABEL_TERM, tot_time, delay, perc, temp);

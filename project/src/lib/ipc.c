@@ -88,10 +88,11 @@ message_t buildResponse(int to_pid, short msg_type) {
     return ret;
 }
 
-//Metodo generico per info comuni. Ogni componente usa un override del metodo
-message_t buildInfoResponse(int to_pid) {
+message_t buildInfoResponse(int to_pid, int id, int lv, short stop) {
     message_t ret = buildResponse(to_pid, INFO_MSG_TYPE);
-    ret.vals[INFO_VAL_STOP] = 1;
+    ret.vals[INFO_VAL_ID] = id;
+    ret.vals[INFO_VAL_LEVEL] = lv;
+    ret.vals[INFO_VAL_STOP] = stop;
     return ret;
 }
 

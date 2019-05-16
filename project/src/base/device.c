@@ -7,7 +7,7 @@
 void initData();
 void cloneData(char **vals);
 int handleSwitchDevice(message_t *msg);
-message_t buildInfoResponseDevice(int to_pid);
+message_t buildInfoResponseDevice(int to_pid, int id, int lv);
 message_t buildListResponseDevice(int to_pid, int id, int lv);
 message_t buildCloneResponseDevice(int to_pid, int id);
 
@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
                 } break;
 
                 case INFO_MSG_TYPE: {
-                    message_t m = buildInfoResponseDevice(msg.sender);  // Implementazione specifica dispositivo
+                    message_t m = buildInfoResponseDevice(msg.sender, id, msg.vals[INFO_VAL_LEVEL]);  // Implementazione specifica dispositivo
                     sendMessage(&m);
                 } break;
 

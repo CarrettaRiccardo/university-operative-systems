@@ -14,14 +14,14 @@
 #define LIST_VAL_LEVEL 1
 #define LIST_VAL_STATE 2
 #define LIST_VAL_STOP 3
-#define LIST_VAL_OVERRIDE 4
 
 // INFO
 #define INFO_MSG_TYPE 1
-#define INFO_VAL_STOP 0
+#define INFO_VAL_ID 0
 #define INFO_VAL_LEVEL 1
 #define INFO_VAL_STATE 2
-#define INFO_VAL_LABELS 3
+#define INFO_VAL_STOP 3
+#define INFO_VAL_LABELS 4
 
 // DELETE
 #define DELETE_MSG_TYPE 2
