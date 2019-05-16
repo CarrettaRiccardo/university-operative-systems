@@ -357,8 +357,11 @@ void infoDevice(int id) {
                     perror("Error info response");
                 } else {
                     int i;
-                    for (i = 0; i < response.vals[INFO_VAL_LEVEL]; i++) printf("    |-");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
-                    printf("(%d) %s\n", response.vals[INFO_VAL_ID], response.text);
+                    for (i = 0; i < response.vals[INFO_VAL_LEVEL]; i++){
+			if(i == response.vals[INFO_VAL_LEVEL] - 1 && i != 0) printf(" |");	 
+			printf("   ");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
+		    }
+                    printf("└── (%d) %s\n", response.vals[INFO_VAL_ID], response.text);
                 }
             } while (response.vals[INFO_VAL_STOP] != 1);
         }

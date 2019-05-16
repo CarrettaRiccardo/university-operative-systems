@@ -57,7 +57,8 @@ int main(int sargc, char **sargv) {
             printHelp("del <id>", "Remove device <id>. If the device is a control device, remove also the linked devices.");
             printHelp("link <id> to <id>", "Link two devices.");
             printHelp("switch <id> <label> <pos>", "Change the value of the switch <label> of the device <id> to <pos>.");
-            printHelp("set <id> <register> <val>", "Change the value of the switch <register> of the device <id> to <val>.");
+	    printHelp("switch <id> <label> <pos>", "Change the value of the switch <label> of the device <id> to <pos>.");
+            printHelp("set <id> all", "Command to activate all components connected to an hub.");
             printHelp("info <id>", "Print device <id> info.");
             printHelp("quit", "Close the controller and kill all processes.");
         }
@@ -91,7 +92,7 @@ int main(int sargc, char **sargv) {
                 if (result == -1)
                     perror("Error adding device");
                 else if (result != 0)  //  Se ho aggiunto un device supportato
-                    printf("Device added with id %d\n", result);
+                    printf("Device added with id %d.\nNow it is disconected from the system.\nTo activate the component run link %d to 0\n", result, result);
             }
         }
         /**************************************** DEL ********************************************/
