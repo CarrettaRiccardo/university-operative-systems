@@ -13,21 +13,17 @@ int solved_pid;
 /* Chiede al controller il pid collegato al device id                                         */
 /**********************************************************************************************/
 int requestGetPidById(int id) {
-    printf("SOLVING: %d\n", id);
     if (sendGetPidByIdSignal(controller_pid, id) < 0) {
         perror("Error: cannot send request getPidByIdSignal");
         return -1;
     } else {
-        printf("SOLVED: %d\n", solved_pid);
+        pause();
         return solved_pid;
     }
 }
 
 static void getPidByIdSignalHandler(int sig, siginfo_t *siginfo, void *context) {
-    //solved_pid = siginfo->si_value.sival_int;
-    printf("OK\n");
-    fflush(stdin);
-    //printf("handler: %d\n", siginfo->si_value.sival_int);
+    solved_pid = siginfo->si_value.sival_int;
 }
 
 /**************************************** INIT ********************************************/
@@ -93,7 +89,7 @@ void linkDevices(int id1, int id2) {
         // Risolvo l'id2 in un PID valido
         int dest = requestGetPidById(id2);
         if (dest == -1) {
-            printf("Error: device with id %d not found\n", id2);
+            printf("Error: device with id %d not found or not connected to the controller\n", id2);
             return;
         }
 
@@ -210,21 +206,20 @@ int switchDevice(int id, char *label, char *pos) {
 /* Ottiene il sottoalbero a partire dal device "id" con tutte le informazioni dei dispositivi */
 /**********************************************************************************************/
 void infoDevice(int id) {
-    if (id == 0) {
-        int pid = requestGetPidById(id);
-        if (pid == -1) {
-            printf("Error: device with id %d not found\n", id);
-            return;
-        }
-        message_t request = buildInfoRequest(pid);
-        message_t response;
-        if (sendMessage(&request) == -1) {
-            perror("Error info request");
-        } else if (receiveMessage(&response) == -1) {
-            perror("Errore info response");
-        } else {
-            //  Stampo il testo ricevuto dal dispositivo
-            printf("Device type: %s\n", response.text);
-        }
+    int pid = requestGetPidById(id);
+    printf("PID in info: %d\n", pid);
+    if (pid == -1) {
+        printf("Error: device with id %d not found or not connected to the controller\n", id);
+        return;
+    }
+    message_t request = buildInfoRequest(pid);
+    message_t response;
+    if (sendMessage(&request) == -1) {
+        perror("Error info request");
+    } else if (receiveMessage(&response) == -1) {
+        perror("Errore info response");
+    } else {
+        //  Stampo il testo ricevuto dal dispositivo
+        printf("Device type: %s\n", response.text);
     }
 }

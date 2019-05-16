@@ -25,8 +25,7 @@ void sigchldHandler(int signum) {
 /* Handler richiesta traduzione figlio */
 void getPidByIdSignalHandler(int sig, siginfo_t *siginfo, void *context) {
     int to_solve_id = siginfo->si_value.sival_int;
-    int pid = getPidById(disconnected_children, to_solve_id);
-    if (pid == -1) pid = getPidById(connected_children, to_solve_id);
+    int pid = getPidById(connected_children, to_solve_id);
     if (sendGetPidByIdSignal(siginfo->si_pid, pid) < 0) {
         perror("Error: cannot send response getPidByIdSignal");
     }
@@ -241,12 +240,6 @@ int switchDevice(int id, char *label, char *pos) {
         label_val = LABEL_OPEN_VALUE;  // 1 = interruttore (apri/chiudi)
     } else if (strcmp(label, LABEL_TERM) == 0) {
         label_val = LABEL_TERM_VALUE;  // 2 = termostato
-    } else if (strcmp(label, LABEL_DELAY) == 0) {
-        label_val = LABEL_DELAY_VALUE;  // 3 = delay (fridge)
-    } else if (strcmp(label, LABEL_BEGIN) == 0) {
-        label_val = LABEL_BEGIN_VALUE;  // 4 = begin (timer)
-    } else if (strcmp(label, LABEL_END) == 0) {
-        label_val = LABEL_END_VALUE;  // 5 = end (timer)
     } else if (strcmp(label, LABEL_ALL) == 0) {
         label_val = LABEL_ALL_VALUE;  // 6 = all (generico)
     }
@@ -263,9 +256,10 @@ int switchDevice(int id, char *label, char *pos) {
         // valore termostato, del delay, di inizio o fine timer
         if (label_val == LABEL_TERM_VALUE || label_val == LABEL_DELAY_VALUE) {  // valore inserito
             pos_val = atoi(pos);
-        } else if (label_val == LABEL_BEGIN_VALUE || label_val == LABEL_END_VALUE) {  // se è begin/end, il numero inserito indica quanti seconda da ORA
-            pos_val = time(NULL) + atoi(pos);
         }
+        // } else if (label_val == LABEL_BEGIN_VALUE || label_val == LABEL_END_VALUE) {  // se è begin/end, il numero inserito indica quanti seconda da ORA
+        //     pos_val = time(NULL) + atoi(pos);
+        // }
     }
 
     // Se i parametri creano dei valori validi

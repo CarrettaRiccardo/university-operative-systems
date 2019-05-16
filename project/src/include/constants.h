@@ -17,10 +17,11 @@
 #define LIST_VAL_OVERRIDE 4
 
 // INFO
-#define INFO_VAL_LEVEL 3
-#define INFO_VAL_STOP 2
 #define INFO_MSG_TYPE 1
-#define INFO_VAL_STATE 0
+#define INFO_VAL_STOP 0
+#define INFO_VAL_LEVEL 1
+#define INFO_VAL_STATE 2
+#define INFO_VAL_LABELS 3
 
 // DELETE
 #define DELETE_MSG_TYPE 2
@@ -52,25 +53,31 @@
 #define TRANSLATE_VAL_FOUND 0
 #define TRANSLATE_VAL_ID 1
 
-/*************************  Tipi interruttori  *************************/
+/*************************  Tipi interruttori SWITCH  *************************/
 #define LABEL_LIGHT "light"
 #define LABEL_OPEN "open"
 #define LABEL_TERM "therm"
-#define LABEL_DELAY "delay"
-#define LABEL_BEGIN "begin"
-#define LABEL_END "end"
 #define LABEL_ALL "all"
-#define LABEL_LIGHT_VALUE 0
-#define LABEL_OPEN_VALUE 1
-#define LABEL_TERM_VALUE 2
-#define LABEL_DELAY_VALUE 3
-#define LABEL_BEGIN_VALUE 4
-#define LABEL_END_VALUE 5
-#define LABEL_ALL_VALUE 6
+
+// In binario per inviare tutto con operazioni AND e OR
+#define LABEL_LIGHT_VALUE 1
+#define LABEL_OPEN_VALUE 2
+#define LABEL_TERM_VALUE 4
+#define LABEL_ALL_VALUE 8
+
 #define SWITCH_POS_OFF "off"
 #define SWITCH_POS_ON "on"
 #define SWITCH_POS_OFF_VALUE 0
 #define SWITCH_POS_ON_VALUE 1
+
+/*************************  Tipi interruttori SET  *************************/
+#define LABEL_DELAY "delay"
+#define LABEL_BEGIN "begin"
+#define LABEL_END "end"
+
+#define LABEL_DELAY_VALUE 1
+#define LABEL_BEGIN_VALUE 2
+#define LABEL_END_VALUE 4
 
 /*************************  Tipi dispositivi  *************************/
 #define MAX_DEVICE_NAME_LENGTH 20
