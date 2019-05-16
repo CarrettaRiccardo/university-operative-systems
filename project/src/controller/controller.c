@@ -117,7 +117,7 @@ int addDevice(char *device) {
     else {
         if (pid == -1) return -1;
         next_id++;
-        listPush(disconnected_children, &pid, sizeof(int));
+        listPushBack(disconnected_children, &pid, sizeof(int));
         return next_id - 1;
     }
 }

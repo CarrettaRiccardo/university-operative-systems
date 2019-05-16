@@ -33,7 +33,7 @@ void doLink(list_t children, int to_clone_pid, const char *base_dir) {
         }
         // Padre
         else {
-            if (pid != -1) listPush(children, &pid, sizeof(int));
+            if (pid != -1) listPushBack(children, &pid, sizeof(int));
         }
     }
 }

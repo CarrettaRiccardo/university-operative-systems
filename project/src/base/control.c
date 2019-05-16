@@ -112,10 +112,11 @@ int main(int argc, char **argv) {
                         response.vals[INFO_VAL_LEVEL] += 1;              //  Aumento il valore "livello"
                         label_values |= response.vals[INFO_VAL_LABELS];  // Eseguo l'OR bit a bit per avere un intero che rappresenta tutti gli interruttori dipsonibili
                         stop = response.vals[INFO_VAL_STOP];
+                        response.vals[INFO_VAL_STOP] = 0;    //  Tolgo lo stop dalla risposta
                         if (stop == 1 && p->next == NULL) {  //  Ultimo figlio, imposto lo stop
                             response.vals[INFO_VAL_STOP] = 1;
                         }
-                        listPush(msg_list, &response, sizeof(message_t));
+                        listPushBack(msg_list, &response, sizeof(message_t));
                         switch (response.vals[INFO_VAL_STATE]) {  //devo stabilire lo stato dell'HUB in base allo stato dei figli
                             case 0: count_off++; break;
                             case 1: count_on++; break;
@@ -158,10 +159,10 @@ int main(int argc, char **argv) {
                 m.vals[INFO_VAL_LABELS] = label_values;
                 sendMessage(&m);
 
-                // Invio messaggi al mittente
+                // Invio messaggi ricevuti dai figli al mittente
                 node_t *el = msg_list->head;
                 while (el != NULL) {
-                    sendMessage(((message_t *)el->value));
+                    sendMessage((message_t *)el->value);
                     el = el->next;
                 }
                 listDestroy(msg_list);
