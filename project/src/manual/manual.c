@@ -23,9 +23,11 @@ int requestGetPidById(int id) {
     }
 }
 
-void getPidByIdSignalHandler(int sig, siginfo_t *siginfo, void *context) {
-    solved_pid = siginfo->si_value.sival_int;
-    printf("handler: %d\n", solved_pid);
+static void getPidByIdSignalHandler(int sig, siginfo_t *siginfo, void *context) {
+    //solved_pid = siginfo->si_value.sival_int;
+    printf("OK\n");
+    fflush(stdin);
+    //printf("handler: %d\n", siginfo->si_value.sival_int);
 }
 
 /**************************************** INIT ********************************************/

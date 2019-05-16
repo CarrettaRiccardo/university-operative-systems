@@ -27,7 +27,6 @@ void getPidByIdSignalHandler(int sig, siginfo_t *siginfo, void *context) {
     int to_solve_id = siginfo->si_value.sival_int;
     int pid = getPidById(disconnected_children, to_solve_id);
     if (pid == -1) pid = getPidById(connected_children, to_solve_id);
-    sleep(5);
     if (sendGetPidByIdSignal(siginfo->si_pid, pid) < 0) {
         perror("Error: cannot send response getPidByIdSignal");
     }
@@ -45,6 +44,7 @@ void controllerInit(char *file) {
     if (sigaction(SIGUSR1, &sig, NULL) < 0) {
         perror("Error: cannot register SIGUSR1 handler");
     }
+
     // Registrazione handler per signal terminazione figli
     signal(SIGCHLD, sigchldHandler);
 
