@@ -278,21 +278,16 @@ void sigchldHandler(int signum) {
 }
 
 int doSwitchChildren(int label, int pos) {
-    int success = 0;
-    switch (label) {
-        case LABEL_ALL_VALUE: {
-            // Fa lo switch di tutti i figli
-            node_t *p = children->head;
-            while (p != NULL) {
-                message_t m = buildSwitchRequest(*(int *)p->value, label, pos);
-                sendMessage(&m);
-                message_t resp;
-                receiveMessage(&resp);
-                if (!resp.vals[SWITCH_VAL_SUCCESS]) return 0;  // Un figlio ha avuto un errore nello switch
-                p = p->next;
-            }
-            success = 1;
-        } break;
+    int success = -1;
+    // Fa lo switch di tutti i figli
+    node_t *p = children->head;
+    while (p != NULL) {
+        message_t m = buildSwitchRequest(*(int *)p->value, label, pos);
+        sendMessage(&m);
+        message_t resp;
+        receiveMessage(&resp);
+        if (resp.vals[SWITCH_VAL_SUCCESS] != -1) success = 1;  // Un figlio ha modificato il proprio stato con successo
+        p = p->next;
     }
     return success;
 }
