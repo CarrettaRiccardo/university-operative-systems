@@ -278,10 +278,10 @@ int switchDevice(int id, char *label, char *pos) {
         } else if (receiveMessage(&response) == -1) {
             perror("Error switch response");
         } else {
-            if (response.vals[SWITCH_VAL_SUCCESS] != -1) {
-                printf("Switch executed\n");
+            if (response.vals[SWITCH_VAL_SUCCESS] == SWITCH_ERROR_INVALID_LABEL) {
+                printf("The label \"%s\" is not supported by the device %d\n", label, id);
             } else {
-                printf("Error: switch not executed\n");
+                printf("Switch executed\n");
             }
         }
     }

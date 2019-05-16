@@ -142,6 +142,7 @@ int main(int argc, char **argv) {
                     children_state = (count_off >= count_on) ? 2 : 3;  // off (override) / on (override)
                 char *children_str;
 
+                // Lo stato dell'hub è dato dal valore di maggioranza dello stato dei figli
                 switch (children_state) {
                     case 0: children_str = "off"; break;
                     case 1: children_str = "on"; break;
@@ -149,6 +150,7 @@ int main(int argc, char **argv) {
                     case 3: children_str = "on (override)"; break;
                 }
 
+                // Costruisco la stringa delle label disponibili nel dispositivo di controllo
                 char labels_str[64] = "";
                 if (label_values & LABEL_LIGHT_VALUE) strcat(labels_str, LABEL_LIGHT " ");
                 if (label_values & LABEL_OPEN_VALUE) strcat(labels_str, LABEL_OPEN " ");
