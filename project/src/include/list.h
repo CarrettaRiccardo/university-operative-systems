@@ -39,8 +39,8 @@ list_t listMsgInit();
 /* Dealloca la lista */
 void listDestroy(list_t l);
 
-/*  Aggiunge "value" all'inizio della lista */
-int listPush(list_t l, void *value, size_t size);
+/*  Aggiunge "value" alla fine della lista */
+int listPushBack(list_t l, void *value, size_t size);
 
 /*  Rimuove il primo elemento con valore "value" dalla lista */
 int listRemove(list_t l, void *value);

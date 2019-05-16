@@ -16,13 +16,14 @@ int id;
 
 int main(int argc, char **argv) {
     // Inizializzazione
-    id = atoi(argv[1]);
-    if (argc <= 2) {
+    ipcInit(atoi(argv[1]));
+    id = atoi(argv[2]);
+    if (argc <= 3) {
         // Inzializzazione nuovo device
         initData();
     } else {
         // Inzializzazione device clonato
-        cloneData(argv + 2);  // Salto i parametri [0] (percorso file) e [1] (id)
+        cloneData(argv + 3);  // Salto i parametri [0] (percorso file) e [1] (id)
         message_t confirm_clone = buildLinkResponse(getppid(), 1);
         sendMessage(&confirm_clone);
     }

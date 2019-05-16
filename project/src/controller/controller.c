@@ -49,7 +49,7 @@ void controllerInit(char *file) {
 
     connected_children = listIntInit();
     disconnected_children = listIntInit();
-    ipcInit();  //inizializzo componenti comunicazione
+    ipcInit(getMq());  //inizializzo componenti comunicazione
     id = 0;
     next_id = 1;
     //  Uso il percorso relativo al workspace, preso da argv[0] per trovare gli altri eseguibili per i device.
@@ -106,17 +106,18 @@ int addDevice(char *device) {
     int pid = fork();
     /*  Processo figlio */
     if (pid == 0) {
-        char str_id[20];
+        char mqid_str[20], id_str[20];
         strcat(base_dir, device);             //  Genero il path dell'eseguibile
-        snprintf(str_id, 20, "%d", next_id);  //  Converto id in stringa
-        char *args[] = {base_dir, str_id, NULL};
+        snprintf(mqid_str, 20, "%d", mqid);   //  Converto mqid in stringa
+        snprintf(id_str, 20, "%d", next_id);  //  Converto id in stringa
+        char *args[] = {base_dir, mqid_str, id_str, NULL};
         return execvp(args[0], args);
     }
     /*  Processo padre */
     else {
         if (pid == -1) return -1;
         next_id++;
-        listPush(disconnected_children, &pid, sizeof(int));
+        listPushBack(disconnected_children, &pid, sizeof(int));
         return next_id - 1;
     }
 }
@@ -266,10 +267,10 @@ int switchDevice(int id, char *label, char *pos) {
         } else if (receiveMessage(&response) == -1) {
             perror("Error switch response");
         } else {
-            if (response.vals[SWITCH_VAL_SUCCESS] != -1) {
-                printf("Switch executed\n");
+            if (response.vals[SWITCH_VAL_SUCCESS] == SWITCH_ERROR_INVALID_LABEL) {
+                printf("The label \"%s\" is not supported by the device %d\n", label, id);
             } else {
-                printf("Error: switch not executed\n");
+                printf("Switch executed\n");
             }
         }
     }
@@ -350,11 +351,16 @@ void infoDevice(int id) {
         message_t response;
         if (sendMessage(&request) == -1) {
             perror("Error info request");
-        } else if (receiveMessage(&response) == -1) {
-            perror("Errore info response");
         } else {
-            //  Stampo il testo ricevuto dal dispositivo
-            printf("Device type: %s\n", response.text);
+            do {
+                if (receiveMessage(&response) == -1) {
+                    perror("Error info response");
+                } else {
+                    int i;
+                    for (i = 0; i < response.vals[INFO_VAL_LEVEL]; i++) printf("    |-");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
+                    printf("(%d) %s\n", response.vals[INFO_VAL_ID], response.text);
+                }
+            } while (response.vals[INFO_VAL_STOP] != 1);
         }
     }
 }

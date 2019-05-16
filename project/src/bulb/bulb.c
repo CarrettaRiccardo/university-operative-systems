@@ -21,7 +21,7 @@ void cloneData(char **vals) {
 }
 
 int handleSwitchDevice(message_t *msg) {
-    int success = 0;
+    int success = SWITCH_ERROR_INVALID_LABEL;
     // Interruttore (light) o generico (da dispositivi di controllo)
     if (msg->vals[SWITCH_VAL_LABEL] == LABEL_LIGHT_VALUE || msg->vals[SWITCH_VAL_LABEL] == LABEL_ALL_VALUE) {
         if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_VALUE) {  // Spengo

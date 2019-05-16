@@ -37,13 +37,20 @@ void listDestroy(list_t l) {
     free(l);
 }
 
-int listPush(list_t l, void *value, size_t size) {
+int listPushBack(list_t l, void *value, size_t size) {
     node_t *new_node = (node_t *)malloc(sizeof(node_t));
     if (new_node == NULL) return 0;
     new_node->value = malloc(size);
     memcpy(new_node->value, value, size);
-    new_node->next = l->head;
-    l->head = new_node;
+    if (l->head == NULL) {
+        new_node->next = l->head;
+        l->head = new_node;
+    } else {
+        node_t *p = l->head;
+        while (p->next != NULL) p = p->next;
+        new_node->next = NULL;
+        p->next = new_node;
+    }
     return 1;
 }
 

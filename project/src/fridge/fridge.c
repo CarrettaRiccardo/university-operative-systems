@@ -30,7 +30,7 @@ void cloneData(char **vals) {
 }
 
 int handleSwitchDevice(message_t *msg) {
-    int success = -1;
+    int success = SWITCH_ERROR_INVALID_LABEL;
     if (msg->vals[SWITCH_VAL_LABEL] == LABEL_OPEN_VALUE || msg->vals[SWITCH_VAL_LABEL] == LABEL_ALL_VALUE) {
         if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_VALUE) {  // Chiudo
             // Controllo se il tempo di chiusura automatica NON è superato
@@ -79,7 +79,6 @@ message_t buildInfoResponseDevice(int to_pid, int id, int lv) {
     int tot_time = open_time + (now - ((state == 0) ? now : last_open_time));  //se è chiusa ritorno solo "tempo", altrimenti tempo+differenza da quanto accesa
     sprintf(ret.text, "%s, state: %s, labels: %s %s, registers: time=%ds delay=%ds perc=%d%% temp=%d°C", FRIDGE, state == 1 ? "open" : "closed", LABEL_OPEN, LABEL_TERM, tot_time, delay, perc, temp);
     ret.vals[INFO_VAL_STATE] = state;
-    ret.vals[INFO_VAL_STOP] = 1;
     ret.vals[INFO_VAL_LABELS] = LABEL_OPEN_VALUE | LABEL_TERM_VALUE;
     return ret;
 }
