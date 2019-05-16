@@ -299,7 +299,7 @@ int setDevice(int id, char *label, char *val) {
         label_val = LABEL_BEGIN_VALUE;  // 2 = begin (timer)
     } else if (strcmp(label, LABEL_END) == 0) {
         label_val = LABEL_END_VALUE;  // 4 = end (timer)
-    } 
+    }
 
     if (isInt(val)) {  // E' un valore valido solo se è un numero (la label è therm, delay, begin o end)
         // valore termostato, del delay, di inizio o fine timer

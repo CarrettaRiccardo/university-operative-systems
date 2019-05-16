@@ -1,15 +1,9 @@
 #include "../base/control.c"
 #include "../include/ipc.h"
 
-short state;
+void initData() {}
 
-void initData() {
-    state = SWITCH_POS_OFF_VALUE;
-}
-
-void cloneData(char **vals) {
-    state = atoi(vals[0]);
-}
+void cloneData(char **vals) {}
 
 message_t buildInfoResponseControl(int to_pid, int id, char *children_state, char *available_labels, int lv, short stop) {
     message_t ret = buildInfoResponse(to_pid, id, lv, stop);
@@ -24,6 +18,6 @@ message_t buildListResponseControl(int to_pid, int id, int lv, short stop) {
 }
 
 message_t buildCloneResponseControl(int to_pid, int id) {
-    int vals[] = {state};
+    int vals[] = {};
     return buildCloneResponse(to_pid, HUB, id, vals, 1);
 }

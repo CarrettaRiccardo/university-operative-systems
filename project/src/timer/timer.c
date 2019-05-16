@@ -1,8 +1,7 @@
+#include <time.h>
 #include "../base/control.c"
 #include "../include/ipc.h"
-#include <time.h>
 
-short state;
 struct tm begin;     //momento temporale di attivazione
 struct tm end;       //momento temporale di disattivazione
 short waitForBegin;  // 0 = prossimo evento è begin ([end] < NOW < begin < [end]), 1 = prossimo evento è end ([begin] < NOW < end < [begin])
@@ -13,19 +12,17 @@ void initData() {
     // Associo il metodo switch al segnare alarm per il begin/end automatico (se TIMER)
     signal(SIGALRM, setAlarm);
     max_children_count = 1;
-    state = SWITCH_POS_OFF_VALUE;
-    begin = *localtime(&(time_t){0});// inizializzo a 0 il tempo
-    end = *localtime(&(time_t){0});  // inizializzo a 0 il tempo
+    begin = *localtime(&(time_t){0});  // inizializzo a 0 il tempo
+    end = *localtime(&(time_t){0});    // inizializzo a 0 il tempo
     waitForBegin = 0;
 }
 
 void cloneData(char **vals) {
     signal(SIGALRM, setAlarm);
     max_children_count = 1;
-    state = atoi(vals[0]);
-    begin = *localtime(&(time_t){atoi(vals[1])});
-    end = *localtime(&(time_t){atoi(vals[2])});
-    waitForBegin = atoi(vals[3]);
+    begin = *localtime(&(time_t){atoi(vals[0])});
+    end = *localtime(&(time_t){atoi(vals[1])});
+    waitForBegin = atoi(vals[2]);
 }
 
 message_t buildInfoResponseControl(int to_pid, int id, char *children_state, char *available_labels, int lv, short stop) {
@@ -46,7 +43,7 @@ message_t buildListResponseControl(int to_pid, int id, int lv, short stop) {
 }
 
 message_t buildCloneResponseControl(int to_pid, int id) {
-    int vals[] = {state, mktime(&begin), mktime(&end), waitForBegin};
+    int vals[] = {mktime(&begin), mktime(&end), waitForBegin};
     return buildCloneResponse(to_pid, TIMER, id, vals, 1);
 }
 

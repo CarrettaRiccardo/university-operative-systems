@@ -18,16 +18,17 @@ void doLink(list_t children, int to_clone_pid, const char *base_dir) {
         if (pid == 0) {
             char *args[NVAL + 2];
             args[0] = malloc(sizeof(char) * 50);
-            strcat(strcat(args[0], base_dir), response.text);  //  Genero il path dell'eseguibile
+            strcat(memcpy(args[0], base_dir, sizeof(char) * 50), response.text);  //  Genero il path dell'eseguibile
             //  Converto i values in string e le mando negli args dell'exec
             int i;
             for (i = 1; i < NVAL + 1; i++) {
                 args[i] = malloc(sizeof(char) * 20);
                 snprintf(args[i], 20, "%d", response.vals[i - 1]);
             }
+            printf("BASE: %s, TEXT: %s, ARGS[0]: %s\n", base_dir, response.text, args[0]);
             args[NVAL + 1] = NULL;
             if (execvp(args[0], args) == -1) {
-                perror("Clone error in doLink");
+                printf("Error: clone failed, execvp %s: %s\n", args[0], strerror(errno));
             }
             for (i = 1; i < NVAL + 1; i++) free(args[i]);
         }
