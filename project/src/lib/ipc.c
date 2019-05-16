@@ -179,13 +179,13 @@ int sendGetPidByIdSignal(int to_pid, int id) {
 
 ///////////////////////////////////////////////  INIT ///////////////////////////////////////////////
 // Inizializza i componenti per comunicare
-void ipcInit() {
+void ipcInit(int _mqid) {
     session = time(NULL);
-    mqid = getMq();
+    mqid = _mqid;
 }
 
 key_t getKey() {
-    key_t ret = ftok(".", 65);
+    key_t ret = getpid();  //ftok(".", 65);
     if (ret == -1) {
         perror("Errore ottenimento key");
         exit(1);

@@ -49,7 +49,7 @@ void controllerInit(char *file) {
 
     connected_children = listIntInit();
     disconnected_children = listIntInit();
-    ipcInit();  //inizializzo componenti comunicazione
+    ipcInit(getMq());  //inizializzo componenti comunicazione
     id = 0;
     next_id = 1;
     //  Uso il percorso relativo al workspace, preso da argv[0] per trovare gli altri eseguibili per i device.
@@ -106,10 +106,11 @@ int addDevice(char *device) {
     int pid = fork();
     /*  Processo figlio */
     if (pid == 0) {
-        char str_id[20];
+        char mqid_str[20], id_str[20];
         strcat(base_dir, device);             //  Genero il path dell'eseguibile
-        snprintf(str_id, 20, "%d", next_id);  //  Converto id in stringa
-        char *args[] = {base_dir, str_id, NULL};
+        snprintf(mqid_str, 20, "%d", mqid);   //  Converto mqid in stringa
+        snprintf(id_str, 20, "%d", next_id);  //  Converto id in stringa
+        char *args[] = {base_dir, mqid_str, id_str, NULL};
         return execvp(args[0], args);
     }
     /*  Processo padre */

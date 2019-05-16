@@ -22,21 +22,23 @@ list_t children;
 int max_children_count;  // Numero massimo di figli supportati. -1 = inf
 
 int main(int argc, char **argv) {
+    // Inizializzazione
     signal(SIGCHLD, sigchldHandler);
 
     max_children_count = -1;  // Valore di default. I device specifici possono impostare altri valori
     base_dir = extractBaseDir(argv[0]);
-    id = atoi(argv[1]);
+    ipcInit(atoi(argv[1]));
+    id = atoi(argv[2]);
     children = listIntInit();
 
-    if (argc <= 2) {
+    if (argc <= 3) {
         // Inizializzazione nuovo control device
         initData();
     } else {
         // Inzializzazione control device clonato
-        cloneData(argv + 3);  // Salto i parametri [0] (percorso file), [1] (id), [2] (to_clone_pid)
+        cloneData(argv + 4);  // Salto i parametri [0] (percorso file), [1] (id), [2] (to_clone_pid)
         // Clonazione ricorsiva dei figli
-        int to_clone_pid = atol(argv[2]);
+        int to_clone_pid = atol(argv[3]);
         // Linka tutti i figli dell'hub clonato a sè stesso
         message_t request = buildGetChildRequest(to_clone_pid);
         message_t response;
