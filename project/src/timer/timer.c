@@ -24,9 +24,9 @@ void cloneData(char **vals) {
     waitForBegin = atoi(vals[2]);
 }
 
-message_t buildInfoResponseControl(int to_pid, char *children_state) {
+message_t buildInfoResponseControl(int to_pid, char *children_state, char *available_labels) {
     message_t ret = buildInfoResponse(to_pid);
-    sprintf(ret.text, "%s, state: %s, registers: begin=%d, end=%d", TIMER, children_state, begin, end);
+    sprintf(ret.text, "%s, state: %s, labels: %s, registers: begin=%d, end=%d", TIMER, children_state, available_labels, begin, end);
     return ret;
 }
 

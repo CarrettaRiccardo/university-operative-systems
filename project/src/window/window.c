@@ -53,9 +53,10 @@ message_t buildInfoResponseDevice(int to_pid) {
     message_t ret = buildInfoResponse(to_pid);
     time_t now = time(NULL);
     int tot_time = open_time + (now - ((state == SWITCH_POS_OFF_VALUE) ? now : last_open_time));  // Se è spenta ritorno solo "on_time", altrimenti on_time+differenza da quanto accesa
-    sprintf(ret.text, "%s, state: %s, registers: time=%ds", WINDOW, state == 1 ? "open" : "closed", tot_time);
+    sprintf(ret.text, "%s, state: %s, labels: %s, registers: time=%ds", WINDOW, state == 1 ? "open" : "closed", LABEL_OPEN, tot_time);
     ret.vals[INFO_VAL_STATE] = state;
     ret.vals[INFO_VAL_STOP] = 1;
+    ret.vals[INFO_VAL_LABELS] = LABEL_OPEN_VALUE;
     return ret;
 }
 

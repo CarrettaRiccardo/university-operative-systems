@@ -41,6 +41,7 @@ int main(int sargc, char **sargv) {
         exit(0);
     }
 
+    controllerInit();
     controller_pid = atoi(sargv[1]);
 
     short run = 1;  //  Per uscire dal while nel caso si scriva "quit"

@@ -12,6 +12,7 @@ message_t buildListResponseDevice(int to_pid, int id, int lv);
 message_t buildCloneResponseDevice(int to_pid, int id);
 
 int id;
+
 int main(int argc, char **argv) {
     // Inizializzazione
     id = atoi(argv[1]);

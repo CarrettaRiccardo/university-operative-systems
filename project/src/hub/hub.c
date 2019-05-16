@@ -5,9 +5,9 @@ void initData() {}
 
 void cloneData(char **vals) {}
 
-message_t buildInfoResponseControl(int to_pid, char *children_state) {
+message_t buildInfoResponseControl(int to_pid, char *children_state, char *available_labels) {
     message_t ret = buildInfoResponse(to_pid);
-    sprintf(ret.text, "%s, state: %s", HUB, children_state);
+    sprintf(ret.text, "%s, state: %s, labels: %s", HUB, children_state, available_labels);
     return ret;
 }
 

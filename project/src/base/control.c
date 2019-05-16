@@ -9,7 +9,7 @@
 /* Metodi da implemantare nei dispositivi di controllo */
 void initData();
 void cloneData(char **vals);
-message_t buildInfoResponseControl(int to_pid, char *children_state);
+message_t buildInfoResponseControl(int to_pid, char *children_state, char *available_labels);
 message_t buildListResponseControl(int to_pid, int id, int lv, short stop);
 message_t buildCloneResponseControl(int to_pid, int id);
 
@@ -18,6 +18,7 @@ void sigchldHandler(int signum);
 
 char *base_dir;
 int id;
+int stato;
 list_t children;
 int max_children_count;  // Numero massimo di figli supportati. -1 = inf
 
@@ -32,11 +33,13 @@ int main(int argc, char **argv) {
     if (argc <= 2) {
         // Inizializzazione nuovo control device
         initData();
+        stato = 0;
     } else {
         // Inzializzazione control device clonato
-        cloneData(argv + 3);  // Salto i parametri [0] (percorso file), [1] (id) e [2] (to_clone_pid)
+        cloneData(argv + 4);  // Salto i parametri [0] (percorso file), [1] (id), [2] (stato), [3] (to_clone_pid)
+        stato = atoi(argv[2]);
         // Clonazione ricorsiva dei figli
-        int to_clone_pid = atol(argv[2]);
+        int to_clone_pid = atol(argv[3]);
         // Linka tutti i figli dell'hub clonato a sè stesso
         message_t request = buildGetChildRequest(to_clone_pid);
         message_t response;
@@ -87,6 +90,7 @@ int main(int argc, char **argv) {
                 list_t msg_list = listMsgInit();  // Salvo tutti i messaggi ricevuti dai figli per reinviarli dopo
                 int count_on = 0, count_off = 0;
                 short override = 0;
+                int label_values = 0;
                 node_t *p = children->head;
                 while (p != NULL) {
                     message_t request = buildInfoRequest(*(int *)p->value);
@@ -95,27 +99,24 @@ int main(int argc, char **argv) {
                         perror("Errore invio messaggio control.c INFO");
 
                     int stop = 0;
-                    do
-                    {    // TODO: implementare BUSY globalmente
-                        do
-                        { // Se ricevo un messaggio diverso da quello che mi aspetto, rispondo BUSY
+                    do {      // TODO: implementare BUSY globalmente
+                        do {  // Se ricevo un messaggio diverso da quello che mi aspetto, rispondo BUSY
                             if (receiveMessage(&response) == -1)
                                 perror("Error receiving list control response");
-                            if (response.type != INFO_MSG_TYPE)
-                            {
+                            if (response.type != INFO_MSG_TYPE) {
                                 message_t busy = buildBusyResponse(response.sender);
                                 sendMessage(&busy);
                             }
                         } while (response.type != INFO_MSG_TYPE);
 
-                        response.to = msg.sender;           // Cambio il destinatario per rispondere al mittente
-                        response.vals[LIST_VAL_LEVEL] += 1; //  Aumento il valore "livello"
+                        response.to = msg.sender;                        // Cambio il destinatario per rispondere al mittente
+                        response.vals[LIST_VAL_LEVEL] += 1;              //  Aumento il valore "livello"
+                        label_values |= response.vals[INFO_VAL_LABELS];  // Eseguo l'OR bit a bit per avere un intero che rappresenta tutti gli interruttori dipsonibili
                         stop = response.vals[LIST_VAL_STOP];
-                        if (stop == 1 && p->next == NULL){ //  Ultimo figlio, imposto lo stop
+                        if (stop == 1 && p->next == NULL) {  //  Ultimo figlio, imposto lo stop
                             response.vals[LIST_VAL_STOP] = 1;
-                        }
-                        else{
-                            response.vals[LIST_VAL_STOP] = 0; //  Tolgo lo stop dalla risposta
+                        } else {
+                            response.vals[LIST_VAL_STOP] = 0;  //  Tolgo lo stop dalla risposta
                         }
 
                         listPush(msg_list, &response, sizeof(message_t));
@@ -144,19 +145,27 @@ int main(int argc, char **argv) {
                 else
                     children_state = (count_off >= count_on) ? 2 : 3;  // off (override) / on (override)
                 char *children_str;
+
                 switch (children_state) {
                     case 0: children_str = "off"; break;
                     case 1: children_str = "on"; break;
                     case 2: children_str = "off (override)"; break;
                     case 3: children_str = "on (override)"; break;
                 }
-                message_t m = buildInfoResponseControl(msg.sender, children_str);  // Implementazione specifica dispositivo
+
+                char labels_str[64] = "";
+                if (label_values & LABEL_LIGHT_VALUE) strcat(labels_str, LABEL_LIGHT " ");
+                if (label_values & LABEL_OPEN_VALUE) strcat(labels_str, LABEL_OPEN " ");
+                if (label_values & LABEL_TERM_VALUE) strcat(labels_str, LABEL_TERM " ");
+
+                message_t m = buildInfoResponseControl(msg.sender, children_str, labels_str);  // Implementazione specifica dispositivo
                 m.vals[INFO_VAL_STATE] = children_state;
+                m.vals[INFO_VAL_LABELS] = label_values;
                 sendMessage(&m);
 
                 node_t *b = msg_list->head;
-                while (b != NULL){
-                    sendMessage(&  *((message_t*) b->value) );
+                while (b != NULL) {
+                    sendMessage(&*((message_t *)b->value));
                 }
                 listDestroy(msg_list);
             } break;
