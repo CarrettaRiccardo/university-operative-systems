@@ -57,7 +57,6 @@ int main(int sargc, char **sargv) {
             printHelp("del <id>", "Remove device <id>. If the device is a control device, remove also the linked devices.");
             printHelp("link <id> to <id>", "Link two devices.");
             printHelp("switch <id> <label> <pos>", "Change the value of the switch <label> of the device <id> to <pos>.");
-	    printHelp("switch <id> <label> <pos>", "Change the value of the switch <label> of the device <id> to <pos>.");
             printHelp("set <id> all", "Command to activate all components connected to an hub.");
             printHelp("info <id>", "Print device <id> info.");
             printHelp("quit", "Close the controller and kill all processes.");
