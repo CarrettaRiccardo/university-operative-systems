@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
     if (argc <= 2) {
         // Inizializzazione nuovo control device
         initData();
-        stato = 0;
+        stato = SWITCH_POS_OFF_VALUE;
     } else {
         // Inzializzazione control device clonato
         cloneData(argv + 4);  // Salto i parametri [0] (percorso file), [1] (id), [2] (stato), [3] (to_clone_pid)
