@@ -25,7 +25,6 @@ void doLink(list_t children, int to_clone_pid, const char *base_dir) {
                 args[i] = malloc(sizeof(char) * 20);
                 snprintf(args[i], 20, "%d", response.vals[i - 1]);
             }
-            printf("BASE: %s, TEXT: %s, ARGS[0]: %s\n", base_dir, response.text, args[0]);
             args[NVAL + 1] = NULL;
             if (execvp(args[0], args) == -1) {
                 printf("Error: clone failed, execvp %s: %s\n", args[0], strerror(errno));
@@ -121,17 +120,6 @@ message_t buildTranslateResponse(int to_pid, int pid_found) {
     message_t ret = buildResponse(to_pid, TRANSLATE_MSG_TYPE);
     ret.vals[TRANSLATE_VAL_ID] = pid_found;
     return ret;
-}
-
-message_t buildTranslateResponseControl(int sender, int my_id, int search, list_t children) {
-    if (my_id == search) {
-        printf("Sono io\n");
-        return buildTranslateResponse(sender, getpid());
-    } else {
-        int to_pid = getPidById(children, search);
-        printf("Ho trovato %d\n", to_pid);
-        return buildTranslateResponse(sender, to_pid);
-    }
 }
 
 message_t buildDeleteResponse(int to_pid) {

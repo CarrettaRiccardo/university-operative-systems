@@ -36,7 +36,6 @@ message_t buildInfoResponse(int to_pid, int id, int lv, short stop);
 message_t buildSwitchResponse(int to_pid, short success);
 message_t buildSetResponse(int to_pid, short success);
 message_t buildTranslateResponse(int to_pid, int pid_found);
-message_t buildTranslateResponseControl(int sender, int my_id, int search, list_t children);
 message_t buildDeleteResponse(int to_pid);
 message_t buildListResponse(int to_pid, int id, int lv, short stop);
 message_t buildCloneResponse(int to_pid, const char* component_type, int id, const int vals[], short is_control_device);
