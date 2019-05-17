@@ -10,8 +10,8 @@ int open_time;       // Tempo apertura porta
 int last_open_time;  // Tempo ultima apertura
 
 void initData() {
-    state = SWITCH_POS_OFF_VALUE;
-    interruttore = SWITCH_POS_OFF_VALUE;
+    state = SWITCH_POS_OFF_LABEL_VALUE;
+    interruttore = SWITCH_POS_OFF_LABEL_VALUE;
     delay = 10;
     temp = 4;
     perc = 0;
@@ -30,26 +30,26 @@ void cloneData(char **vals) {
 }
 
 int handleSwitchDevice(message_t *msg) {
-    int success = SWITCH_ERROR_INVALID_LABEL;
+    int success = SWITCH_ERROR_INVALID_VALUE;
     if (msg->vals[SWITCH_VAL_LABEL] == LABEL_OPEN_VALUE || msg->vals[SWITCH_VAL_LABEL] == LABEL_ALL_VALUE) {
-        if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_VALUE) {  // Chiudo
+        if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_LABEL_VALUE) {  // Chiudo
             // Controllo se il tempo di chiusura automatica NON è superato
-            if (state == SWITCH_POS_ON_VALUE && last_open_time + delay > time(NULL)) {
+            if (state == SWITCH_POS_ON_LABEL_VALUE && last_open_time + delay > time(NULL)) {
                 // Se non lo è (quindi deve ancora chiudersi automaticamente), sommo la differenza di tempo attuale al tempo di apertura...
                 open_time += time(NULL) - last_open_time;
                 // ...e chiudo la porta
-                state = SWITCH_POS_OFF_VALUE;
-                interruttore = SWITCH_POS_OFF_VALUE;
+                state = SWITCH_POS_OFF_LABEL_VALUE;
+                interruttore = SWITCH_POS_OFF_LABEL_VALUE;
             }
             // Altrimenti è gia su "off"
             success = 1;
-        } else if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_ON_VALUE) {  // Apro
+        } else if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_ON_LABEL_VALUE) {  // Apro
             // Se è chiuso
-            if (state == SWITCH_POS_OFF_VALUE) {
+            if (state == SWITCH_POS_OFF_LABEL_VALUE) {
                 // Apro la porta e salvo il tempo di apertura
                 last_open_time = time(NULL);
-                state = SWITCH_POS_ON_VALUE;
-                interruttore = SWITCH_POS_OFF_VALUE;
+                state = SWITCH_POS_ON_LABEL_VALUE;
+                interruttore = SWITCH_POS_OFF_LABEL_VALUE;
             }
             // Altrimenti è gia su "on"
             success = 1;
@@ -80,6 +80,10 @@ message_t buildInfoResponseDevice(int to_pid, int id, int lv) {
     sprintf(ret.text, "%s, state: %s, labels: %s %s, registers: time=%ds delay=%ds perc=%d%% temp=%d°C", FRIDGE, state == 1 ? "open" : "closed", LABEL_OPEN, LABEL_TERM, tot_time, delay, perc, temp);
     ret.vals[INFO_VAL_STATE] = state;
     ret.vals[INFO_VAL_LABELS] = LABEL_OPEN_VALUE | LABEL_TERM_VALUE;
+    ret.vals[INFO_VAL_REG_TIME] = tot_time;
+    ret.vals[INFO_VAL_REG_DELAY] = delay;
+    ret.vals[INFO_VAL_REG_PERC] = perc;
+    ret.vals[INFO_VAL_REG_TEMP] = temp;
     return ret;
 }
 

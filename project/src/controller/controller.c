@@ -229,8 +229,8 @@ int switchDevice(int id, char *label, char *pos) {
         printf("Error: device with id %d not found or not connected to the controller\n", id);
         return;
     }
-    int label_val = __INT_MAX__;  // 0 = interruttore (generico), 1 = termostato
-    int pos_val = __INT_MAX__;    // 0 = spento, 1 = acceso; x = valore termostato (°C)
+    int label_val = INVALID_VALUE;  // 0 = interruttore (generico), 1 = termostato
+    int pos_val = INVALID_VALUE;    // 0 = spento, 1 = acceso; x = valore termostato (°C)
     // Map delle label (char*) in valori (int) per poterli inserire in un messaggio
     if (strcmp(label, LABEL_LIGHT) == 0) {
         label_val = LABEL_LIGHT_VALUE;  // 1 = interruttore (luce)
@@ -245,18 +245,18 @@ int switchDevice(int id, char *label, char *pos) {
     // Map valore pos (char*) in valori (int) per poterli inserire in un messaggio
     if (label_val == LABEL_LIGHT_VALUE || label_val == LABEL_OPEN_VALUE || label_val == LABEL_ALL_VALUE) {
         // Se è un interrutore on/off
-        if (strcmp(pos, SWITCH_POS_OFF) == 0) {
-            pos_val = SWITCH_POS_OFF_VALUE;  // 0 = spento/chiuso
-        } else if (strcmp(pos, SWITCH_POS_ON) == 0) {
-            pos_val = SWITCH_POS_ON_VALUE;  // 1 = acceso/aperto
+        if (strcmp(pos, SWITCH_POS_OFF_LABEL) == 0) {
+            pos_val = SWITCH_POS_OFF_LABEL_VALUE;  // 0 = spento/chiuso
+        } else if (strcmp(pos, SWITCH_POS_ON_LABEL) == 0) {
+            pos_val = SWITCH_POS_ON_LABEL_VALUE;  // 1 = acceso/aperto
         }
     }
 
     // Se i parametri creano dei valori validi
-    if (label_val == __INT_MAX__) {
+    if (label_val == INVALID_VALUE) {
         printf("Error: invalid 'label' value \"%s\"\n", label);
         return;
-    } else if (pos_val == __INT_MAX__) {
+    } else if (pos_val == INVALID_VALUE) {
         printf("Error: invalid 'pos' value \"%s\"\n", pos);
         return;
     } else {
@@ -267,7 +267,7 @@ int switchDevice(int id, char *label, char *pos) {
         } else if (receiveMessage(&response) == -1) {
             perror("Error switch response");
         } else {
-            if (response.vals[SWITCH_VAL_SUCCESS] == SWITCH_ERROR_INVALID_LABEL) {
+            if (response.vals[SWITCH_VAL_SUCCESS] == SWITCH_ERROR_INVALID_VALUE) {
                 printf("The label \"%s\" is not supported by the device %d\n", label, id);
             } else {
                 printf("Switch executed\n");
@@ -290,8 +290,8 @@ int setDevice(int id, char *label, char *val) {
         printf("Error: device with id %d not found or not connected to the controller\n", id);
         return;
     }
-    int label_val = __INT_MAX__;  // 0 = interruttore (generico), 1 = termostato
-    int pos_val = __INT_MAX__;    // 0 = spento, 1 = acceso; x = valore termostato (°C)
+    int label_val = INVALID_VALUE;  // 0 = interruttore (generico), 1 = termostato
+    int pos_val = INVALID_VALUE;    // 0 = spento, 1 = acceso; x = valore termostato (°C)
     // Map delle label (char*) in valori (int) per poterli inserire in un messaggio
     if (strcmp(label, LABEL_DELAY) == 0) {
         label_val = LABEL_DELAY_VALUE;  // 1 = delay (fridge)
@@ -312,10 +312,10 @@ int setDevice(int id, char *label, char *val) {
         }
 
         // Se i parametri creano dei valori validi
-        if (label_val == __INT_MAX__) {
+        if (label_val == INVALID_VALUE) {
             printf("Error: invalid 'register' value \"%s\"\n", label);
             return;
-        } else if (pos_val == __INT_MAX__) {
+        } else if (pos_val == INVALID_VALUE) {
             printf("Error: invalid 'val' value \"%s\"\n", val);
             return;
         } else {

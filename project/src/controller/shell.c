@@ -93,7 +93,7 @@ int main(int sargc, char **sargv) {
                 if (result == -1)
                     perror("Error adding device");
                 else if (result != 0)  //  Se ho aggiunto un device supportato
-                    printf("Device added with id %d.\nNow it is disconected from the system.\nTo activate the component run link %d to 0\n", result, result);
+                    printf("Device added with id %d.\nNow it's disconnected from the system. To connect the device run link %d to 0.\n", result, result);
             }
         }
         /**************************************** DEL ********************************************/

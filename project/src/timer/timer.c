@@ -28,46 +28,46 @@ void cloneData(char **vals) {
 int handleSetControl(message_t *msg) {
     // il timer deve poter modificare begin/end e far partire il timer di accensione/spegnimento
     int success = -1;
-    if (msg->vals[SET_VAL_LABEL] == LABEL_BEGIN_VALUE){
+    if (msg->vals[SET_VAL_LABEL] == LABEL_BEGIN_VALUE) {
         // TODO
         //begin = *localtime(msg->vals[SET_VAL_VALUE]);
         success = 1;
-    } else if (msg->vals[SET_VAL_LABEL] == LABEL_END_VALUE){
+    } else if (msg->vals[SET_VAL_LABEL] == LABEL_END_VALUE) {
         // TODO
         //end = *localtime(msg->vals[SET_VAL_VALUE]);
         success = 1;
     }
     // set del tempo rimasto per accensione/spegnimento automatica
-    if (success != -1){
+    if (success != -1) {
         int t_begin = mktime(&begin);
         int t_end = mktime(&end);
         // Setto il timer di spegnimento (end) se è il prossimo evento
         if (time(NULL) < t_end && (t_end < t_begin || t_begin < time(NULL))) {
-            alarm(t_end - time(NULL));// attendo la differenza da ORA
+            alarm(t_end - time(NULL));  // attendo la differenza da ORA
             waitForBegin = 1;
             success = SET_TIMER_STARTED_ON_SUCCESS;
         } else {
             // Setto il timer di accensione (begin) se è il prossimo evento
             if (time(NULL) < t_begin && (t_end > t_begin || t_end < time(NULL))) {
-                alarm(t_begin - time(NULL));// attendo la differenza da ORA
+                alarm(t_begin - time(NULL));  // attendo la differenza da ORA
                 waitForBegin = 0;
                 success = SET_TIMER_STARTED_ON_SUCCESS;
             } else {  // Altrimenti termino gli alarm automatici
                 alarm(0);
             }
-        } 
+        }
     }
     return success;
 }
 
-message_t buildInfoResponseControl(int to_pid, int id, char *children_state, char *available_labels, int lv, short stop) {
+message_t buildInfoResponseControl(int to_pid, int id, char *children_state, char *available_labels, char *registers_values, int lv, short stop) {
     message_t ret = buildInfoResponse(to_pid, id, lv, stop);
-    char beginText[12] = "";
-    char endText[12] = "";
+    char begin_str[12] = "";
+    char end_str[12] = "";
     // genero la stringa di testo personalizzata
-    strftime(beginText, sizeof(beginText), "%H:%M:%S", &begin);
-    strftime(endText, sizeof(endText), "%H:%M:%S", &end);
-    sprintf(ret.text, "%s, state: %s, labels: %s, registers: begin=%s, end=%s", TIMER, children_state, available_labels, beginText, endText);
+    strftime(begin_str, sizeof(begin_str), "%H:%M:%S", &begin);
+    strftime(end_str, sizeof(end_str), "%H:%M:%S", &end);
+    sprintf(ret.text, "%s, state: %s, labels:%s, registers (max values): begin=%s end=%s%s", TIMER, children_state, available_labels, begin_str, end_str, registers_values);
     return ret;
 }
 
@@ -84,7 +84,7 @@ message_t buildCloneResponseControl(int to_pid, int id) {
 
 void setAlarm() {
     if (waitForBegin == 0) {  // Accensione figli
-        doSwitchChildren(LABEL_ALL_VALUE, SWITCH_POS_ON_VALUE);
+        doSwitchChildren(LABEL_ALL_VALUE, SWITCH_POS_ON_LABEL_VALUE);
         // Setto il timer di spegnimento (end) se è maggiore dell'accensione (begin)
         if (time(NULL) < mktime(&end)) {
             alarm(mktime(&end) - time(NULL));
@@ -93,7 +93,7 @@ void setAlarm() {
             alarm(0);
         }
     } else if (waitForBegin == 1) {  // Spegnimentom figli
-        doSwitchChildren(LABEL_ALL_VALUE, SWITCH_POS_OFF_VALUE);
+        doSwitchChildren(LABEL_ALL_VALUE, SWITCH_POS_OFF_LABEL_VALUE);
         // Setto il timer di accensione (begin) se è maggiore dello spegnimento (end)
         if (time(NULL) < mktime(&begin)) {
             alarm(mktime(&begin) - time(NULL));

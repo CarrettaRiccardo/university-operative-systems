@@ -22,6 +22,11 @@
 #define INFO_VAL_STATE 2
 #define INFO_VAL_STOP 3
 #define INFO_VAL_LABELS 4
+// Per passare i valori dei registri nella INFO
+#define INFO_VAL_REG_TIME 5
+#define INFO_VAL_REG_DELAY 6
+#define INFO_VAL_REG_PERC 7
+#define INFO_VAL_REG_TEMP 8
 
 // DELETE
 #define DELETE_MSG_TYPE 2
@@ -46,7 +51,7 @@
 #define SWITCH_VAL_LABEL 0
 #define SWITCH_VAL_POS 1
 #define SWITCH_VAL_SUCCESS 2
-#define SWITCH_ERROR_INVALID_LABEL -1
+#define SWITCH_ERROR_INVALID_VALUE -1
 
 // SET
 #define SET_MSG_TYPE 8
@@ -61,6 +66,8 @@
 #define TRANSLATE_VAL_ID 1
 
 /*************************  Tipi interruttori SWITCH  *************************/
+#define INVALID_VALUE __INT_MAX__
+
 #define LABEL_LIGHT "light"
 #define LABEL_OPEN "open"
 #define LABEL_TERM "therm"
@@ -72,16 +79,18 @@
 #define LABEL_TERM_VALUE 4
 #define LABEL_ALL_VALUE 8
 
-#define SWITCH_POS_OFF "off"
-#define SWITCH_POS_ON "on"
-#define SWITCH_POS_OFF_VALUE 0
-#define SWITCH_POS_ON_VALUE 1
+#define SWITCH_POS_OFF_LABEL "off"
+#define SWITCH_POS_ON_LABEL "on"
+#define SWITCH_POS_OFF_LABEL_VALUE 0
+#define SWITCH_POS_ON_LABEL_VALUE 1
 
 /*************************  Tipi interruttori SET  *************************/
 #define LABEL_DELAY "delay"
 #define LABEL_BEGIN "begin"
 #define LABEL_END "end"
 #define LABEL_PERC "perc"
+#define LABEL_TEMP "temp"
+#define LABEL_TIME "time"
 
 #define LABEL_DELAY_VALUE 1
 #define LABEL_BEGIN_VALUE 2

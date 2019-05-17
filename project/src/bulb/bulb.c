@@ -7,7 +7,7 @@ int on_time;
 int last_on_time;
 
 void initData() {
-    state = SWITCH_POS_OFF_VALUE;
+    state = SWITCH_POS_OFF_LABEL_VALUE;
     interruttore = state;
     on_time = 0;
     last_on_time = time(NULL);
@@ -21,23 +21,23 @@ void cloneData(char **vals) {
 }
 
 int handleSwitchDevice(message_t *msg) {
-    int success = SWITCH_ERROR_INVALID_LABEL;
+    int success = SWITCH_ERROR_INVALID_VALUE;
     // Interruttore (light) o generico (da dispositivi di controllo)
     if (msg->vals[SWITCH_VAL_LABEL] == LABEL_LIGHT_VALUE || msg->vals[SWITCH_VAL_LABEL] == LABEL_ALL_VALUE) {
-        if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_VALUE) {  // Spengo
+        if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_LABEL_VALUE) {  // Spengo
             // Se è accesa, sommo il tempo di accensione e spengo
-            if (interruttore == SWITCH_POS_ON_VALUE) {
+            if (interruttore == SWITCH_POS_ON_LABEL_VALUE) {
                 on_time += time(NULL) - last_on_time;
-                interruttore = SWITCH_POS_OFF_VALUE;
+                interruttore = SWITCH_POS_OFF_LABEL_VALUE;
                 state = interruttore;
             }
             success = 1;
         }
-        if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_ON_VALUE) {  // Accendo
+        if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_ON_LABEL_VALUE) {  // Accendo
             // Se è spenta, accendo e salvo il tempo di accensione
-            if (interruttore == SWITCH_POS_OFF_VALUE) {
+            if (interruttore == SWITCH_POS_OFF_LABEL_VALUE) {
                 last_on_time = time(NULL);
-                interruttore = SWITCH_POS_ON_VALUE;
+                interruttore = SWITCH_POS_ON_LABEL_VALUE;
                 state = interruttore;
             }
             success = 1;
@@ -54,10 +54,14 @@ int handleSetDevice(message_t *msg) {
 message_t buildInfoResponseDevice(int to_pid, int id, int lv) {
     message_t ret = buildInfoResponse(to_pid, id, lv, 1);
     time_t now = time(NULL);
-    int tot_time = on_time + (now - ((state == SWITCH_POS_OFF_VALUE) ? now : last_on_time));  // Se è spenta ritorno solo "on_time", altrimenti on_time+differenza da quanto accesa
+    int tot_time = on_time + (now - ((state == SWITCH_POS_OFF_LABEL_VALUE) ? now : last_on_time));  // Se è spenta ritorno solo "on_time", altrimenti on_time+differenza da quanto accesa
     sprintf(ret.text, "%s, state: %s, labels: %s, registers: time=%ds", BULB, state == 1 ? "on" : "off", LABEL_LIGHT, tot_time);
     ret.vals[INFO_VAL_STATE] = state;
     ret.vals[INFO_VAL_LABELS] = LABEL_LIGHT_VALUE;
+    ret.vals[INFO_VAL_REG_TIME] = tot_time;
+    ret.vals[INFO_VAL_REG_DELAY] = INVALID_VALUE;
+    ret.vals[INFO_VAL_REG_PERC] = INVALID_VALUE;
+    ret.vals[INFO_VAL_REG_TEMP] = INVALID_VALUE;
     return ret;
 }
 
