@@ -25,6 +25,41 @@ void cloneData(char **vals) {
     waitForBegin = atoi(vals[2]);
 }
 
+int handleSetControl(message_t *msg) {
+    // il timer deve poter modificare begin/end e far partire il timer di accensione/spegnimento
+    int success = -1;
+    if (msg->vals[SET_VAL_LABEL] == LABEL_BEGIN_VALUE){
+        // TODO
+        //begin = *localtime(msg->vals[SET_VAL_VALUE]);
+        success = 1;
+    } else if (msg->vals[SET_VAL_LABEL] == LABEL_END_VALUE){
+        // TODO
+        //end = *localtime(msg->vals[SET_VAL_VALUE]);
+        success = 1;
+    }
+    // set del tempo rimasto per accensione/spegnimento automatica
+    if (success != -1){
+        int t_begin = mktime(&begin);
+        int t_end = mktime(&end);
+        // Setto il timer di spegnimento (end) se è il prossimo evento
+        if (time(NULL) < t_end && (t_end < t_begin || t_begin < time(NULL))) {
+            alarm(t_end - time(NULL));// attendo la differenza da ORA
+            waitForBegin = 1;
+            success = SET_TIMER_STARTED_ON_SUCCESS;
+        } else {
+            // Setto il timer di accensione (begin) se è il prossimo evento
+            if (time(NULL) < t_begin && (t_end > t_begin || t_end < time(NULL))) {
+                alarm(t_begin - time(NULL));// attendo la differenza da ORA
+                waitForBegin = 0;
+                success = SET_TIMER_STARTED_ON_SUCCESS;
+            } else {  // Altrimenti termino gli alarm automatici
+                alarm(0);
+            }
+        } 
+    }
+    return success;
+}
+
 message_t buildInfoResponseControl(int to_pid, int id, char *children_state, char *available_labels, int lv, short stop) {
     message_t ret = buildInfoResponse(to_pid, id, lv, stop);
     char beginText[12] = "";

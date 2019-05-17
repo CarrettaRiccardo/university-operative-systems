@@ -9,6 +9,7 @@
 /* Metodi da implemantare nei dispositivi di controllo */
 void initData();
 void cloneData(char **vals);
+int handleSetControl(message_t *msg);
 message_t buildInfoResponseControl(int to_pid, int id, char *children_state, char *available_labels, int lv, short stop);
 message_t buildListResponseControl(int to_pid, int id, int lv, short stop);
 message_t buildCloneResponseControl(int to_pid, int id);
@@ -85,8 +86,7 @@ int main(int argc, char **argv) {
             } break;
 
             case SET_MSG_TYPE: {
-                // return success or not
-                int success = doSetChildren(msg.vals[SET_VAL_LABEL], msg.vals[SET_VAL_VALUE]);
+                int success = handleSetControl(&msg);
                 message_t m = buildSetResponse(msg.sender, success);
                 sendMessage(&m);
             } break;
@@ -299,7 +299,7 @@ int doSwitchChildren(int label, int pos) {
     return success;
 }
 
-int doSetChildren(int label, int val) {
+/*int doSetChildren(int label, int val) {
     int success = -1;
     // Fa il set di tutti i figli
     node_t *p = children->head;
@@ -312,4 +312,4 @@ int doSetChildren(int label, int val) {
         p = p->next;
     }
     return success;
-}
+}*/

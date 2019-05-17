@@ -277,7 +277,7 @@ int switchDevice(int id, char *label, char *pos) {
 }
 
 /**************************************** SET ***********************************************/
-/* Cambia lo stato dell'interruttore "label" del dispositivo "id" al valore "val"           */
+/* Cambia lo stato del "register" del dispositivo "id" al valore "val"           */
 /********************************************************************************************/
 int setDevice(int id, char *label, char *val) {
     int pid = getPidById(disconnected_children, id);
@@ -299,11 +299,13 @@ int setDevice(int id, char *label, char *val) {
         label_val = LABEL_BEGIN_VALUE;  // 2 = begin (timer)
     } else if (strcmp(label, LABEL_END) == 0) {
         label_val = LABEL_END_VALUE;  // 4 = end (timer)
+    }else if (strcmp(label, LABEL_PERC) == 0) {
+        label_val = LABEL_PERC_VALUE;  // 8 = perc (fridge)
     }
 
-    if (isInt(val)) {  // E' un valore valido solo se è un numero (la label è therm, delay, begin o end)
-        // valore termostato, del delay, di inizio o fine timer
-        if (label_val == LABEL_TERM_VALUE || label_val == LABEL_DELAY_VALUE) {  // valore inserito
+    if (isInt(val)) {  // E' un valore valido solo se è un numero (i register sono delay, begin o end)
+        // valore del delay, di inizio o fine timer
+        if (label_val == LABEL_DELAY_VALUE || label_val == LABEL_PERC_VALUE) {  // valore inserito nel delay o percentuale riempimento
             pos_val = atoi(val);
         } else if (label_val == LABEL_BEGIN_VALUE || label_val == LABEL_END_VALUE) {  // se è begin/end, il numero inserito indica quanti seconda da ORA
             pos_val = time(NULL) + atoi(val);
@@ -324,10 +326,13 @@ int setDevice(int id, char *label, char *val) {
             } else if (receiveMessage(&response) == -1) {
                 perror("Error set response");
             } else {
-                if (response.vals[SET_VAL_SUCCESS] != -1) {
-                    printf("Set executed\n");
+                if (response.vals[SET_VAL_SUCCESS] == -1) {
+                    printf("The register \"%s\" is not supported by the device %d\n", label, id);
                 } else {
-                    printf("Error: set not executed\n");
+                    if (response.vals[SET_VAL_SUCCESS] == SET_TIMER_STARTED_ON_SUCCESS)
+                        printf("Set executed (a timer was started)\n");
+                    else
+                        printf("Set executed\n");
                 }
             }
         }
@@ -357,8 +362,11 @@ void infoDevice(int id) {
                     perror("Error info response");
                 } else {
                     int i;
-                    for (i = 0; i < response.vals[INFO_VAL_LEVEL]; i++) printf("    |-");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
-                    printf("(%d) %s\n", response.vals[INFO_VAL_ID], response.text);
+                    for (i = 0; i < response.vals[INFO_VAL_LEVEL]; i++){
+			if(i == response.vals[INFO_VAL_LEVEL] - 1 && i != 0) printf(" |");	 
+			printf("   ");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
+		    }
+                    printf("└── (%d) %s\n", response.vals[INFO_VAL_ID], response.text);
                 }
             } while (response.vals[INFO_VAL_STOP] != 1);
         }
