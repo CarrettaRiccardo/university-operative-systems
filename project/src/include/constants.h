@@ -70,13 +70,13 @@
 
 #define LABEL_LIGHT "light"
 #define LABEL_OPEN "open"
-#define LABEL_TERM "therm"
+#define LABEL_THERM "therm"
 #define LABEL_ALL "all"
 
 // In binario per inviare tutto con operazioni AND e OR
 #define LABEL_LIGHT_VALUE 1
 #define LABEL_OPEN_VALUE 2
-#define LABEL_TERM_VALUE 4
+#define LABEL_THERM_VALUE 4
 #define LABEL_ALL_VALUE 8
 
 #define SWITCH_POS_OFF_LABEL "off"

@@ -5,6 +5,7 @@
 #include "../include/constants.h"
 
 int isInt(char *str) {
+    if (*str == '-') str++;  // Ignoro un eventuale meno come primo carattere
     while (*str != '\0') {
         if (*str < '0' || *str > '9') return 0;
         str++;

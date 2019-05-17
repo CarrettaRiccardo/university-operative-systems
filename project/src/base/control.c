@@ -123,8 +123,9 @@ int main(int argc, char **argv) {
                         // Sommo i valori dei registri dei figli, in modo da poter calcolare i registri dell'HUB
                         int i;
                         for (i = INFO_VAL_REG_TIME; i <= INFO_VAL_REG_TEMP; i++) {
-                            if (response.vals[i] != INVALID_VALUE) {         // Se è un valore valido
-                                if (response.vals[i] > registers_values[i])  // Salvo il valore massimo tra i registri dei figli
+                            if (response.vals[i] != INVALID_VALUE) {                                  // Se è un valore valido
+                                if (registers_count[i] == 0) registers_values[i] = response.vals[i];  // Se è il primo registro con questo valore
+                                if (response.vals[i] > registers_values[i])                           // Salvo il valore massimo tra i registri dei figli
                                     registers_values[i] = response.vals[i];
                                 registers_count[i]++;
                             }
@@ -173,7 +174,7 @@ int main(int argc, char **argv) {
                 if (label_values & LABEL_ALL_VALUE) strcat(labels_str, " " LABEL_ALL);
                 if (label_values & LABEL_LIGHT_VALUE) strcat(labels_str, " " LABEL_LIGHT);
                 if (label_values & LABEL_OPEN_VALUE) strcat(labels_str, " " LABEL_OPEN);
-                if (label_values & LABEL_TERM_VALUE) strcat(labels_str, " " LABEL_TERM);
+                if (label_values & LABEL_THERM_VALUE) strcat(labels_str, " " LABEL_THERM);
                 if (strlen(labels_str) == 0) strcat(labels_str, " (empty)");  // Nel caso non avessi nessun interruttore
 
                 // Calcolo i valori dei registri disponibili e lo setto
@@ -182,10 +183,12 @@ int main(int argc, char **argv) {
                 for (i = INFO_VAL_REG_TIME; i <= INFO_VAL_REG_TEMP; i++) {
                     if (registers_count[i] > 0) {
                         int value = registers_values[i];
-                        if (i == INFO_VAL_REG_TIME) snprintf(registers_str, 64, " " LABEL_TIME "=%ds", value);
-                        if (i == INFO_VAL_REG_DELAY) snprintf(registers_str, 64, " " LABEL_DELAY "=%ds", value);
-                        if (i == INFO_VAL_REG_PERC) snprintf(registers_str, 64, " " LABEL_PERC "=%d%%", value);
-                        if (i == INFO_VAL_REG_TEMP) snprintf(registers_str, 64, " " LABEL_TEMP "=%d°C", value);
+                        char reg_str[16] = "";
+                        if (i == INFO_VAL_REG_TIME) snprintf(reg_str, 16, " " LABEL_TIME "=%ds", value);
+                        if (i == INFO_VAL_REG_DELAY) snprintf(reg_str, 16, " " LABEL_DELAY "=%ds", value);
+                        if (i == INFO_VAL_REG_PERC) snprintf(reg_str, 16, " " LABEL_PERC "=%d%%", value);
+                        if (i == INFO_VAL_REG_TEMP) snprintf(reg_str, 16, " " LABEL_TEMP "=%d°C", value);
+                        strcat(registers_str, reg_str);
                     }
                 }
                 if (strlen(registers_str) == 0) strcat(registers_str, " (empty)");  // Nel caso non avessi nessun registro

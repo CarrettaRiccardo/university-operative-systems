@@ -149,8 +149,8 @@ int switchDevice(int id, char *label, char *pos) {
         label_val = LABEL_LIGHT_VALUE;  // 1 = interruttore (luce)
     } else if (strcmp(label, LABEL_OPEN) == 0) {
         label_val = LABEL_OPEN_VALUE;  // 2 = interruttore (apri/chiudi)
-    } else if (strcmp(label, LABEL_TERM) == 0) {
-        label_val = LABEL_TERM_VALUE;  // 4 = termostato
+    } else if (strcmp(label, LABEL_THERM) == 0) {
+        label_val = LABEL_THERM_VALUE;  // 4 = termostato
     } else if (strcmp(label, LABEL_ALL) == 0) {
         label_val = LABEL_ALL_VALUE;  // 8 = all (generico)
     }

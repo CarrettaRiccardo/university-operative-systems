@@ -54,7 +54,7 @@ int handleSwitchDevice(message_t *msg) {
             // Altrimenti è gia su "on"
             success = 1;
         }
-    } else if (msg->vals[SWITCH_VAL_LABEL] == LABEL_TERM_VALUE) {  // Valore Termostato
+    } else if (msg->vals[SWITCH_VAL_LABEL] == LABEL_THERM_VALUE) {  // Valore Termostato
         temp = msg->vals[SWITCH_VAL_POS];
         success = 1;
     }
@@ -77,9 +77,9 @@ message_t buildInfoResponseDevice(int to_pid, int id, int lv) {
     message_t ret = buildInfoResponse(to_pid, id, lv, 1);
     time_t now = time(NULL);
     int tot_time = open_time + (now - ((state == 0) ? now : last_open_time));  //se è chiusa ritorno solo "tempo", altrimenti tempo+differenza da quanto accesa
-    sprintf(ret.text, "%s, state: %s, labels: %s %s, registers: time=%ds delay=%ds perc=%d%% temp=%d°C", FRIDGE, state == 1 ? "open" : "closed", LABEL_OPEN, LABEL_TERM, tot_time, delay, perc, temp);
+    sprintf(ret.text, "%s, state: %s, labels: %s %s, registers: time=%ds delay=%ds perc=%d%% temp=%d°C", FRIDGE, state == 1 ? "open" : "closed", LABEL_OPEN, LABEL_THERM, tot_time, delay, perc, temp);
     ret.vals[INFO_VAL_STATE] = state;
-    ret.vals[INFO_VAL_LABELS] = LABEL_OPEN_VALUE | LABEL_TERM_VALUE;
+    ret.vals[INFO_VAL_LABELS] = LABEL_OPEN_VALUE | LABEL_THERM_VALUE;
     ret.vals[INFO_VAL_REG_TIME] = tot_time;
     ret.vals[INFO_VAL_REG_DELAY] = delay;
     ret.vals[INFO_VAL_REG_PERC] = perc;

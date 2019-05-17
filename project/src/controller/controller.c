@@ -236,8 +236,8 @@ int switchDevice(int id, char *label, char *pos) {
         label_val = LABEL_LIGHT_VALUE;  // 1 = interruttore (luce)
     } else if (strcmp(label, LABEL_OPEN) == 0) {
         label_val = LABEL_OPEN_VALUE;  // 2 = interruttore (apri/chiudi)
-    } else if (strcmp(label, LABEL_TERM) == 0) {
-        label_val = LABEL_TERM_VALUE;  // 4 = termostato
+    } else if (strcmp(label, LABEL_THERM) == 0) {
+        label_val = LABEL_THERM_VALUE;  // 4 = termostato
     } else if (strcmp(label, LABEL_ALL) == 0) {
         label_val = LABEL_ALL_VALUE;  // 8 = all (generico)
     }
@@ -250,14 +250,23 @@ int switchDevice(int id, char *label, char *pos) {
         } else if (strcmp(pos, SWITCH_POS_ON_LABEL) == 0) {
             pos_val = SWITCH_POS_ON_LABEL_VALUE;  // 1 = acceso/aperto
         }
+    } else if (label_val == LABEL_THERM_VALUE) {
+        if (isInt(pos) && atoi(pos) >= -30 && atoi(pos) <= 15) {
+            pos_val = atoi(pos);
+        }
     }
 
     // Se i parametri creano dei valori validi
     if (label_val == INVALID_VALUE) {
-        printf("Error: invalid 'label' value \"%s\"\n", label);
+        printf("Error: invalid label value \"%s\"\n", label);
         return;
     } else if (pos_val == INVALID_VALUE) {
-        printf("Error: invalid 'pos' value \"%s\"\n", pos);
+        if (label_val == LABEL_THERM_VALUE) {
+            printf("Error: invalid pos value \"%s\" for label \"%s\". It must be a number between -30°C and 15°C \n", pos, label);
+        } else {
+            printf("Error: invalid pos value \"%s\" for label \"%s\"", pos, label);
+        }
+
         return;
     } else {
         message_t request = buildSwitchRequest(pid, label_val, pos_val);
