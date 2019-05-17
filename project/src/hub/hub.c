@@ -5,6 +5,11 @@ void initData() {}
 
 void cloneData(char **vals) {}
 
+int handleSetControl(message_t *msg) {
+    // l'hub non ha registri da modificare
+    return -1;
+}
+
 message_t buildInfoResponseControl(int to_pid, int id, char *children_state, char *available_labels, int lv, short stop) {
     message_t ret = buildInfoResponse(to_pid, id, lv, stop);
     sprintf(ret.text, "%s, state: %s, labels: %s", HUB, children_state, available_labels);
