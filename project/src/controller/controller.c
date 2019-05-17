@@ -49,7 +49,7 @@ void controllerInit(char *file) {
 
     connected_children = listIntInit();
     disconnected_children = listIntInit();
-    ipcInit(getMq());  //inizializzo componenti comunicazione
+
     id = 0;
     next_id = 1;
     //  Uso il percorso relativo al workspace, preso da argv[0] per trovare gli altri eseguibili per i device.
@@ -83,8 +83,8 @@ void listDevicesInList(list_t children, short show_tree) {
                     perror("Error list response");
                 } else {
                     int i;
-                    for (i = 0; i < response.vals[LIST_VAL_LEVEL] + show_tree; i++) printf("    ");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
-                    if (show_tree == 1 || response.vals[LIST_VAL_LEVEL] > 0) printf("|-");
+                    for (i = 0; i < response.vals[LIST_VAL_LEVEL] + show_tree - 1; i++) printf("    ");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
+                    if (show_tree == 1 || response.vals[LIST_VAL_LEVEL] > 0) printf(" └──");
                     printf("(%d) %s\n", response.vals[LIST_VAL_ID], response.text);
                 }
             } while (response.vals[LIST_VAL_STOP] != 1);
@@ -299,7 +299,7 @@ int setDevice(int id, char *label, char *val) {
         label_val = LABEL_BEGIN_VALUE;  // 2 = begin (timer)
     } else if (strcmp(label, LABEL_END) == 0) {
         label_val = LABEL_END_VALUE;  // 4 = end (timer)
-    }else if (strcmp(label, LABEL_PERC) == 0) {
+    } else if (strcmp(label, LABEL_PERC) == 0) {
         label_val = LABEL_PERC_VALUE;  // 8 = perc (fridge)
     }
 
@@ -362,11 +362,13 @@ void infoDevice(int id) {
                     perror("Error info response");
                 } else {
                     int i;
-                    for (i = 0; i < response.vals[INFO_VAL_LEVEL]; i++){
-			if(i == response.vals[INFO_VAL_LEVEL] - 1 && i != 0) printf(" |");	 
-			printf("   ");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
-		    }
-                    printf("└── (%d) %s\n", response.vals[INFO_VAL_ID], response.text);
+                    for (i = 0; i < response.vals[INFO_VAL_LEVEL]; i++) {
+                        if (i == response.vals[INFO_VAL_LEVEL] - 1)
+                            printf(" └──");
+                        else
+                            printf("    ");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
+                    }
+                    printf("(%d) %s\n", response.vals[INFO_VAL_ID], response.text);
                 }
             } while (response.vals[INFO_VAL_STOP] != 1);
         }

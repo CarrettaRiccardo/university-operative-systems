@@ -35,12 +35,14 @@ void infoDevice(int id);
 
 /* Main */
 int main(int sargc, char **sargv) {
+    ipcInit(getMq(getpid()));  // Inizializzo componenti comunicazione
     controllerInit(sargv[0]);
 
     short run = 1;  //  Per uscire dal while nel caso si scriva "quit"
     char line[MAX_LEN];
     int argc = 0;
     char *argv[MAX_ARGC];
+
     printf("Controller identifier (use this for manual commands): %d\n", getpid());
     printf("Type \"help\" for more information.\n\n");
 

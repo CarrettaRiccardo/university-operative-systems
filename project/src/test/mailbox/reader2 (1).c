@@ -52,8 +52,8 @@ Message receiveMessage(const int mqid, const int current_session) {
 }
 
 key_t getKey() {
-    key_t ret = ftok(KEYFILE, 65);
-    if (ret == -1) {  //TODO :da verirficare
+    key_t ret =           //ftok(KEYFILE, 65);
+        if (ret == -1) {  //TODO :da verirficare
         printf("Errore ottenimento id");
         exit(1);
     }

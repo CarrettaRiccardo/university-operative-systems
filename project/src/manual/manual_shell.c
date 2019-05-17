@@ -39,11 +39,15 @@ void infoDevice(int id);
 int main(int sargc, char **sargv) {
     if (sargc < 1) {
         printf("Usage: manual <controller_id>\n");
-        exit(0);
+        return 0;
     }
 
-    controllerInit();
     controller_pid = atoi(sargv[1]);
+    ipcInit(getMq(controller_pid));  // Inizializzo componenti comunicazione
+
+    printf("MQID: %d\n", controller_pid);
+
+    controllerInit();
 
     short run = 1;  //  Per uscire dal while nel caso si scriva "quit"
     char line[MAX_LEN];

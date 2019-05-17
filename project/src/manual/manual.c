@@ -260,7 +260,6 @@ void infoDevice(int id) {
         printf("Error: device with id %d not found or not connected to the controller\n", id);
         return;
     }
-
     message_t request = buildInfoRequest(pid);
     message_t response;
     if (sendMessage(&request) == -1) {
@@ -271,7 +270,12 @@ void infoDevice(int id) {
                 perror("Error info response");
             } else {
                 int i;
-                for (i = 0; i < response.vals[INFO_VAL_LEVEL]; i++) printf("    |-");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
+                for (i = 0; i < response.vals[INFO_VAL_LEVEL]; i++) {
+                    if (i == response.vals[INFO_VAL_LEVEL] - 1)
+                        printf(" └──");
+                    else
+                        printf("    ");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
+                }
                 printf("(%d) %s\n", response.vals[INFO_VAL_ID], response.text);
             }
         } while (response.vals[INFO_VAL_STOP] != 1);

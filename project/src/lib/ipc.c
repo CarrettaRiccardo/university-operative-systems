@@ -184,17 +184,8 @@ void ipcInit(int _mqid) {
     mqid = _mqid;
 }
 
-key_t getKey() {
-    key_t ret = getpid();  //ftok(".", 65);
-    if (ret == -1) {
-        perror("Errore ottenimento key");
-        exit(1);
-    }
-    return ret;
-}
-
-int getMq() {
-    const key_t key = getKey();               //creo id per mailbox
+int getMq(int pid) {
+    const key_t key = pid;                    //creo id per mailbox
     int ret = msgget(key, 0666 | IPC_CREAT);  //mi "collego" alla mq
     if (ret == -1) {
         perror("Errore connessione mq");
@@ -252,5 +243,5 @@ int printLog(const message_t *msg) {
 }
 
 void printMsg(const message_t *msg) {
-    printf("to: %ld, sender: %d, text: %s, v0: %d, v1: %d, v2: %d, v3: %d, v4: %d, v5: %d, session: %ld\n", msg->to, msg->sender, msg->text, msg->vals[0], msg->vals[1], msg->vals[2], msg->vals[3], msg->vals[4], msg->vals[5], msg->session);
+    printf("to: %ld, sender: %d, type: %d, text: %s, v0: %d, v1: %d, v2: %d, v3: %d, v4: %d, v5: %d, session: %ld\n", msg->to, msg->sender, msg->type, msg->text, msg->vals[0], msg->vals[1], msg->vals[2], msg->vals[3], msg->vals[4], msg->vals[5], msg->session);
 }

@@ -53,7 +53,7 @@ int sendGetPidByIdSignal(int to_pid, int id);
 
 /////////////////////////////// INIT ///////////////////////////////
 /* Inizializza i componenti per comunicare */
-void ipcInit();
+void ipcInit(int _mqid);
 
 /* Get key to create Message queue */
 key_t getKey();
