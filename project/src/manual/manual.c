@@ -207,7 +207,7 @@ int setDevice(int id, char *label, char *val) {
         label_val = LABEL_BEGIN_VALUE;  // 2 = begin (timer)
     } else if (strcmp(label, LABEL_END) == 0) {
         label_val = LABEL_END_VALUE;  // 4 = end (timer)
-    } 
+    }
 
     if (isInt(val)) {  // E' un valore valido solo se è un numero (la label è therm, delay, begin o end)
         // valore termostato, del delay, di inizio o fine timer
@@ -247,19 +247,24 @@ int setDevice(int id, char *label, char *val) {
 /**********************************************************************************************/
 void infoDevice(int id) {
     int pid = requestGetPidById(id);
-    printf("PID in info: %d\n", pid);
     if (pid == -1) {
         printf("Error: device with id %d not found or not connected to the controller\n", id);
         return;
     }
+
     message_t request = buildInfoRequest(pid);
     message_t response;
     if (sendMessage(&request) == -1) {
         perror("Error info request");
-    } else if (receiveMessage(&response) == -1) {
-        perror("Errore info response");
     } else {
-        //  Stampo il testo ricevuto dal dispositivo
-        printf("Device type: %s\n", response.text);
+        do {
+            if (receiveMessage(&response) == -1) {
+                perror("Error info response");
+            } else {
+                int i;
+                for (i = 0; i < response.vals[INFO_VAL_LEVEL]; i++) printf("    |-");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
+                printf("(%d) %s\n", response.vals[INFO_VAL_ID], response.text);
+            }
+        } while (response.vals[INFO_VAL_STOP] != 1);
     }
 }

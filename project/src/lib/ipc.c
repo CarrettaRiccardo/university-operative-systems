@@ -1,7 +1,4 @@
 #include "../include/ipc.h"
-#include <signal.h>
-#include <unistd.h>
-#include "../include/constants.h"
 
 ///////////////////////////////////////////////  WORKERS ///////////////////////////////////////////////
 void doLink(list_t children, int to_clone_pid, const char *base_dir) {

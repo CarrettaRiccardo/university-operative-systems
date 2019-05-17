@@ -2,6 +2,7 @@
 #define _IPC_
 
 #include <errno.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,7 +11,6 @@
 
 #include "../include/constants.h"
 #include "../include/list.h"
-#define KEYFILE "progfile"
 
 time_t session;
 int mqid;
