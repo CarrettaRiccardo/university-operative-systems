@@ -18,7 +18,7 @@
 #define ARGC_QUIT 1
 
 /*  Lettura e parse parametri */
-void getArgs(char *line, int *argc, char **argv);
+int getArgs(char *line, int *argc, char **argv);
 /*  Print con identazione   */
 void printHelp(char *cmd, char *desc);
 
@@ -48,7 +48,7 @@ int main(int sargc, char **sargv) {
 
     while (run) {
         printf("> ");
-        getArgs(line, &argc, argv);
+        if (getArgs(line, &argc, argv) == -1) continue;
 
         /**************************************** HELP ********************************************/
         if (strcmp(argv[0], "help") == 0) {
@@ -159,9 +159,11 @@ int main(int sargc, char **sargv) {
     return 0;
 }
 
-void getArgs(char *line, int *argc, char **argv) {
+int getArgs(char *line, int *argc, char **argv) {
     // Lettura stringa
-    fgets(line, MAX_LEN, stdin);
+    if (fgets(line, MAX_LEN, stdin) == NULL) {
+        return -1;  // Per evitare la ripetizione di comandi in caso venga ricevuto un segnale
+    }
     line[strcspn(line, "\n")] = '\0';  //  Rimuovo eventuali \n dalla fine della stringa per evitare problemi nel parse
     // Parse argomenti
     int pos = 0;
@@ -171,6 +173,7 @@ void getArgs(char *line, int *argc, char **argv) {
         arg = strtok(NULL, " ");  //  Parse parametro successivo
     }
     *argc = pos;
+    return 0;
 }
 
 void printHelp(char *cmd, char *desc) {

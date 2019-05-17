@@ -141,7 +141,9 @@ int main(int argc, char **argv) {
                 }
 
                 short children_state;
-                if (override == 0 && count_on == 0)
+                if (count_on == 0 && count_off == 0)
+                    children_state = -1;  // Nessun figlio
+                else if (override == 0 && count_on == 0)
                     children_state = 0;  // off
                 else if (override == 0 && count_off == 0)
                     children_state = 1;  // on
@@ -151,6 +153,7 @@ int main(int argc, char **argv) {
 
                 // Lo stato dell'hub è dato dal valore di maggioranza dello stato dei figli
                 switch (children_state) {
+                    case -1: children_str = "no connected children"; break;
                     case 0: children_str = "off"; break;
                     case 1: children_str = "on"; break;
                     case 2: children_str = "off (override)"; break;
@@ -158,7 +161,9 @@ int main(int argc, char **argv) {
                 }
 
                 // Costruisco la stringa delle label disponibili nel dispositivo di controllo
+                if (label_values != 0) label_values |= LABEL_ALL_VALUE;  // Se ho dei figli mostro anche l'interruttore all
                 char labels_str[64] = "";
+                if (label_values & LABEL_ALL_VALUE) strcat(labels_str, LABEL_ALL " ");
                 if (label_values & LABEL_LIGHT_VALUE) strcat(labels_str, LABEL_LIGHT " ");
                 if (label_values & LABEL_OPEN_VALUE) strcat(labels_str, LABEL_OPEN " ");
                 if (label_values & LABEL_TERM_VALUE) strcat(labels_str, LABEL_TERM " ");
