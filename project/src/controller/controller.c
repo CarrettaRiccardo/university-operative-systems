@@ -84,8 +84,8 @@ void listDevicesInList(list_t children, short show_tree) {
                 } else {
                     int i;
                     for (i = 0; i < response.vals[LIST_VAL_LEVEL] + show_tree - 1; i++) printf("    ");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
-                    if (show_tree == 1 || response.vals[LIST_VAL_LEVEL] > 0) printf(" └──");
-                    printf("(%d) %s\n", response.vals[LIST_VAL_ID], response.text);
+                    if (show_tree == 1 || response.vals[LIST_VAL_LEVEL] > 0) printf(C_CYAN " └──" C_WHITE);
+                    printf(CB_CYAN "(%d)" C_WHITE " %s\n", response.vals[LIST_VAL_ID], response.text);
                 }
             } while (response.vals[LIST_VAL_STOP] != 1);
         }
@@ -95,7 +95,7 @@ void listDevicesInList(list_t children, short show_tree) {
 
 void listDevices() {
     listDevicesInList(disconnected_children, 0);
-    printf("(0) controller\n");
+    printf(CB_CYAN "(0)" CB_WHITE " controller" C_WHITE "\n");
     listDevicesInList(connected_children, 1);
 }
 
@@ -353,7 +353,7 @@ int setDevice(int id, char *label, char *val) {
 /**********************************************************************************************/
 void infoDevice(int id) {
     if (id == 0) {
-        printf("Device type: controller, registers: num = %d\n", listCount(connected_children));
+        printf(CB_CYAN "(0)" CB_WHITE " controller" C_WHITE ", registers: num = %d\n", listCount(connected_children));
     } else {
         int pid = getPidById(disconnected_children, id);
         if (pid == -1) pid = getPidById(connected_children, id);
@@ -373,11 +373,11 @@ void infoDevice(int id) {
                     int i;
                     for (i = 0; i < response.vals[INFO_VAL_LEVEL]; i++) {
                         if (i == response.vals[INFO_VAL_LEVEL] - 1)
-                            printf(" └──");
+                            printf(C_CYAN " └──" C_WHITE);
                         else
                             printf("    ");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
                     }
-                    printf("(%d) %s\n", response.vals[INFO_VAL_ID], response.text);
+                    printf(CB_CYAN "(%d)" C_WHITE " %s\n", response.vals[INFO_VAL_ID], response.text);
                 }
             } while (response.vals[INFO_VAL_STOP] != 1);
         }

@@ -58,7 +58,7 @@ message_t buildInfoResponseDevice(int to_pid, int id, int lv) {
     message_t ret = buildInfoResponse(to_pid, id, lv, 1);
     time_t now = time(NULL);
     int tot_time = open_time + (now - ((state == SWITCH_POS_OFF_LABEL_VALUE) ? now : last_open_time));  // Se è spenta ritorno solo "on_time", altrimenti on_time+differenza da quanto accesa
-    sprintf(ret.text, "%s, state: %s, labels: %s, registers: time=%ds", WINDOW, state == 1 ? "open" : "closed", LABEL_OPEN, tot_time);
+    sprintf(ret.text, CB_WHITE "%s" C_WHITE ", " CB_YELLOW "state:" C_WHITE " %s, " CB_RED "labels:" C_WHITE " %s, " CB_GREEN "registers:" C_WHITE " time=%ds", WINDOW, state == 1 ? "open" : "closed", LABEL_OPEN, tot_time);
     ret.vals[INFO_VAL_STATE] = state;
     ret.vals[INFO_VAL_LABELS] = LABEL_OPEN_VALUE;
     ret.vals[INFO_VAL_REG_TIME] = tot_time;
@@ -70,7 +70,7 @@ message_t buildInfoResponseDevice(int to_pid, int id, int lv) {
 
 message_t buildListResponseDevice(int to_pid, int id, int lv) {
     message_t ret = buildListResponse(to_pid, id, lv, 1);
-    sprintf(ret.text, "%s %s", WINDOW, state == 1 ? "open" : "closed");
+    sprintf(ret.text, CB_WHITE "%s" C_WHITE " %s", WINDOW, state == 1 ? "open" : "closed");
     return ret;
 }
 
