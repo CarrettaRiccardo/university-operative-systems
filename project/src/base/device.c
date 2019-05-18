@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
                 } break;
 
                 case DELETE_MSG_TYPE: {
-                    message_t m = buildDeleteResponse(msg.sender);
+                    message_t m = buildDeleteResponse(msg.sender, 1);
                     sendMessage(&m);
                     exit(0);
                 } break;

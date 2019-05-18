@@ -30,6 +30,7 @@
 
 // DELETE
 #define DELETE_MSG_TYPE 2
+#define DELETE_VAL_RESPONSE 0
 
 // LINK
 #define LINK_MSG_TYPE 3
@@ -51,6 +52,7 @@
 #define SWITCH_VAL_LABEL 0
 #define SWITCH_VAL_POS 1
 #define SWITCH_VAL_SUCCESS 2
+#define SWITCH_VAL_DEST 3
 #define SWITCH_ERROR_INVALID_VALUE -1
 
 // SET
@@ -64,6 +66,19 @@
 #define TRANSLATE_MSG_TYPE 7
 #define TRANSLATE_VAL_FOUND 0
 #define TRANSLATE_VAL_ID 1
+
+// ADD
+#define ADD_MSG_TYPE 8
+#define ADD_VAL_DEVICE 0
+#define ADD_VAL_RESPONSE 0
+
+//Componente TERMINAL
+//#define TERMINAL_ADD_RESPONSE 0
+//#define TERMINAL_DELETE_RESPONSE 0
+#define TERMINAL_DELETE_DEST 0
+#define TERMINAL_LINK_DEST 0
+//#define TERMINAL_LINK_RESPONSE 0
+#define TERMINAL_INFO_DEST 0
 
 /*************************  Tipi interruttori SWITCH  *************************/
 #define INVALID_VALUE __INT_MAX__
@@ -105,6 +120,7 @@
 #define WINDOW "window"
 #define HUB "hub"
 #define TIMER "timer"
+#define HOME "home"
 
 /*************************  Colori per printf  *************************/
 #define C_RESET "\x1b[0m"

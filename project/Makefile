@@ -13,7 +13,7 @@ BIN_DIR = ./bin
 
 # File da compilare
 LIB = list utils ipc							  		# Librerie
-BIN = controller manual bulb fridge window hub timer    # Eseguibili 
+BIN = controller manual bulb fridge window hub timer terminal home    # Eseguibili 
 
 
 # Lista file oggetto librerie. Necessario per linkare le librerie agli eseguibili

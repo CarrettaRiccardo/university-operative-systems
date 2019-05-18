@@ -298,7 +298,7 @@ int main(int argc, char **argv) {
                     receiveMessage(&kill_resp);
                     p = p->next;
                 }
-                message_t m = buildDeleteResponse(msg.sender);
+                message_t m = buildDeleteResponse(msg.sender, 1);
                 sendMessage(&m);
                 exit(0);
             } break;

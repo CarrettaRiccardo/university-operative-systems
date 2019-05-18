@@ -29,19 +29,26 @@ message_t buildSetRequest(int to_pid, int label_val, int val_val);
 message_t buildCloneRequest(int to_pid);
 message_t buildGetChildRequest(int to_pid);
 message_t buildLinkRequest(int to_pid, int to_clone_pid);
+message_t buildAddRequest(int to_pid, char* device);
+message_t buildTerminalLinkRequest(int to_pid, int src, int dest);
+message_t buildTerminalDeleteRequest(int home_pid, int dest);
+message_t buildTerminalSwitchRequest(int home_pid, int to_pid, int label_val, int pos_val);
+message_t buildTerminalInfoRequest(int to_pid, int dest);
 
 /////////////////////////////// RESPONSES ///////////////////////////////
 message_t buildResponse(int to_pid, short msg_type);
 message_t buildInfoResponse(int to_pid, int id, int lv, short stop);
-message_t buildSwitchResponse(int to_pid, short success);
-message_t buildSetResponse(int to_pid, short success);
+message_t buildSwitchResponse(int to_pid, int success);
+message_t buildSetResponse(int to_pid, int success);
 message_t buildTranslateResponse(int to_pid, int pid_found);
-message_t buildDeleteResponse(int to_pid);
+message_t buildDeleteResponse(int to_pid, int response);
 message_t buildListResponse(int to_pid, int id, int lv, short stop);
 message_t buildCloneResponse(int to_pid, const char* component_type, int id, const int vals[], short is_control_device);
 message_t buildGetChildResponse(int to_pid, int child_pid);
-message_t buildLinkResponse(int to_pid, short success);
+message_t buildLinkResponse(int to_pid, int success);
 message_t buildBusyResponse(int to_pid);
+message_t buildAddResponse(int to_pid, int result);
+
 
 /////////////////////////////// IPC ///////////////////////////////
 int sendMessage(const message_t* request);

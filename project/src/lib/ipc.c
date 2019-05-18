@@ -79,12 +79,70 @@ message_t buildSwitchRequest(int to_pid, int label_val, int pos_val) {
     return ret;
 }
 
+/*
+    home_pid: pid del componente home
+    to_pid: pid del componente al qual il comando è destinato
+    label_val: valore della label da modificare
+    pos_val: valore da modificare per la posizione dell' interuttore
+    TODO: Destro le descrizion sono corrette ?
+*/
+message_t buildTerminalSwitchRequest(int home_pid, int to_pid, int label_val, int pos_val) {
+    message_t ret = buildSwitchRequest(home_pid, label_val, pos_val);
+    ret.vals[SWITCH_VAL_DEST] = to_pid;
+    return ret;
+}
+
 message_t buildSetRequest(int to_pid, int label_val, int val_val) {
     message_t ret = buildRequest(to_pid, SET_MSG_TYPE);
     ret.vals[SET_VAL_LABEL] = label_val;
     ret.vals[SET_VAL_VALUE] = val_val;
     return ret;
 }
+
+/*
+    to_pid: Destinatario messaggio
+    device: Stringa che rappresenta il nome del dispositivo da aggiungere    
+*/
+message_t buildAddRequest(int to_pid, char* device){
+    message_t ret = buildRequest(to_pid, ADD_MSG_TYPE);
+    strcpy(ret.text, device);
+    return ret;
+}
+
+/*
+    to_pid: Destinatario messaggio
+    src: Componente da clonare
+    dest: Componente che deve ricevere il clone di 'src'
+*/
+message_t buildTerminalLinkRequest(int to_pid, int src, int dest){
+    message_t ret = buildLinkRequest(to_pid, src);
+    ret.vals[TERMINAL_LINK_DEST] = dest;
+    return ret;
+}
+
+
+/*
+    to_pid: Destinatario messaggio, ovvero home che applicherà il messaggio
+    dest: Componente che deve essere cancellato
+*/
+message_t buildTerminalDeleteRequest(int to_pid, int dest){
+    message_t ret = buildDeleteRequest(to_pid);
+    ret.vals[TERMINAL_DELETE_DEST] = dest;
+    return ret;
+}
+
+/*
+    to_pid: pid_home
+    dest: Destinatario del comando INFO
+*/
+message_t buildTerminalInfoRequest(int to_pid, int dest){  //wrapper per inviare alla home l'id di chi voglio la INFO
+    message_t ret = buildInfoRequest(to_pid);
+    ret.vals[TERMINAL_INFO_DEST] = dest;  //il dispositivo su cui voglio fare la INFO
+    return ret;
+}
+
+
+
 
 ///////////////////////////////////////////////  RESPONSE ///////////////////////////////////////////////
 message_t buildResponse(int to_pid, short msg_type) {
@@ -100,13 +158,13 @@ message_t buildInfoResponse(int to_pid, int id, int lv, short stop) {
     return ret;
 }
 
-message_t buildSwitchResponse(int to_pid, short success) {
+message_t buildSwitchResponse(int to_pid, int success) {
     message_t ret = buildResponse(to_pid, SWITCH_MSG_TYPE);
     ret.vals[SWITCH_VAL_SUCCESS] = success;
     return ret;
 }
 
-message_t buildSetResponse(int to_pid, short success) {
+message_t buildSetResponse(int to_pid, int success) {
     message_t ret = buildResponse(to_pid, SET_MSG_TYPE);
     ret.vals[SET_VAL_SUCCESS] = success;
     return ret;
@@ -119,8 +177,13 @@ message_t buildTranslateResponse(int to_pid, int pid_found) {
     return ret;
 }
 
-message_t buildDeleteResponse(int to_pid) {
-    return buildResponse(to_pid, DELETE_MSG_TYPE);
+/*
+    Conferma al mittente l' avvenuta ricezione di un comando di tipo DELETE
+*/
+message_t buildDeleteResponse(int to_pid, int response) {
+    message_t ret = buildResponse(to_pid, DELETE_MSG_TYPE);
+    ret.vals[DELETE_VAL_RESPONSE] = response;
+    return ret;
 }
 
 message_t buildListResponse(int to_pid, int id, int lv, short stop) {
@@ -149,7 +212,7 @@ message_t buildGetChildResponse(int to_pid, int child_pid) {
     return ret;
 }
 
-message_t buildLinkResponse(int to_pid, short success) {
+message_t buildLinkResponse(int to_pid, int success) {
     message_t ret = buildResponse(to_pid, LINK_MSG_TYPE);
     ret.vals[LINK_VAL_SUCCESS] = success;
     return ret;
@@ -157,6 +220,16 @@ message_t buildLinkResponse(int to_pid, short success) {
 
 message_t buildBusyResponse(const int to) {
     message_t ret = buildResponse(to, BUSY_MSG_TYPE);
+    return ret;
+}
+
+/*
+    to_pid: Destinatario messaggio
+    response: Codice di ritorno delle operazini indicante successo o fallimento
+*/
+message_t buildAddResponse(int to_pid, int response){
+    message_t ret = buildResponse(to_pid, ADD_MSG_TYPE);
+    ret.vals[ADD_VAL_RESPONSE] = response;
     return ret;
 }
 
