@@ -21,7 +21,7 @@
 int controller_pid;
 
 /*  Lettura e parse parametri */
-void getArgs(char *line, int *argc, char **argv);
+int getArgs(char *line, int *argc, char **argv);
 /*  Print con identazione   */
 void printHelp(char *cmd, char *desc);
 
@@ -37,7 +37,7 @@ void infoDevice(int id);
 
 /* Main */
 int main(int sargc, char **sargv) {
-    if (sargc < 1) {
+    if (sargc <= 1 || !isInt(sargv[1])) {
         printf("Usage: manual <controller_id>\n");
         return 0;
     }
@@ -45,19 +45,26 @@ int main(int sargc, char **sargv) {
     controller_pid = atoi(sargv[1]);
     ipcInit(getMq(controller_pid));  // Inizializzo componenti comunicazione
 
-    printf("MQID: %d\n", controller_pid);
-
     controllerInit();
 
     short run = 1;  //  Per uscire dal while nel caso si scriva "quit"
     char line[MAX_LEN];
+    int print_sign = 1;
     int argc = 0;
     char *argv[MAX_ARGC];
+    printf("Connected to controller: " CB_WHITE "%d\n" C_WHITE, controller_pid);
     printf("Type \"help\" for more information.\n\n");
 
     while (run) {
-        printf("> ");
-        getArgs(line, &argc, argv);
+        if (print_sign)
+            printf("> ");
+        else
+            print_sign = 1;
+
+        if (getArgs(line, &argc, argv) == -1) {
+            print_sign = 0;
+            continue;
+        }
 
         /**************************************** HELP ********************************************/
         if (strcmp(argv[0], "help") == 0) {
@@ -73,9 +80,9 @@ int main(int sargc, char **sargv) {
         /**************************************** DEL ********************************************/
         else if (strcmp(argv[0], "del") == 0) {
             if (argc != ARGC_DEL) {
-                printf("Unknown parameters, usage: del <id>\n");
+                printf(CB_RED "Unknown parameters, usage: del <id>\n" C_WHITE);
             } else if (!isInt(argv[1])) {
-                printf("Error: <id> must be a positive number\n");
+                printf(CB_RED "Error: <id> must be a positive number\n" C_WHITE);
             } else {
                 delDevice(atoi(argv[1]));
             }
@@ -83,11 +90,11 @@ int main(int sargc, char **sargv) {
         /**************************************** LINK ********************************************/
         else if (strcmp(argv[0], "link") == 0) {
             if (argc != ARGC_LINK || strcmp(argv[2], "to") != 0) {
-                printf("Unknown parameters, usage: link <id> to <id>\n");
+                printf(CB_RED "Unknown parameters, usage: link <id> to <id>\n" C_WHITE);
             } else if (!isInt(argv[1]) || !isInt(argv[3])) {
-                printf("Error: <id> must be a positive number\n");
+                printf(CB_RED "Error: <id> must be a positive number\n" C_WHITE);
             } else if (strcmp(argv[1], argv[3]) == 0) {
-                printf("Error: cannot link a device to itself\n");
+                printf(CB_RED "Error: cannot link a device to itself\n" C_WHITE);
             } else {
                 linkDevices(atoi(argv[1]), atoi(argv[3]));
             }
@@ -95,9 +102,9 @@ int main(int sargc, char **sargv) {
         /**************************************** SWITCH ********************************************/
         else if (strcmp(argv[0], "switch") == 0) {
             if (argc != ARGC_SWITCH) {
-                printf("Unknown parameters, usage: switch <id> <label> <pos>\n");
+                printf(CB_RED "Unknown parameters, usage: switch <id> <label> <pos>\n" C_WHITE);
             } else if (!isInt(argv[1])) {
-                printf("Error: <id> must be a positive number\n");
+                printf(CB_RED "Error: <id> must be a positive number\n" C_WHITE);
             } else {
                 switchDevice(atoi(argv[1]), argv[2], argv[3]);
             }
@@ -105,9 +112,9 @@ int main(int sargc, char **sargv) {
         /**************************************** SET ********************************************/
         else if (strcmp(argv[0], "set") == 0) {
             if (argc != ARGC_SWITCH) {
-                printf("Unknown parameters, usage: set <id> <register> <value>\n");
+                printf(CB_RED "Unknown parameters, usage: set <id> <register> <value>\n" C_WHITE);
             } else if (!isInt(argv[1])) {
-                printf("Error: <id> must be a positive number\n");
+                printf(CB_RED "Error: <id> must be a positive number\n" C_WHITE);
             } else {
                 setDevice(atoi(argv[1]), argv[2], argv[3]);
             }
@@ -115,9 +122,9 @@ int main(int sargc, char **sargv) {
         /**************************************** INFO ********************************************/
         else if (strcmp(argv[0], "info") == 0) {
             if (argc != ARGC_INFO) {
-                printf("Unknown parameters, usage: info <id>\n");
+                printf(CB_RED "Unknown parameters, usage: info <id>\n" C_WHITE);
             } else if (!isInt(argv[1])) {
-                printf("Error: <id> must be a positive number\n");
+                printf(CB_RED "Error: <id> must be a positive number\n" C_WHITE);
             } else {
                 infoDevice(atoi(argv[1]));
             }
@@ -126,15 +133,16 @@ int main(int sargc, char **sargv) {
         else if (strcmp(argv[0], "quit") == 0) {
             run = 0;
         } else if (argc > 0) {
-            printf("Unknown command, type \"help\" to list all the supported commands\n");
+            printf(CB_RED "Unknown command, type \"help\" to list all the supported commands\n" C_WHITE);
         }
     }
+    controllerDestroy();
     return 0;
 }
 
-void getArgs(char *line, int *argc, char **argv) {
+int getArgs(char *line, int *argc, char **argv) {
     // Lettura stringa
-    fgets(line, MAX_LEN, stdin);
+    if (fgets(line, MAX_LEN, stdin) == NULL) return -1;
     line[strcspn(line, "\n")] = '\0';  //  Rimuovo eventuali \n dalla fine della stringa per evitare problemi nel parse
     // Parse argomenti
     int pos = 0;
@@ -147,5 +155,5 @@ void getArgs(char *line, int *argc, char **argv) {
 }
 
 void printHelp(char *cmd, char *desc) {
-    printf("  %-28s%s\n", cmd, desc);
+    printf("    %-28s%s\n", cmd, desc);
 }
