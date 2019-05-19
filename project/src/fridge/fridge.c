@@ -9,7 +9,11 @@ int perc;            // Percentuale riempimento (0-100%)
 int open_time;       // Tempo apertura porta
 int last_open_time;  // Tempo ultima apertura
 
+void closeDoor();
+
 void initData() {
+    // Associo il metodo switch al segnare alarm per la chiusura automatica dopo il delay
+    signal(SIGALRM, closeDoor);
     state = SWITCH_POS_OFF_LABEL_VALUE;
     interruttore = SWITCH_POS_OFF_LABEL_VALUE;
     delay = 10;
@@ -20,6 +24,8 @@ void initData() {
 }
 
 void cloneData(char **vals) {
+    // Associo il metodo switch al segnare alarm per la chiusura automatica dopo il delay
+    signal(SIGALRM, closeDoor);
     state = atoi(vals[0]);
     interruttore = atoi(vals[1]);
     delay = atoi(vals[2]);
@@ -40,6 +46,8 @@ int handleSwitchDevice(message_t *msg) {
                 // ...e chiudo la porta
                 state = SWITCH_POS_OFF_LABEL_VALUE;
                 interruttore = SWITCH_POS_OFF_LABEL_VALUE;
+                // disabilito il timer di chiusura automatica
+                alarm(0);
             }
             // Altrimenti è gia su "off"
             success = 1;
@@ -48,6 +56,9 @@ int handleSwitchDevice(message_t *msg) {
             if (state == SWITCH_POS_OFF_LABEL_VALUE) {
                 // Apro la porta e salvo il tempo di apertura
                 last_open_time = time(NULL);
+                // setto il timer di chiusura automatica
+                if (delay > 0)
+                    alarm(delay);
                 state = SWITCH_POS_ON_LABEL_VALUE;
                 interruttore = SWITCH_POS_OFF_LABEL_VALUE;
             }
@@ -63,10 +74,10 @@ int handleSwitchDevice(message_t *msg) {
 
 int handleSetDevice(message_t *msg) {
     int success = -1;
-    if (msg->vals[SET_VAL_LABEL] == LABEL_DELAY_VALUE) {  // Tempo chiusura porta
+    if (msg->vals[SET_VAL_LABEL] == LABEL_DELAY_VALUE) {  // Tempo chiusura porta (il cambio sarà effettivo dalla prossima apertura se è già apertou)
         delay = msg->vals[SET_VAL_VALUE];
         success = 1;
-    } else if (msg->vals[SET_VAL_VALUE] == LABEL_PERC_VALUE) {  // Percentuale riempimento
+    } else if (msg->vals[SET_VAL_LABEL] == LABEL_PERC_VALUE) {  // Percentuale riempimento
         perc = msg->vals[SET_VAL_VALUE];
         success = 1;
     }
@@ -96,4 +107,16 @@ message_t buildListResponseDevice(int to_pid, int id, int lv) {
 message_t buildCloneResponseDevice(int to_pid, int id) {
     int vals[] = {state, interruttore, delay, temp, perc, open_time, last_open_time};
     return buildCloneResponse(to_pid, FRIDGE, id, vals, 0);
+}
+
+void closeDoor() {
+    // Controllo se il tempo di chiusura automatica è arrivato
+    if (state == SWITCH_POS_ON_LABEL_VALUE && last_open_time + delay >= time(NULL)) {
+        // Se lo è (quindi deve chiudersi automaticamente), sommo la differenza di tempo attuale al tempo di apertura...
+        open_time += time(NULL) - last_open_time;
+        // ...e chiudo la porta
+        state = SWITCH_POS_OFF_LABEL_VALUE;
+        interruttore = SWITCH_POS_OFF_LABEL_VALUE;
+    }
+    // Altrimenti è gia su "off"
 }

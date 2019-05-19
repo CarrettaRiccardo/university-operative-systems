@@ -30,7 +30,12 @@ int handleSetControl(message_t *msg) {
     int success = -1;
     if (msg->vals[SET_VAL_LABEL] == LABEL_BEGIN_VALUE) {
         // TODO
-        //begin = *localtime(msg->vals[SET_VAL_VALUE]);
+        time_t now;
+        time(&now);
+        begin = *localtime(&now);
+        begin.tm_sec += msg->vals[SET_VAL_VALUE];
+        
+        printf("(DEBUG) %d:%d:%d\n", begin.tm_hour, begin.tm_min, begin.tm_sec);
         success = 1;
     } else if (msg->vals[SET_VAL_LABEL] == LABEL_END_VALUE) {
         // TODO
