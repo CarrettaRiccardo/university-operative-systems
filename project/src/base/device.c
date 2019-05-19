@@ -30,9 +30,8 @@ int main(int argc, char **argv) {
     // Esecuzione device
     while (1) {
         message_t msg;
-        if (receiveMessage(&msg) == -1) {
-            perror("Error receiving message in normal device");
-        } else {
+        if (receiveMessage(&msg) == -1) continue;  // Ignoro eventuali errori di ricezione, riprova in automatico dato il do while
+        else {
             switch (msg.type) {
                 case TRANSLATE_MSG_TYPE: {
                     message_t m = buildTranslateResponse(msg.sender, msg.vals[TRANSLATE_VAL_ID] == id ? getpid() : -1);
