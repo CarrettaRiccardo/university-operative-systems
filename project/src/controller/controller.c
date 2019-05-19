@@ -352,7 +352,7 @@ int setDevice(int id, char *label, char *val) {
 /**********************************************************************************************/
 void infoDevice(int id) {
     if (id == 0) {
-        printf(CB_CYAN "(0)" CB_WHITE " controller" C_WHITE ", " CB_GREEN "registers:" C_WHITE " num = %d\n", listCount(connected_children));
+        printf(CB_CYAN "(0) controller" C_WHITE ", " CB_WHITE "registers:" C_WHITE " num = %d\n", listCount(connected_children));
     } else {
         int pid = getPidById(disconnected_children, id);
         if (pid == -1) pid = getPidById(connected_children, id);
