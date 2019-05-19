@@ -101,7 +101,7 @@ int main(int sargc, char **sargv) {
                 if (result == -1)
                     perror(CB_RED "Error while adding device" C_WHITE);
                 else if (result != 0)  //  Se ho aggiunto un device supportato
-                    printf(CB_GREEN "Device added with id (%d)" C_WHITE "\nNow it's disconnected from the system. To connect the device run " CB_YELLOW "link %d to 0\n" C_WHITE, result, result);
+                    printf(CB_GREEN "Device added with id %d" C_WHITE "\nNow it's disconnected from the system. To connect the device run " CB_WHITE "link %d to 0\n" C_WHITE, result, result);
             }
         }
         /**************************************** DEL ********************************************/

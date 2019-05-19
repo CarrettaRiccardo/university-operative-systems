@@ -161,11 +161,11 @@ int main(int argc, char **argv) {
                 // Lo stato dell'hub è dato dal valore di maggioranza dello stato dei figli
                 char *children_str;
                 switch (children_state) {
-                    case -1: children_str = "(no connected devices)"; break;
-                    case 0: children_str = "off"; break;
-                    case 1: children_str = "on"; break;
-                    case 2: children_str = "off (override)"; break;
-                    case 3: children_str = "on (override)"; break;
+                    case -1: children_str = CB_YELLOW "(no connected devices)"; break;
+                    case 0: children_str = CB_RED "off"; break;
+                    case 1: children_str = CB_GREEN "on"; break;
+                    case 2: children_str = CB_RED "off (override)"; break;
+                    case 3: children_str = CB_GREEN "on (override)"; break;
                 }
 
                 // Costruisco la stringa delle label disponibili nel dispositivo di controllo
