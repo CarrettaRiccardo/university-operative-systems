@@ -18,6 +18,10 @@
 #define ARGC_INFO 2
 #define ARGC_QUIT 1
 
+/**
+ * Definire MANUAL in compilazione per generare l'esegubile per i comandi manuali
+ **/
+
 /*  Lettura e parse parametri */
 int getArgs(char *line, int *argc, char **argv);
 /*  Print con identazione   */
@@ -26,8 +30,10 @@ void printHelp(char *cmd, char *desc);
 /*  Metodi implementati nel terminale   */
 void terminalInit(char *file);
 void terminalDestroy();
+#ifndef MANUAL
 void listDevices();
 int addDevice(char *device);
+#endif
 void delDevice(int id);
 void linkDevices(int id1, int id2);
 void switchDevice(int id, char *label, char *pos);
@@ -36,16 +42,29 @@ void infoDevice(int id);
 
 /* Main */
 int main(int sargc, char **sargv) {
+#ifndef MANUAL
     ipcInit(getMq(getpid()));  // Inizializzo componenti comunicazione
+#else
+    if (sargc <= 1 || !isInt(sargv[1])) {
+        printf("Usage: manual <terminal id>\n");
+        return 0;
+    }
+    terminal_pid = atoi(sargv[1]);
+    ipcInit(getMq(terminal_pid));  // Inizializzo componenti comunicazione, mi collego al controller passato come parametro
+#endif
     terminalInit(sargv[0]);
-
     short run = 1;       //  Per uscire dal while nel caso si scriva "quit"
     int print_sign = 1;  // Per identificare quando stampare >. Serve per evitare duplicati nel caso venga ricevuto un segnale da una shell manuale
     char line[MAX_LEN];
     int argc = 0;
     char *argv[MAX_ARGC];
 
-    printf("Domotic System 1.0 identifier (use this for manual commands): " CB_WHITE "%d\n" C_WHITE, getpid());
+#ifndef MANUAL
+    printf(CB_WHITE "Domotic System 1.0" C_WHITE ", identifier (use this for manual commands): " CB_WHITE "%d\n" C_WHITE, getpid());
+#else
+    printf(CB_WHITE "Manual shell" C_WHITE " connected to the controller: " CB_WHITE "%d\n" C_WHITE, terminal_pid);
+#endif
+
     printf("Type \"help\" for more information.\n\n");
 
     while (run) {
@@ -63,8 +82,10 @@ int main(int sargc, char **sargv) {
         if (strcmp(argv[0], "help") == 0) {
             printf("Available commands:\n");
             printHelp("help", "Print this page.");
+#ifndef MANUAL  // I comandi LIST e ADD sono supportati solo dalla shell principale e non da quella manuale
             printHelp("list", "List the installed devices.");
             printHelp("add <device>", "Add <device> to the system.");
+#endif
             printHelp("del <id>", "Remove device <id>. If the device is a control device, remove also the linked devices.");
             printHelp("link <id> to <id>", "Link two devices.");
             printHelp("switch <id> <label> <pos>", "Change the value of the switch <label> of the device <id> to <pos>.");
@@ -72,7 +93,8 @@ int main(int sargc, char **sargv) {
             printHelp("info <id>", "Print device <id> info.");
             printHelp("quit", "Close the terminal and kill all processes.");
         }
-        /**************************************** LIST ********************************************/
+/**************************************** LIST ********************************************/
+#ifndef MANUAL
         else if (strcmp(argv[0], "list") == 0) {
             if (argc != ARGC_LIST) {
                 printf(CB_RED "Unknown parameters, usage: list\n" C_WHITE);
@@ -105,6 +127,7 @@ int main(int sargc, char **sargv) {
                     printf(CB_GREEN "Device added with id %d" C_WHITE "\nNow it's disconnected from the system. To connect the device run " CB_WHITE "link %d to 0\n" C_WHITE, result, result);
             }
         }
+#endif
         /**************************************** DEL ********************************************/
         else if (strcmp(argv[0], "del") == 0) {
             if (argc != ARGC_DEL) {

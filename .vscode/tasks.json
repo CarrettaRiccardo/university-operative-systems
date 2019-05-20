@@ -19,7 +19,7 @@
             ],*/
             "args": [
                 "-c",
-                "cd ./project && make build && echo Running... && ./bin/controller"
+                "cd ./project && make build && echo Running... && ./bin/terminal"
             ],
             "group": {
                 "kind": "build",

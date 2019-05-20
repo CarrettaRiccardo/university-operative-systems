@@ -55,7 +55,7 @@ int listContains(list_t l, void *value);
 int listCount(list_t l);
 
 /*  Ritorna l' ultimo elemento della lista */
-void* listLast(list_t l);
+void *listLast(list_t l);
 
 /*  Ritorna 1 se la lista è vuota, 0 altrimenti */
 int listEmpty(list_t l);

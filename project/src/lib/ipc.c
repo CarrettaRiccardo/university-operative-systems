@@ -225,25 +225,25 @@ int getPidById(list_t children, int id) {
     while (p != NULL) {
         int to_pid = *(int *)p->value;
         int res = getPidByIdSingle(to_pid, id);
-        if(res > 0)
-          return res;
+        if (res > 0)
+            return res;
         p = p->next;
     }
     return -1;
 }
 
-int getPidByIdSingle(int to_pid, int id){
-  message_t request = buildTranslateRequest(to_pid, id);
-  message_t response;
+int getPidByIdSingle(int to_pid, int id) {
+    message_t request = buildTranslateRequest(to_pid, id);
+    message_t response;
 
-  if (sendMessage(&request) == -1) {
-      perror("Error get pid by id request");
-  } else if (receiveMessage(&response) == -1) {
-      perror("Error get pid by id response");
-  } else if (response.vals[TRANSLATE_VAL_ID] > 0 && response.type == TRANSLATE_MSG_TYPE) {
-      return response.vals[TRANSLATE_VAL_ID];  // Id trovato
-  }
-  return -1;
+    if (sendMessage(&request) == -1) {
+        perror("Error get pid by id request");
+    } else if (receiveMessage(&response) == -1) {
+        perror("Error get pid by id response");
+    } else if (response.vals[TRANSLATE_VAL_ID] > 0 && response.type == TRANSLATE_MSG_TYPE) {
+        return response.vals[TRANSLATE_VAL_ID];  // Id trovato
+    }
+    return -1;
 }
 
 // stampa nel file con nome della session il messaggio

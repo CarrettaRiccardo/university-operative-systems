@@ -12,8 +12,8 @@ OBJ_DIR = ./obj
 BIN_DIR = ./bin
 
 # File da compilare
-LIB = list utils ipc							  		# Librerie
-BIN = controller manual bulb fridge window hub timer terminal    # Eseguibili 
+LIB = list utils ipc							# Librerie
+DEVICES = controller bulb fridge window hub timer   # Eseguibili dispositivi
 
 
 # Lista file oggetto librerie. Necessario per linkare le librerie agli eseguibili
@@ -25,13 +25,17 @@ OBJ = $(patsubst %,$(OBJ_DIR)/%.o,$(LIB))
 help:
 	@echo "TODO HELP"
 
+# Compilazione terminal e manual
+terminal_manual:
+	$(CC) $(FLAGS) -o $(BIN_DIR)/terminal $(SRC_DIR)/terminal/terminal.c $(OBJ)
+	$(CC) $(FLAGS) -o $(BIN_DIR)/manual $(SRC_DIR)/terminal/terminal.c -DMANUAL $(OBJ)
 
 # Macro per compilazione librerie in file .o
 $(LIB):
 	$(CC) $(FLAGS) -c -o $(OBJ_DIR)/$@.o $(LIB_DIR)/$@.c
 
 # Macro per compilazione eseguibili dispositivi
-$(BIN):
+$(DEVICES):
 	$(CC) $(FLAGS) -o $(BIN_DIR)/$@ $(SRC_DIR)/$@/$@.c $(OBJ)
 
 # Crea le cartelle "bin" e "obj"
@@ -40,7 +44,7 @@ prepare:
 	@mkdir -p $(OBJ_DIR)
 
 # Compila le librerie e gli eseguibili utilizzando le macro
-build: prepare $(LIB) $(BIN)
+build: prepare terminal_manual $(LIB) $(DEVICES)
 
 
 # Rimuove i file compilati

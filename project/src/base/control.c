@@ -29,10 +29,10 @@ int main(int argc, char **argv) {
     // Inizializzazione
     signal(SIGCHLD, sigchldHandler);
 
-    max_children_count = -1;  // Valore di default. I device specifici possono impostare altri valori
+    max_children_count = -1;             // Valore di default. I device specifici possono impostare altri valori
     base_dir = extractBaseDir(argv[0]);  //ottengo il nome della cartella di base degli eseguibili per poter eseguire corretamente altri figli
-    ipcInit(atoi(argv[1]));  //inizializzo la MessageQueue
-    id = atoi(argv[2]);  //leggo l'id del componente che il padre mi ha passato
+    ipcInit(atoi(argv[1]));              //inizializzo la MessageQueue
+    id = atoi(argv[2]);                  //leggo l'id del componente che il padre mi ha passato
     children = listIntInit();
 
     if (argc <= 3) {
@@ -84,24 +84,23 @@ int main(int argc, char **argv) {
                 } break;
 
                 case SWITCH_MSG_TYPE: {
-                    if(id != 0){ //il contrller (sempre id = 0) non deve eseguire nessuno switch nei figli, perchè il terminale inviaerà direttamente al componente il comando
-                      int success = doSwitchChildren(msg.vals[SWITCH_VAL_LABEL], msg.vals[SWITCH_VAL_POS]);
-                      message_t m = buildSwitchResponse(msg.sender, success);
-                      sendMessage(&m);
+                    if (id != 0) {  //il contrller (sempre id = 0) non deve eseguire nessuno switch nei figli, perchè il terminale inviaerà direttamente al componente il comando
+                        int success = doSwitchChildren(msg.vals[SWITCH_VAL_LABEL], msg.vals[SWITCH_VAL_POS]);
+                        message_t m = buildSwitchResponse(msg.sender, success);
+                        sendMessage(&m);
                     }
 
                 } break;
 
                 case SET_MSG_TYPE: {
-                  if(id != 0){ //il contrller (sempre id = 0) non deve eseguire nessuno switch nei figli, perchè il terminale inviaerà direttamente al componente il comando
-                    int success = handleSetControl(&msg);
-                    message_t m = buildSetResponse(msg.sender, success);
-                    sendMessage(&m);
-                  }
-                  else{ //il contrller ritorna sempre un messaggio di errore
-                    message_t m = buildSetResponse(msg.sender, -1);
-                    sendMessage(&m);
-                  }
+                    if (id != 0) {  //il contrller (sempre id = 0) non deve eseguire nessuno switch nei figli, perchè il terminale inviaerà direttamente al componente il comando
+                        int success = handleSetControl(&msg);
+                        message_t m = buildSetResponse(msg.sender, success);
+                        sendMessage(&m);
+                    } else {  //il contrller ritorna sempre un messaggio di errore
+                        message_t m = buildSetResponse(msg.sender, -1);
+                        sendMessage(&m);
+                    }
                 } break;
 
                 case INFO_MSG_TYPE: {
@@ -130,10 +129,10 @@ int main(int argc, char **argv) {
                 } break;
 
                 case CLONE_MSG_TYPE: {
-                  if(id != 0){ //il controller non può essere clonato
-                    message_t m = buildCloneResponseControl(msg.sender, id);  // Implementazione specifica dispositivo
-                    sendMessage(&m);
-                  }
+                    if (id != 0) {                                                //il controller non può essere clonato
+                        message_t m = buildCloneResponseControl(msg.sender, id);  // Implementazione specifica dispositivo
+                        sendMessage(&m);
+                    }
                 } break;
 
                 case GET_CHILDREN_MSG_TYPE: {
@@ -149,31 +148,30 @@ int main(int argc, char **argv) {
                     m = buildGetChildResponse(msg.sender, -1);
                     sendMessage(&m);
 
-            } break;
+                } break;
 
-            case DELETE_MSG_TYPE: {  //uccido tutti i miei figli e poi me stesso
-              if(id != 0){
-                signal(SIGCHLD, NULL);  // Rimuovo l'handler in modo da non interrompere l'esecuzione mentre elimino ricorsivamente i figli
-                node_t *p = children->head;
-                message_t kill_req, kill_resp;
-                while (p != NULL) {
-                    kill_req = buildDeleteRequest(*(int *)p->value);
-                    sendMessage(&kill_req);
-                    receiveMessage(&kill_resp);
-                    p = p->next;
-                }
-                message_t m = buildDeleteResponse(msg.sender, 1);
-                sendMessage(&m);
-                exit(0);
-              }
-              else{
-                message_t m = buildDeleteResponse(msg.sender, -1);  //invio msg errore perchè non si può uccidere la centalina
-                sendMessage(&m);
-              }
-            } break;
+                case DELETE_MSG_TYPE: {  //uccido tutti i miei figli e poi me stesso
+                    if (id != 0) {
+                        signal(SIGCHLD, NULL);  // Rimuovo l'handler in modo da non interrompere l'esecuzione mentre elimino ricorsivamente i figli
+                        node_t *p = children->head;
+                        message_t kill_req, kill_resp;
+                        while (p != NULL) {
+                            kill_req = buildDeleteRequest(*(int *)p->value);
+                            sendMessage(&kill_req);
+                            receiveMessage(&kill_resp);
+                            p = p->next;
+                        }
+                        message_t m = buildDeleteResponse(msg.sender, 1);
+                        sendMessage(&m);
+                        exit(0);
+                    } else {
+                        message_t m = buildDeleteResponse(msg.sender, -1);  //invio msg errore perchè non si può uccidere la centalina
+                        sendMessage(&m);
+                    }
+                } break;
+            }
         }
-      }
-    }//while
+    }  //while
     return 0;
 }
 

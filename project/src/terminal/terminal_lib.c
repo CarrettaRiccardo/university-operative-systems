@@ -7,14 +7,13 @@
 #include "../include/ipc.h"
 #include "../include/list.h"
 
+/**
+ * Implementa i metodi definiti in terminal.c
+ **/
 
-/*
-  Implementa i metodi definiti in terminal.c
-*/
-
-
+#ifndef MANUAL
 int next_id;
-list_t children; //lista che contiene i pid del controller e di tutti i componenti aggiunti ma non attivi
+list_t children;  // Lista che contiene i pid del controller e di tutti i componenti aggiunti ma non attivi
 char *base_dir;
 
 /* Handler segnale eliminazione figli */
@@ -34,6 +33,30 @@ void getPidByIdSignalHandler(int sig, siginfo_t *siginfo, void *context) {
         perror("Error: cannot send response to manual shell");
     }
 }
+/* Ritorna il pid del device (id) */
+int solveId(id) {
+    return getPidById(children, id);
+}
+#else
+int terminal_pid;  // PID del terminale collegato
+int solved_pid;
+/* Chiede al controller il pid collegato al device id */
+int solveId(int id) {
+    if (sendGetPidByIdSignal(terminal_pid, id) < 0) {
+        printf(CB_RED "Error: cannot contact the controller. Check the controller id and retry. Closing...\n" C_WHITE);
+        exit(0);
+        return -1;
+    } else {
+        pause();  // Attendo la ricezione del segnale di risposta da parte del controller prima di continuare
+        return solved_pid;
+    }
+}
+
+/* Handler risposta getPidById dal controller */
+static void getPidByIdSignalHandler(int sig, siginfo_t *siginfo, void *context) {
+    solved_pid = siginfo->si_value.sival_int;  // Imposto il valore del pid risolto dal controller
+}
+#endif
 
 /**************************************** INIT ********************************************/
 /* Inizializzazione valori terminal                                                     */
@@ -43,7 +66,7 @@ void getPidByIdSignalHandler(int sig, siginfo_t *siginfo, void *context) {
   file: percorso dell' eseguibile corrente, usato per estrarre la cartella di origine
 */
 void terminalInit(char *file) {
-    // Registrazione handler per risposta getPidById dal terminal
+    // Registrazione handler per risposta getPidById dal terminal. Se MANUAL è settato registra come handler il metodo apposito
     struct sigaction sig;
     sigemptyset(&sig.sa_mask);
     sig.sa_sigaction = getPidByIdSignalHandler;
@@ -52,6 +75,7 @@ void terminalInit(char *file) {
         perror("Error: cannot register SIGUSR1 handler");
     }
 
+#ifndef MANUAL
     // Registrazione handler per signal terminazione figli
     signal(SIGCHLD, sigchldHandler);
     children = listIntInit();
@@ -64,18 +88,25 @@ void terminalInit(char *file) {
     char *last_slash = strrchr(base_dir, '/');
     if (last_slash) *(last_slash + 1) = '\0';
 
-    if(addDevice(CONTROLLER)){
-      printf(CB_RED "Error: cannot create controller, aborting...\n" C_WHITE);
-      exit(1);
+    if (addDevice(CONTROLLER)) {
+        printf(CB_RED "Error: cannot create controller, aborting...\n" C_WHITE);
+        exit(1);
     }
+#else
+    // Nella shell manuale non devo aggiungere il controller come figlio o settare l'handler per i segnali di kill dei figli
+    solved_pid = -1;
+#endif
 }
 
 /*  Dealloca il terminal  */
 void terminalDestroy() {
+#ifndef MANUAL
     listDestroy(children);
     free(base_dir);
+#endif
 }
 
+#ifndef MANUAL
 /**************************************** LIST ********************************************/
 /* Stampa l'albero dei dispositivi con l'id e lo stato                                     */
 /******************************************************************************************/
@@ -102,7 +133,6 @@ void listDevices() {
     }
 }
 
-
 /**************************************** ADD ********************************************/
 /* Aggiunge un dispositivo al terminale in base al tipo specificato                      */
 /*****************************************************************************************/
@@ -125,6 +155,7 @@ int addDevice(char *device) {
         return next_id - 1;
     }
 }
+#endif
 
 /**************************************** DEL ********************************************/
 /* Elimina un dispositivo in base all'id specificato                                     */
@@ -135,7 +166,7 @@ void delDevice(int id) {
         return;
     }
 
-    int pid = getPidById(children, id);
+    int pid = solveId(id);
     if (pid == -1) {
         printf(CB_RED "Error: device with id %d not found\n" C_WHITE, id);
         return;
@@ -161,7 +192,7 @@ void linkDevices(int id1, int id2) {
     }
 
     // Risolvo l'id1 in un PID valido
-    int src = getPidById(children, id1);
+    int src = solveId(id1);
     if (src == -1) {
         printf(CB_RED "Error: device with id %d not found\n" C_WHITE, id1);
         return;
@@ -169,24 +200,18 @@ void linkDevices(int id1, int id2) {
 
     message_t request, response;
     // Risolvo l'id2 in un PID valido
-    int dest = getPidById(children, id2);
+    int dest = solveId(id2);
     if (dest == -1) {
         printf(CB_RED "Error: device with id %d not found\n" C_WHITE, id2);
         return;
     }
 
     // Se il src contiene dest tra i sui figli, sto creando un ciclo.
-    request = buildTranslateRequest(src, id2);
-    if (sendMessage(&request) == -1) {
-        perror("Error get pid by id request");
-        return;
-    } else if (receiveMessage(&response) == -1) {
-        perror("Error get pid by id response");
-        return;
-    } else if (response.vals[TRANSLATE_VAL_ID] > 0) {
+    if (getPidByIdSingle(src, id2) > 0) {
         printf(CB_RED "Error: cycle identified, %d is a child of %d\n" C_WHITE, id2, id1);
         return;
     }
+
     // Invio la richiesta di link a dest con il PID di src
     request = buildLinkRequest(dest, src);
     if (sendMessage(&request) == -1) {
@@ -218,13 +243,13 @@ void linkDevices(int id1, int id2) {
 /* Uno switch può essere fatto solo su dispostivi attivi                                    */
 /********************************************************************************************/
 void switchDevice(int id, char *label, char *pos) {
-    void* controller_pid = listLast(children);
-    if(controller_pid == NULL){
-      printf(CB_RED "Error: controller not found, aborting...\n" C_WHITE);
-      exit(1);
+#ifndef MANUAL
+    void *controller_pid = listLast(children);
+    if (controller_pid == NULL) {
+        printf(CB_RED "Error: controller not found, aborting...\n" C_WHITE);
+        exit(1);
     }
-
-    int pid = getPidByIdSingle( *(int*)controller_pid, id);  //
+    int pid = getPidByIdSingle(*(int *)controller_pid, id);
     if (pid == -1) {
         if (getPidById(children, id) != -1) {
             printf(CB_RED "Error: device with id %d not connected to the controller\n" C_WHITE, id);
@@ -233,6 +258,13 @@ void switchDevice(int id, char *label, char *pos) {
         }
         return;
     }
+#else
+    int pid = solveId(id);
+    if (pid == -1) {
+        printf(CB_RED "Error: device with id %d not found\n" C_WHITE, id);
+        return;
+    }
+#endif
     int label_val = INVALID_VALUE;  // 0 = interruttore (generico), 1 = termostato
     int pos_val = INVALID_VALUE;    // 0 = spento, 1 = acceso; x = valore termostato (°C)
     // Map delle label (char*) in valori (int) per poterli inserire in un messaggio
@@ -270,7 +302,6 @@ void switchDevice(int id, char *label, char *pos) {
         } else {
             printf(CB_RED "Error: invalid pos value \"%s\" for label \"%s\"\n" C_WHITE, pos, label);
         }
-
         return;
     } else {
         message_t request = buildSwitchRequest(pid, label_val, pos_val);
@@ -294,22 +325,15 @@ void switchDevice(int id, char *label, char *pos) {
 /* Il SET può essere fatto solo su dispositivi attivi                                       */
 /********************************************************************************************/
 void setDevice(int id, char *label, char *val) {
-    void* controller_pid = listLast(children);
-    if(controller_pid == NULL){
-      printf(CB_RED "Error: controller not found, aborting...\n" C_WHITE);
-      exit(1);
-    }
-
-    int pid = getPidByIdSingle( *(int*)controller_pid, id);  //
+#ifndef MANUAL
+    int pid = solveId(id);
+#else
+    int pid = solveId(id);
+#endif
     if (pid == -1) {
-        if (getPidById(children, id) != -1) {
-            printf(CB_RED "Error: device with id %d not connected to the controller\n" C_WHITE, id);
-        } else {
-            printf(CB_RED "Error: device with id %d not found\n" C_WHITE, id);
-        }
+        printf(CB_RED "Error: device with id %d not found\n" C_WHITE, id);
         return;
     }
-
     int label_val = INVALID_VALUE;  // 0 = interruttore (generico), 1 = termostato
     int pos_val = INVALID_VALUE;    // 0 = spento, 1 = acceso; x = valore termostato (°C)
     // Map delle label (char*) in valori (int) per poterli inserire in un messaggio
@@ -374,10 +398,10 @@ void setDevice(int id, char *label, char *val) {
 /* Ottiene il sottoalbero a partire dal device "id" con tutte le informazioni dei dispositivi */
 /**********************************************************************************************/
 void infoDevice(int id) {
-    int pid = getPidById(children, id);
+    int pid = solveId(id);
     if (pid == -1) {
-      printf(CB_RED "Error: device with id %d not found\n" C_WHITE, id);
-      return;
+        printf(CB_RED "Error: device with id %d not found\n" C_WHITE, id);
+        return;
     }
     message_t request = buildInfoRequest(pid);
     message_t response;

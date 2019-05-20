@@ -50,7 +50,6 @@ message_t buildLinkResponse(int to_pid, int success);
 message_t buildBusyResponse(int to_pid);
 message_t buildAddResponse(int to_pid, int result);
 
-
 /********************************** Send/Receive **********************************/
 int sendMessage(const message_t* request);
 int receiveMessage(message_t* response);
