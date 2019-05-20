@@ -298,7 +298,7 @@ void switchDevice(int id, char *label, char *pos) {
         return;
     } else if (pos_val == INVALID_VALUE) {
         if (label_val == LABEL_THERM_VALUE) {
-            printf(CB_RED "Error: invalid pos value \"%s\" for label \"%s\". It must be a number between -20°C and 15°C \n" C_WHITE, pos, label);
+            printf(CB_RED "Error: invalid pos value %s°C for label \"%s\". It must be a number between -20°C and 15°C \n" C_WHITE, pos, label);
         } else {
             printf(CB_RED "Error: invalid pos value \"%s\" for label \"%s\"\n" C_WHITE, pos, label);
         }
@@ -363,7 +363,7 @@ void setDevice(int id, char *label, char *val) {
             sec -= now.tm_sec;
             pos_val = time(NULL) + (hr * 3600) + (min * 60) + sec;
         }
-    } else if (label_val == REGISTER_PERC_VALUE && isInt(val) && label_val >= 0 && label_val <= 100) {
+    } else if (label_val == REGISTER_PERC_VALUE && isInt(val) && atoi(val) >= 0 && atoi(val) <= 100) {
         pos_val = atoi(val);
     }
 
@@ -373,7 +373,7 @@ void setDevice(int id, char *label, char *val) {
         return;
     } else if (pos_val == INVALID_VALUE) {
         if (label_val == REGISTER_PERC_VALUE) {
-            printf(CB_RED "Error: invalid value \"%s\" for register \"%s\". It must be a number between 0 and 100\n" C_WHITE, val, label);
+            printf(CB_RED "Error: invalid value %s%% for register \"%s\". It must be a number between 0 and 100\n" C_WHITE, val, label);
         } else {
             printf(CB_RED "Error: invalid value \"%s\" for register \"%s\"\n" C_WHITE, val, label);
         }
