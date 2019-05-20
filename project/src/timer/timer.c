@@ -18,28 +18,25 @@ void initData() {
 }
 
 void cloneData(char **vals) {
+    // Associo il metodo switch al segnare alarm per il begin/end automatico (se TIMER)
     signal(SIGALRM, setAlarm);
     max_children_count = 1;
     begin = *localtime(&(time_t){atoi(vals[0])});
     end = *localtime(&(time_t){atoi(vals[1])});
     waitForBegin = atoi(vals[2]);
+    alarm(atoi(vals[3]));// fa ripartire il timer da dove si trovava prima
 }
 
 int handleSetControl(message_t *msg) {
     // il timer deve poter modificare begin/end e far partire il timer di accensione/spegnimento
     int success = -1;
     if (msg->vals[SET_VAL_LABEL] == LABEL_BEGIN_VALUE) {
-        // TODO
-        time_t now;
-        time(&now);
-        begin = *localtime(&now);
-        begin.tm_sec += msg->vals[SET_VAL_VALUE];
-        
-        printf("(DEBUG) %d:%d:%d\n", begin.tm_hour, begin.tm_min, begin.tm_sec);
+        time_t event = msg->vals[SET_VAL_VALUE];
+        begin = *localtime(&event);
         success = 1;
     } else if (msg->vals[SET_VAL_LABEL] == LABEL_END_VALUE) {
-        // TODO
-        //end = *localtime(msg->vals[SET_VAL_VALUE]);
+        time_t event = msg->vals[SET_VAL_VALUE];
+        end = *localtime(&event);
         success = 1;
     }
     // set del tempo rimasto per accensione/spegnimento automatica
@@ -83,7 +80,7 @@ message_t buildListResponseControl(int to_pid, int id, int lv, short stop) {
 }
 
 message_t buildCloneResponseControl(int to_pid, int id) {
-    int vals[] = {mktime(&begin), mktime(&end), waitForBegin};
+    int vals[] = {mktime(&begin), mktime(&end), waitForBegin, alarm()};
     return buildCloneResponse(to_pid, TIMER, id, vals, 1);
 }
 

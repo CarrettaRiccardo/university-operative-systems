@@ -78,8 +78,13 @@ int handleSetDevice(message_t *msg) {
         delay = msg->vals[SET_VAL_VALUE];
         success = 1;
     } else if (msg->vals[SET_VAL_LABEL] == LABEL_PERC_VALUE) {  // Percentuale riempimento
-        perc = msg->vals[SET_VAL_VALUE];
-        success = 1;
+        if (msg->vals[SET_VAL_VALUE] < 0 || msg->vals[SET_VAL_VALUE] > 100) {
+            success = SET_PERC_NOT_VALID;
+        }
+        else{
+            perc = msg->vals[SET_VAL_VALUE];
+            success = 1;
+        }
     }
     return success;
 }

@@ -139,7 +139,7 @@ int main(int sargc, char **sargv) {
         /**************************************** SET ********************************************/
         else if (strcmp(argv[0], "set") == 0) {
             if (argc != ARGC_SET) {
-                printf(CB_RED "Unknown parameters, usage: set <id> <register> <pos>\n" C_WHITE);
+                printf(CB_RED "Unknown parameters, usage: set <id> <register> <value>\n" C_WHITE);
             } else if (!isInt(argv[1])) {
                 printf(CB_RED "Error: <id> must be a positive number\n" C_WHITE);
             } else {
