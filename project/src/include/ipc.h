@@ -15,10 +15,10 @@
 time_t session;
 int mqid;
 
-/////////////////////////////// WORKERS ///////////////////////////////
+/********************************** Workers **********************************/
 void doLink(list_t children, int to_clone_pid, const char* base_dir);
 
-/////////////////////////////// REQUESTS ///////////////////////////////
+/********************************** Requests **********************************/
 message_t buildRequest(int to_pid, short msg_type);
 message_t buildInfoRequest(int to_pid);
 message_t buildTranslateRequest(int to_pid, int search_id);
@@ -30,7 +30,7 @@ message_t buildCloneRequest(int to_pid);
 message_t buildGetChildRequest(int to_pid);
 message_t buildLinkRequest(int to_pid, int to_clone_pid);
 
-/////////////////////////////// RESPONSES ///////////////////////////////
+/********************************** Responses **********************************/
 message_t buildResponse(int to_pid, short msg_type);
 message_t buildInfoResponse(int to_pid, int id, int lv, short stop);
 message_t buildSwitchResponse(int to_pid, short success);
@@ -43,15 +43,15 @@ message_t buildGetChildResponse(int to_pid, int child_pid);
 message_t buildLinkResponse(int to_pid, short success);
 message_t buildBusyResponse(int to_pid);
 
-/////////////////////////////// IPC ///////////////////////////////
+/********************************** Send/Receive **********************************/
 int sendMessage(const message_t* request);
 int receiveMessage(message_t* response);
 
-/////////////////////////////// SIGNALS ///////////////////////////////
+/********************************** Signals **********************************/
 /* Invia la richiesta di traduzione id in pid al controller / invia il pid risolto alla shell manuale */
 int sendGetPidByIdSignal(int to_pid, int id);
 
-/////////////////////////////// INIT ///////////////////////////////
+/********************************** Init **********************************/
 /* Inizializza i componenti per comunicare */
 void ipcInit(int _mqid);
 

@@ -10,10 +10,7 @@
 
 // LIST
 #define LIST_MSG_TYPE 0
-#define LIST_VAL_ID 0
-#define LIST_VAL_LEVEL 1
-#define LIST_VAL_STATE 2
-#define LIST_VAL_STOP 3
+// List usa gli stessi parametri di INFO definiti sotto
 
 // INFO
 #define INFO_MSG_TYPE 1

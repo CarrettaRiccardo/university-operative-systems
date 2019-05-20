@@ -11,11 +11,14 @@ void initData();
 void cloneData(char **vals);
 int handleSetControl(message_t *msg);
 message_t buildInfoResponseControl(int to_pid, int id, char *children_state, char *available_labels, char *registers_vals, int lv, short stop);
-message_t buildListResponseControl(int to_pid, int id, int lv, short stop);
+message_t buildListResponseControl(int to_pid, int id, char *children_state, int lv, short stop);
 message_t buildCloneResponseControl(int to_pid, int id);
 
 /* Gestione figlio eliminato */
 void sigchldHandler(int signum);
+
+/* Esegue il comando INFO e LIST */
+void doInfoList(message_t *msg, short type);
 
 char *base_dir;
 int id;
@@ -94,164 +97,11 @@ int main(int argc, char **argv) {
                 } break;
 
                 case INFO_MSG_TYPE: {
-                    list_t msg_list = listMsgInit();  // Salvo tutti i messaggi ricevuti dai figli per reinviarli dopo
-                    int count_on = 0, count_off = 0;
-                    short override = 0;
-                    int label_values = 0;
-                    int registers_values[NVAL] = {0};   // Mantiene la somma dei valori dei registri dei figli
-                    short registers_count[NVAL] = {0};  // Mantiene il count dei figli con quel registro
-                    node_t *p = children->head;
-                    while (p != NULL) {
-                        message_t request = buildInfoRequest(*(int *)p->value);
-                        message_t response;
-                        if (sendMessage(&request) == -1) perror("Error info request in control device");
-
-                        int stop = 0;
-                        // Ricevo per ogni figlio tutte le risposte INFO dei sottofigli
-                        do {
-                            if (receiveMessage(&response) == -1) perror("Error info response in control device");
-
-                            response.to = msg.sender;                        // Cambio il destinatario per rispondere al mittente
-                            response.vals[INFO_VAL_LEVEL] += 1;              //  Aumento il valore "livello", serve per l'identazione
-                            label_values |= response.vals[INFO_VAL_LABELS];  // Eseguo l'OR bit a bit per avere un intero che rappresenta tutti gli interruttori dipsonibili
-
-                            stop = response.vals[INFO_VAL_STOP];
-                            if (stop == 1 && p->next == NULL) {  // Ultimo figlio, imposto lo stop
-                                response.vals[INFO_VAL_STOP] = 1;
-                            } else {
-                                response.vals[INFO_VAL_STOP] = 0;
-                            }
-
-                            // Sommo i valori dei registri dei figli, in modo da poter calcolare i registri dell'HUB
-                            int i;
-                            for (i = INFO_VAL_REG_TIME; i <= INFO_VAL_REG_TEMP; i++) {
-                                if (response.vals[i] != INVALID_VALUE) {                                  // Se è un valore valido
-                                    if (registers_count[i] == 0) registers_values[i] = response.vals[i];  // Se è il primo registro con questo valore
-                                    if (response.vals[i] > registers_values[i])                           // Salvo il valore massimo tra i registri dei figli
-                                        registers_values[i] = response.vals[i];
-                                    registers_count[i]++;
-                                }
-                            }
-
-                            listPushBack(msg_list, &response, sizeof(message_t));  // Salvo il messaggio per inviarlo dopo aver calcolato lo stato dell'HUB da quello dei figli
-                            switch (response.vals[INFO_VAL_STATE]) {
-                                case 0: count_off++; break;  // off
-                                case 1: count_on++; break;   // on
-                                case 2:                      // off (override)
-                                    count_off++;
-                                    override = 1;
-                                    break;
-                                case 3:  // on (override)
-                                    count_on++;
-                                    override = 1;
-                                    break;
-                            }
-                        } while (stop != 1);  // Se stop = 1 non ho risposte da altri sottofigli da salvare, posso quindi passare al prossimo figlio
-                        p = p->next;
-                    }
-
-                    short children_state;
-                    if (count_on == 0 && count_off == 0)
-                        children_state = -1;  // Nessun figlio
-                    else if (override == 0 && count_on == 0)
-                        children_state = 0;  // off
-                    else if (override == 0 && count_off == 0)
-                        children_state = 1;  // on
-                    else
-                        children_state = (count_off >= count_on) ? 2 : 3;  // off (override) / on (override)
-
-                    // Lo stato dell'hub è dato dal valore di maggioranza dello stato dei figli
-                    char *children_str;
-                    switch (children_state) {
-                        case -1: children_str = CB_YELLOW "(no connected devices)"; break;
-                        case 0: children_str = CB_RED "off"; break;
-                        case 1: children_str = CB_GREEN "on"; break;
-                        case 2: children_str = CB_RED "off (override)"; break;
-                        case 3: children_str = CB_GREEN "on (override)"; break;
-                    }
-
-                    // Costruisco la stringa delle label disponibili nel dispositivo di controllo
-                    char labels_str[64] = "";
-                    if (label_values != 0) label_values |= LABEL_ALL_VALUE;  // Se ho dei figli mostro anche l'interruttore all
-                    if (label_values & LABEL_ALL_VALUE) strcat(labels_str, " " LABEL_ALL);
-                    if (label_values & LABEL_LIGHT_VALUE) strcat(labels_str, " " LABEL_LIGHT);
-                    if (label_values & LABEL_OPEN_VALUE) strcat(labels_str, " " LABEL_OPEN);
-                    if (label_values & LABEL_THERM_VALUE) strcat(labels_str, " " LABEL_THERM);
-                    if (strlen(labels_str) == 0) strcat(labels_str, " (empty)");  // Nel caso non avessi nessun interruttore
-
-                    // Calcolo i valori dei registri disponibili e lo setto
-                    char registers_str[64] = "";
-                    int i;
-                    for (i = INFO_VAL_REG_TIME; i <= INFO_VAL_REG_TEMP; i++) {
-                        if (registers_count[i] > 0) {
-                            int value = registers_values[i];
-                            char reg_str[16] = "";
-                            if (i == INFO_VAL_REG_TIME) snprintf(reg_str, 16, " " LABEL_TIME "=%ds", value);
-                            if (i == INFO_VAL_REG_DELAY) snprintf(reg_str, 16, " " LABEL_DELAY "=%ds", value);
-                            if (i == INFO_VAL_REG_PERC) snprintf(reg_str, 16, " " LABEL_PERC "=%d%%", value);
-                            if (i == INFO_VAL_REG_TEMP) snprintf(reg_str, 16, " " LABEL_TEMP "=%d°C", value);
-                            strcat(registers_str, reg_str);
-                        }
-                    }
-                    if (strlen(registers_str) == 0) strcat(registers_str, " (empty)");  // Nel caso non avessi nessun registro
-
-                    message_t m = buildInfoResponseControl(msg.sender, id, children_str, labels_str, registers_str, msg.vals[INFO_VAL_LEVEL], listEmpty(msg_list));  // Implementazione specifica dispositivo
-                    m.vals[INFO_VAL_STATE] = children_state;
-                    m.vals[INFO_VAL_LABELS] = label_values;
-                    for (i = INFO_VAL_REG_TIME; i <= INFO_VAL_REG_TEMP; i++) m.vals[i] = registers_count[i] > 0 ? registers_values[i] : INVALID_VALUE;
-                    sendMessage(&m);
-
-                    // Invio messaggi ricevuti dai figli al mittente
-                    node_t *el = msg_list->head;
-                    while (el != NULL) {
-                        sendMessage((message_t *)el->value);
-                        el = el->next;
-                    }
-                    listDestroy(msg_list);
+                    doInfoList(&msg, INFO_MSG_TYPE);
                 } break;
 
                 case LIST_MSG_TYPE: {
-                    message_t m;
-                    if (listEmpty(children)) {
-                        m = buildListResponseControl(msg.sender, id, msg.vals[LIST_VAL_LEVEL], 1);  // Implementazione specifica dispositivo
-                        sendMessage(&m);
-                    } else {
-                        m = buildListResponseControl(msg.sender, id, msg.vals[LIST_VAL_LEVEL], 0);  // Implementazione specifica dispositivo
-                        sendMessage(&m);
-                        //  Inoltro richiesta LIST ai figli
-                        node_t *p = children->head;
-                        while (p != NULL) {
-                            int son = *(int *)p->value;
-                            message_t request = buildListRequest(son);
-                            if (sendMessage(&request) == -1)
-                                printf("Error sending list control request to pid %d: %s\n", son, strerror(errno));
-
-                            message_t response;
-                            int stop = 0;
-                            do {
-                                // TODO: implementare BUSY globalmente
-                                do {  // Se ricevo un messaggio diverso da quello che mi aspetto, rispondo BUSY
-                                    if (receiveMessage(&response) == -1)
-                                        perror("Error receiving list control response");
-                                    if (response.type != LIST_MSG_TYPE) {
-                                        message_t busy = buildBusyResponse(response.sender);
-                                        sendMessage(&busy);
-                                    }
-                                } while (response.type != LIST_MSG_TYPE);
-
-                                response.to = msg.sender;            // Cambio il destinatario per rispondere al mittente
-                                response.vals[LIST_VAL_LEVEL] += 1;  //  Aumento il valore "livello"
-                                stop = response.vals[LIST_VAL_STOP];
-                                response.vals[LIST_VAL_STOP] = 0;  //  Tolgo lo stop dalla risposta
-                                if (stop == 1 && p->next == NULL) {
-                                    //  Ultimo figlio, imposto lo stop
-                                    response.vals[LIST_VAL_STOP] = 1;
-                                }
-                                sendMessage(&response);
-                            } while (stop != 1);
-                            p = p->next;
-                        }
-                    }
+                    doInfoList(&msg, LIST_MSG_TYPE);
                 } break;
 
                 case LINK_MSG_TYPE: {
@@ -333,17 +183,124 @@ int doSwitchChildren(int label, int pos) {
     return success;
 }
 
-/*int doSetChildren(int label, int val) {
-    int success = -1;
-    // Fa il set di tutti i figli
+void doInfoList(message_t *msg, short type) {
+    list_t msg_list = listMsgInit();  // Salvo tutti i messaggi ricevuti dai figli per reinviarli dopo
+    int count_on = 0, count_off = 0;
+    short override = 0;
+    int label_values = 0;
+    int registers_values[NVAL] = {0};   // Mantiene la somma dei valori dei registri dei figli
+    short registers_count[NVAL] = {0};  // Mantiene il count dei figli con quel registro
     node_t *p = children->head;
     while (p != NULL) {
-        message_t m = buildSetRequest(*(int *)p->value, label, val);
-        sendMessage(&m);
-        message_t resp;
-        receiveMessage(&resp);
-        if (resp.vals[SET_VAL_SUCCESS] != -1) success = 1;  // Un figlio ha modificato il proprio registro con successo
+        message_t request = (type == INFO_MSG_TYPE) ? buildInfoRequest(*(int *)p->value) : buildListRequest(*(int *)p->value);
+        message_t response;
+        if (sendMessage(&request) == -1) perror("Error info request in control device");
+
+        int stop = 0;
+        // Ricevo per ogni figlio tutte le risposte INFO dei sottofigli
+        do {
+            if (receiveMessage(&response) == -1) perror("Error info response in control device");
+
+            response.to = msg->sender;                       // Cambio il destinatario per rispondere al mittente
+            response.vals[INFO_VAL_LEVEL] += 1;              //  Aumento il valore "livello", serve per l'identazione
+            label_values |= response.vals[INFO_VAL_LABELS];  // Eseguo l'OR bit a bit per avere un intero che rappresenta tutti gli interruttori dipsonibili
+
+            stop = response.vals[INFO_VAL_STOP];
+            if (stop == 1 && p->next == NULL) {  // Ultimo figlio, imposto lo stop
+                response.vals[INFO_VAL_STOP] = 1;
+            } else {
+                response.vals[INFO_VAL_STOP] = 0;
+            }
+
+            // Sommo i valori dei registri dei figli, in modo da poter calcolare i registri dell'HUB
+            int i;
+            for (i = INFO_VAL_REG_TIME; i <= INFO_VAL_REG_TEMP; i++) {
+                if (response.vals[i] != INVALID_VALUE) {                                  // Se è un valore valido
+                    if (registers_count[i] == 0) registers_values[i] = response.vals[i];  // Se è il primo registro con questo valore
+                    if (response.vals[i] > registers_values[i])                           // Salvo il valore massimo tra i registri dei figli
+                        registers_values[i] = response.vals[i];
+                    registers_count[i]++;
+                }
+            }
+
+            listPushBack(msg_list, &response, sizeof(message_t));  // Salvo il messaggio per inviarlo dopo aver calcolato lo stato dell'HUB da quello dei figli
+            switch (response.vals[INFO_VAL_STATE]) {
+                case 0: count_off++; break;  // off
+                case 1: count_on++; break;   // on
+                case 2:                      // off (override)
+                    count_off++;
+                    override = 1;
+                    break;
+                case 3:  // on (override)
+                    count_on++;
+                    override = 1;
+                    break;
+            }
+        } while (stop != 1);  // Se stop = 1 non ho risposte da altri sottofigli da salvare, posso quindi passare al prossimo figlio
         p = p->next;
     }
-    return success;
-}*/
+
+    short children_state;
+    if (count_on == 0 && count_off == 0)
+        children_state = -1;  // Nessun figlio
+    else if (override == 0 && count_on == 0)
+        children_state = 0;  // off
+    else if (override == 0 && count_off == 0)
+        children_state = 1;  // on
+    else
+        children_state = (count_off >= count_on) ? 2 : 3;  // off (override) / on (override)
+
+    // Lo stato dell'hub è dato dal valore di maggioranza dello stato dei figli
+    char *children_str;
+    switch (children_state) {
+        case -1: children_str = CB_YELLOW "(no connected devices)"; break;
+        case 0: children_str = CB_RED "off"; break;
+        case 1: children_str = CB_GREEN "on"; break;
+        case 2: children_str = CB_RED "off (override)"; break;
+        case 3: children_str = CB_GREEN "on (override)"; break;
+    }
+
+    // Costruisco la stringa delle label disponibili nel dispositivo di controllo
+    char labels_str[64] = "";
+    if (label_values != 0) label_values |= LABEL_ALL_VALUE;  // Se ho dei figli mostro anche l'interruttore all
+    if (label_values & LABEL_ALL_VALUE) strcat(labels_str, " " LABEL_ALL);
+    if (label_values & LABEL_LIGHT_VALUE) strcat(labels_str, " " LABEL_LIGHT);
+    if (label_values & LABEL_OPEN_VALUE) strcat(labels_str, " " LABEL_OPEN);
+    if (label_values & LABEL_THERM_VALUE) strcat(labels_str, " " LABEL_THERM);
+    if (strlen(labels_str) == 0) strcat(labels_str, " (empty)");  // Nel caso non avessi nessun interruttore
+
+    // Calcolo i valori dei registri disponibili e lo setto
+    char registers_str[64] = "";
+    int i;
+    for (i = INFO_VAL_REG_TIME; i <= INFO_VAL_REG_TEMP; i++) {
+        if (registers_count[i] > 0) {
+            int value = registers_values[i];
+            char reg_str[16] = "";
+            if (i == INFO_VAL_REG_TIME) snprintf(reg_str, 16, " " LABEL_TIME "=%ds", value);
+            if (i == INFO_VAL_REG_DELAY) snprintf(reg_str, 16, " " LABEL_DELAY "=%ds", value);
+            if (i == INFO_VAL_REG_PERC) snprintf(reg_str, 16, " " LABEL_PERC "=%d%%", value);
+            if (i == INFO_VAL_REG_TEMP) snprintf(reg_str, 16, " " LABEL_TEMP "=%d°C", value);
+            strcat(registers_str, reg_str);
+        }
+    }
+    if (strlen(registers_str) == 0) strcat(registers_str, " (empty)");  // Nel caso non avessi nessun registro
+
+    message_t m;
+    if (type == INFO_MSG_TYPE) {
+        m = buildInfoResponseControl(msg->sender, id, children_str, labels_str, registers_str, msg->vals[INFO_VAL_LEVEL], listEmpty(msg_list));  // Implementazione specifica dispositivo
+    } else {
+        m = buildListResponseControl(msg->sender, id, children_str, msg->vals[INFO_VAL_LEVEL], listEmpty(msg_list));  // Implementazione specifica dispositivo
+    }
+    m.vals[INFO_VAL_STATE] = children_state;
+    m.vals[INFO_VAL_LABELS] = label_values;
+    for (i = INFO_VAL_REG_TIME; i <= INFO_VAL_REG_TEMP; i++) m.vals[i] = registers_count[i] > 0 ? registers_values[i] : INVALID_VALUE;
+    sendMessage(&m);
+
+    // Invio messaggi ricevuti dai figli al mittente
+    node_t *el = msg_list->head;
+    while (el != NULL) {
+        sendMessage((message_t *)el->value);
+        el = el->next;
+    }
+    listDestroy(msg_list);
+}

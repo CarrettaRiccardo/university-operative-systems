@@ -84,11 +84,11 @@ void listDevicesInList(list_t children, short show_tree) {
                     perror("Error list response");
                 } else {
                     int i;
-                    for (i = 0; i < response.vals[LIST_VAL_LEVEL] + show_tree - 1; i++) printf("    ");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
-                    if (show_tree == 1 || response.vals[LIST_VAL_LEVEL] > 0) printf(C_CYAN " └──" C_WHITE);
-                    printf(CB_CYAN "(%d)" C_WHITE " %s\n", response.vals[LIST_VAL_ID], response.text);
+                    for (i = 0; i < response.vals[INFO_VAL_LEVEL] + show_tree - 1; i++) printf("    ");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
+                    if (show_tree == 1 || response.vals[INFO_VAL_LEVEL] > 0) printf(C_CYAN " └──" C_WHITE);
+                    printf(CB_CYAN "(%d)" C_WHITE " %s\n", response.vals[INFO_VAL_ID], response.text);
                 }
-            } while (response.vals[LIST_VAL_STOP] != 1);
+            } while (response.vals[INFO_VAL_STOP] != 1);
         }
         p = p->next;
     }
