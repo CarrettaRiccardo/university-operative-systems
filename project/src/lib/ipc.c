@@ -125,9 +125,9 @@ message_t buildDeleteResponse(int to_pid) {
 
 message_t buildListResponse(int to_pid, int id, int lv, short stop) {
     message_t ret = buildResponse(to_pid, LIST_MSG_TYPE);
-    ret.vals[LIST_VAL_ID] = id;
-    ret.vals[LIST_VAL_LEVEL] = lv;
-    ret.vals[LIST_VAL_STOP] = stop;
+    ret.vals[INFO_VAL_ID] = id;
+    ret.vals[INFO_VAL_LEVEL] = lv;
+    ret.vals[INFO_VAL_STOP] = stop;
     return ret;
 }
 
