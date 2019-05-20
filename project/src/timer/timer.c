@@ -30,11 +30,11 @@ void cloneData(char **vals) {
 int handleSetControl(message_t *msg) {
     // il timer deve poter modificare begin/end e far partire il timer di accensione/spegnimento
     int success = -1;
-    if (msg->vals[SET_VAL_LABEL] == LABEL_BEGIN_VALUE) {
+    if (msg->vals[SET_VAL_LABEL] == REGISTER_BEGIN_VALUE) {
         time_t event = msg->vals[SET_VAL_VALUE];
         begin = *localtime(&event);
         success = 1;
-    } else if (msg->vals[SET_VAL_LABEL] == LABEL_END_VALUE) {
+    } else if (msg->vals[SET_VAL_LABEL] == REGISTER_END_VALUE) {
         time_t event = msg->vals[SET_VAL_VALUE];
         end = *localtime(&event);
         success = 1;

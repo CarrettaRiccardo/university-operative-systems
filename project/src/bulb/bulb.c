@@ -2,7 +2,7 @@
 #include "../include/ipc.h"
 
 short state;
-short interruttore;  // valore interruttore che è 1 a 1 con lo stato
+short interruttore;  // Valore interruttore che è 1 a 1 con lo stato
 int on_time;
 int last_on_time;
 
@@ -47,7 +47,7 @@ int handleSwitchDevice(message_t *msg) {
 }
 
 int handleSetDevice(message_t *msg) {
-    // la bulb non ha registri da modificare
+    // La bulb non ha registri da modificare
     return -1;
 }
 

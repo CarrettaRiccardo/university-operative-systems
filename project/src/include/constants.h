@@ -63,7 +63,6 @@
 #define SET_VAL_SUCCESS 2
 #define SET_TIMER_STARTED_SUCCESS 2
 #define SET_ERROR_INVALID_VALUE -1
-#define SET_ERROR_INVALID_PERC -2
 
 // TRANSLATE
 #define TRANSLATE_MSG_TYPE 7
@@ -75,14 +74,6 @@
 #define ADD_VAL_DEVICE 0
 #define ADD_VAL_RESPONSE 0
 
-//Componente TERMINAL
-//#define TERMINAL_ADD_RESPONSE 0
-//#define TERMINAL_DELETE_RESPONSE 0
-//#define TERMINAL_DELETE_DEST 0
-//#define TERMINAL_LINK_DEST 0
-//#define TERMINAL_LINK_RESPONSE 0
-//#define TERMINAL_INFO_DEST 0
-
 /*************************  Tipi interruttori SWITCH  *************************/
 #define INVALID_VALUE __INT_MAX__
 
@@ -90,12 +81,14 @@
 #define LABEL_OPEN "open"
 #define LABEL_THERM "therm"
 #define LABEL_ALL "all"
+#define LABEL_GENERAL "general"
 
 // In binario per inviare tutto con operazioni AND e OR
 #define LABEL_LIGHT_VALUE 1
 #define LABEL_OPEN_VALUE 2
 #define LABEL_THERM_VALUE 4
 #define LABEL_ALL_VALUE 8
+#define LABEL_GENERAL_VALUE 16
 
 #define SWITCH_POS_OFF_LABEL "off"
 #define SWITCH_POS_ON_LABEL "on"
@@ -103,17 +96,17 @@
 #define SWITCH_POS_ON_LABEL_VALUE 1
 
 /*************************  Tipi interruttori SET  *************************/
-#define LABEL_DELAY "delay"
-#define LABEL_BEGIN "begin"
-#define LABEL_END "end"
-#define LABEL_PERC "perc"
-#define LABEL_TEMP "temp"
-#define LABEL_TIME "time"
+#define REGISTER_DELAY "delay"
+#define REGISTER_BEGIN "begin"
+#define REGISTER_END "end"
+#define REGISTER_PERC "perc"
+#define REGISTER_TEMP "temp"
+#define REGISTER_TIME "time"
 
-#define LABEL_DELAY_VALUE 1
-#define LABEL_BEGIN_VALUE 2
-#define LABEL_END_VALUE 4
-#define LABEL_PERC_VALUE 8
+#define REGISTER_DELAY_VALUE 1
+#define REGISTER_BEGIN_VALUE 2
+#define REGISTER_END_VALUE 4
+#define REGISTER_PERC_VALUE 8
 
 /*************************  Tipi dispositivi  *************************/
 #define MAX_DEVICE_NAME_LENGTH 20

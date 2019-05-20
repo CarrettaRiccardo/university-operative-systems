@@ -287,7 +287,7 @@ void switchDevice(int id, char *label, char *pos) {
             pos_val = SWITCH_POS_ON_LABEL_VALUE;  // 1 = acceso/aperto
         }
     } else if (label_val == LABEL_THERM_VALUE) {
-        if (isInt(pos) && atoi(pos) >= -30 && atoi(pos) <= 15) {
+        if (isInt(pos) && atoi(pos) >= -20 && atoi(pos) <= 15) {
             pos_val = atoi(pos);
         }
     }
@@ -298,7 +298,7 @@ void switchDevice(int id, char *label, char *pos) {
         return;
     } else if (pos_val == INVALID_VALUE) {
         if (label_val == LABEL_THERM_VALUE) {
-            printf(CB_RED "Error: invalid pos value \"%s\" for label \"%s\". It must be a number between -30°C and 15°C \n" C_WHITE, pos, label);
+            printf(CB_RED "Error: invalid pos value \"%s\" for label \"%s\". It must be a number between -20°C and 15°C \n" C_WHITE, pos, label);
         } else {
             printf(CB_RED "Error: invalid pos value \"%s\" for label \"%s\"\n" C_WHITE, pos, label);
         }
@@ -337,22 +337,20 @@ void setDevice(int id, char *label, char *val) {
     int label_val = INVALID_VALUE;  // 0 = interruttore (generico), 1 = termostato
     int pos_val = INVALID_VALUE;    // 0 = spento, 1 = acceso; x = valore termostato (°C)
     // Map delle label (char*) in valori (int) per poterli inserire in un messaggio
-    if (strcmp(label, LABEL_DELAY) == 0) {
-        label_val = LABEL_DELAY_VALUE;  // 1 = delay (fridge)
-    } else if (strcmp(label, LABEL_BEGIN) == 0) {
-        label_val = LABEL_BEGIN_VALUE;  // 2 = begin (timer)
-    } else if (strcmp(label, LABEL_END) == 0) {
-        label_val = LABEL_END_VALUE;  // 4 = end (timer)
-    } else if (strcmp(label, LABEL_PERC) == 0) {
-        label_val = LABEL_PERC_VALUE;  // 8 = perc (fridge)
+    if (strcmp(label, REGISTER_DELAY) == 0) {
+        label_val = REGISTER_DELAY_VALUE;  // 1 = delay (fridge)
+    } else if (strcmp(label, REGISTER_BEGIN) == 0) {
+        label_val = REGISTER_BEGIN_VALUE;  // 2 = begin (timer)
+    } else if (strcmp(label, REGISTER_END) == 0) {
+        label_val = REGISTER_END_VALUE;  // 4 = end (timer)
+    } else if (strcmp(label, REGISTER_PERC) == 0) {
+        label_val = REGISTER_PERC_VALUE;  // 8 = perc (fridge)
     }
 
     // valore del delay, di inizio o fine timer
-    if (label_val == LABEL_DELAY_VALUE || label_val == LABEL_PERC_VALUE) {  // valore inserito nel delay o percentuale riempimento
-        if (isInt(val)) {                                                   // E' un valore valido solo se è un numero (i register sono delay, begin o end)
-            pos_val = atoi(val);
-        }
-    } else if (label_val == LABEL_BEGIN_VALUE || label_val == LABEL_END_VALUE) {  // se è begin/end, il numero inserito indica quanti seconda da ORA
+    if (label_val == REGISTER_DELAY_VALUE && isInt(val)) {  // E' un valore valido solo se è un numero (i register sono delay, begin o end)
+        pos_val = atoi(val);
+    } else if (label_val == REGISTER_BEGIN_VALUE || label_val == REGISTER_END_VALUE) {  // se è begin/end, il numero inserito indica quanti seconda da ORA
         int hr = 0;
         int min = 0;
         int sec = 0;
@@ -365,6 +363,8 @@ void setDevice(int id, char *label, char *val) {
             sec -= now.tm_sec;
             pos_val = time(NULL) + (hr * 3600) + (min * 60) + sec;
         }
+    } else if (label_val == REGISTER_PERC_VALUE && isInt(val) && label_val >= 0 && label_val <= 100) {
+        pos_val = atoi(val);
     }
 
     // Se i parametri creano dei valori validi
@@ -372,7 +372,12 @@ void setDevice(int id, char *label, char *val) {
         printf(CB_RED "Error: invalid register \"%s\"\n" C_WHITE, label);
         return;
     } else if (pos_val == INVALID_VALUE) {
-        printf(CB_RED "Error: invalid value \"%s\" for register \"%s\"\n" C_WHITE, val, label);
+        if (label_val == REGISTER_PERC_VALUE) {
+            printf(CB_RED "Error: invalid value \"%s\" for register \"%s\". It must be a number between 0 and 100\n" C_WHITE, val, label);
+        } else {
+            printf(CB_RED "Error: invalid value \"%s\" for register \"%s\"\n" C_WHITE, val, label);
+        }
+        return;
         return;
     } else {
         message_t request = buildSetRequest(pid, label_val, pos_val);
@@ -384,8 +389,6 @@ void setDevice(int id, char *label, char *val) {
         } else {
             if (response.vals[SET_VAL_SUCCESS] == SET_ERROR_INVALID_VALUE)
                 printf(CB_RED "Error: the register \"%s\" is not supported by the device %d\n" C_WHITE, label, id);
-            else if (response.vals[SET_VAL_SUCCESS] == SET_ERROR_INVALID_PERC)
-                printf(CB_RED "Error: the register \"perc\" must be a number between 0 and 100\n" C_WHITE);
             else if (response.vals[SET_VAL_SUCCESS] == SET_TIMER_STARTED_SUCCESS)
                 printf(CB_GREEN "Set executed (timer started)\n" C_WHITE);
             else
