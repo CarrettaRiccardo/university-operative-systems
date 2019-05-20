@@ -79,9 +79,8 @@ int handleSetDevice(message_t *msg) {
         success = 1;
     } else if (msg->vals[SET_VAL_LABEL] == LABEL_PERC_VALUE) {  // Percentuale riempimento
         if (msg->vals[SET_VAL_VALUE] < 0 || msg->vals[SET_VAL_VALUE] > 100) {
-            success = SET_PERC_NOT_VALID;
-        }
-        else{
+            success = SET_ERROR_INVALID_PERC;
+        } else {
             perc = msg->vals[SET_VAL_VALUE];
             success = 1;
         }

@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <time.h>
+#include <unistd.h>
 #include "../include/ipc.h"
 #include "../include/list.h"
 #include "./shell.c"
@@ -281,7 +281,7 @@ int switchDevice(int id, char *label, char *pos) {
             perror("Error switch response");
         } else {
             if (response.vals[SWITCH_VAL_SUCCESS] == SWITCH_ERROR_INVALID_VALUE) {
-                printf(CB_RED "The label \"%s\" is not supported by the device %d\n" C_WHITE, label, id);
+                printf(CB_RED "Error: the label \"%s\" is not supported by the device %d\n" C_WHITE, label, id);
             } else {
                 printf(CB_GREEN "Switch executed\n" C_WHITE);
             }
@@ -314,17 +314,15 @@ int setDevice(int id, char *label, char *val) {
 
     // valore del delay, di inizio o fine timer
     if (label_val == LABEL_DELAY_VALUE || label_val == LABEL_PERC_VALUE) {  // valore inserito nel delay o percentuale riempimento
-        if (isInt(val)) {  // E' un valore valido solo se è un numero (i register sono delay, begin o end)
+        if (isInt(val)) {                                                   // E' un valore valido solo se è un numero (i register sono delay, begin o end)
             pos_val = atoi(val);
         }
-    }
-    else if (label_val == LABEL_BEGIN_VALUE || label_val == LABEL_END_VALUE) {  // se è begin/end, il numero inserito indica quanti seconda da ORA
+    } else if (label_val == LABEL_BEGIN_VALUE || label_val == LABEL_END_VALUE) {  // se è begin/end, il numero inserito indica quanti seconda da ORA
         int hr = 0;
         int min = 0;
         int sec = 0;
         sscanf(val, "%d:%d:%d", &hr, &min, &sec);
-        if (hr >= 0 && hr < 24 && min >= 0 && min < 60 && sec >= 0 && sec < 60)
-        {
+        if (hr >= 0 && hr < 24 && min >= 0 && min < 60 && sec >= 0 && sec < 60) {
             time_t time_now = time(NULL);
             struct tm now = *localtime(&time_now);
             hr -= now.tm_hour;
@@ -349,18 +347,14 @@ int setDevice(int id, char *label, char *val) {
         } else if (receiveMessage(&response) == -1) {
             perror("Error set response");
         } else {
-            if (response.vals[SET_VAL_SUCCESS] == -1) {
-                printf(CB_RED "The register \"%s\" is not supported by the device %d\n" C_WHITE, label, id);
-            } else {
-                if (response.vals[SET_VAL_SUCCESS] == SET_TIMER_STARTED_ON_SUCCESS)
-                    printf(CB_GREEN "Set executed (a timer was started)\n" C_WHITE);
-                else{
-                    if (response.vals[SET_VAL_SUCCESS] == SET_PERC_NOT_VALID)
-                        printf(CB_RED "Perc value not valid\n" C_WHITE);
-                    else
-                        printf(CB_GREEN "Set executed\n" C_WHITE);
-                }
-            }
+            if (response.vals[SET_VAL_SUCCESS] == SET_ERROR_INVALID_VALUE)
+                printf(CB_RED "Error: the register \"%s\" is not supported by the device %d\n" C_WHITE, label, id);
+            else if (response.vals[SET_VAL_SUCCESS] == SET_ERROR_INVALID_PERC)
+                printf(CB_RED "Error: the register \"perc\" must be a number between 0 and 100\n" C_WHITE);
+            else if (response.vals[SET_VAL_SUCCESS] == SET_TIMER_STARTED_SUCCESS)
+                printf(CB_GREEN "Set executed (timer started)\n" C_WHITE);
+            else
+                printf(CB_GREEN "Set executed\n" C_WHITE);
         }
     }
 }

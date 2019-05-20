@@ -243,7 +243,7 @@ int setDevice(int id, char *label, char *val) {
                 if (response.vals[SET_VAL_SUCCESS] == -1) {
                     printf(CB_RED "The register \"%s\" is not supported by the device %d\n" C_WHITE, label, id);
                 } else {
-                    if (response.vals[SET_VAL_SUCCESS] == SET_TIMER_STARTED_ON_SUCCESS)
+                    if (response.vals[SET_VAL_SUCCESS] == SET_TIMER_STARTED_SUCCESS)
                         printf(CB_GREEN "Set executed (a timer was started)\n" C_WHITE);
                     else
                         printf(CB_GREEN "Set executed\n" C_WHITE);

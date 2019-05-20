@@ -24,7 +24,7 @@ void cloneData(char **vals) {
     begin = *localtime(&(time_t){atoi(vals[0])});
     end = *localtime(&(time_t){atoi(vals[1])});
     waitForBegin = atoi(vals[2]);
-    alarm(atoi(vals[3]));// fa ripartire il timer da dove si trovava prima
+    alarm(atoi(vals[3]));  // fa ripartire il timer da dove si trovava prima
 }
 
 int handleSetControl(message_t *msg) {
@@ -47,13 +47,13 @@ int handleSetControl(message_t *msg) {
         if (time(NULL) < t_end && (t_end < t_begin || t_begin < time(NULL))) {
             alarm(t_end - time(NULL));  // attendo la differenza da ORA
             waitForBegin = 1;
-            success = SET_TIMER_STARTED_ON_SUCCESS;
+            success = SET_TIMER_STARTED_SUCCESS;
         } else {
             // Setto il timer di accensione (begin) se è il prossimo evento
             if (time(NULL) < t_begin && (t_end > t_begin || t_end < time(NULL))) {
                 alarm(t_begin - time(NULL));  // attendo la differenza da ORA
                 waitForBegin = 0;
-                success = SET_TIMER_STARTED_ON_SUCCESS;
+                success = SET_TIMER_STARTED_SUCCESS;
             } else {  // Altrimenti termino gli alarm automatici
                 alarm(0);
             }
