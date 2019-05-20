@@ -34,6 +34,7 @@ message_t buildTerminalLinkRequest(int to_pid, int src, int dest);
 message_t buildTerminalDeleteRequest(int home_pid, int dest);
 message_t buildTerminalSwitchRequest(int home_pid, int to_pid, int label_val, int pos_val);
 message_t buildTerminalInfoRequest(int to_pid, int dest);
+message_t buildTerminalSetRequest(int home_pid, int id, int label, int val);
 
 /////////////////////////////// RESPONSES ///////////////////////////////
 message_t buildResponse(int to_pid, short msg_type);

@@ -24,10 +24,10 @@ int getArgs(char *line, int *argc, char **argv);
 void printHelp(char *cmd, char *desc);
 
 /*  Metodi implementati nel controller   */
-void componentInit(char *file);
+int componentInit();
 
 void listDevices();
-int addDevice(char *device);
+int addDevice();
 int delDevice(int id);
 int linkDevices(int id1, int id2);
 int switchDevice(int id, char *label, char *pos);
@@ -41,7 +41,7 @@ void infoDevice(int id);
 */
 int main(int sargc, char **sargv) {
     ipcInit(getMq(getpid()));  // Inizializzo componenti comunicazione
-    controllerInit(sargv[0]);
+    componentInit();
 
     short run = 1;       //  Per uscire dal while nel caso si scriva "quit"
     int print_sign = 1;  // Per identificare quando stampare >. Serve per evitare duplicati nel caso venga ricevuto un segnale da una shell manuale
@@ -175,11 +175,16 @@ int main(int sargc, char **sargv) {
             } else if (!isInt(argv[1])) {
                 printf(CB_RED "Error: <id> must be a positive number\n" C_WHITE);
             } else {
-                int result = switchDevice(atoi(argv[1]), argv[2], argv[3]);
-                if (result <= 0) {
-                    printf(CB_RED "The label \"%s\" is not supported by the device (%d)\n" C_WHITE, argv[2], atoi(argv[1]));
-                } else {
-                    printf(CB_GREEN "Switch executed\n" C_WHITE);
+                int id = atoi(argv[1]); //il primo argomento è l'id del componente
+                int result = switchDevice(id, argv[2], argv[3]);
+                switch(result){
+                    case 1: printf(CB_GREEN "Switch executed\n" C_WHITE); break;
+                    case -1: printf(CB_RED "Error: device with id (%d) not connected to the controller\n" C_WHITE, id); break;
+                    case -2: printf(CB_RED "Error: device with id (%d) not found\n" C_WHITE, id); break;
+                    case -3: printf(CB_RED "Error: invalid label \"%s\"\n" C_WHITE, argv[2]); break;
+                    case -4: printf(CB_RED "Error: invalid pos value \"%s\" for label \"%s\". It must be a number between -30°C and 15°C \n" C_WHITE, argv[3], argv[2]); break;
+                    case -5: printf(CB_RED "Error: invalid pos value \"%s\" for label \"%s\"" C_WHITE, argv[3], argv[2]); break;
+                    case -6: printf(CB_RED "The label \"%s\" is not supported by the device (%d)\n" C_WHITE, argv[2], id); break;
                 }
             }
         }
@@ -190,7 +195,17 @@ int main(int sargc, char **sargv) {
             } else if (!isInt(argv[1]) || atoi(argv[1]) == 0 ) {
                 printf(CB_RED "Error: <id> must be > 0\n" C_WHITE);
             } else {
-                setDevice(atoi(argv[1]), argv[2], argv[3]);
+                int id = atoi(argv[1]);
+                int result = setDevice(id, argv[2], argv[3]);
+                switch(result){
+                    case 1: printf(CB_GREEN "Set executed (a timer was started)\n" C_WHITE); break;   
+                    case 2: printf(CB_GREEN "Set executed\n" C_WHITE); break;
+                    case -1: printf(CB_RED "Error: device with id (%d) not found\n" C_WHITE, id); break;
+                    case -2: printf(CB_RED "Error: invalid register \"%s\"\n" C_WHITE, argv[2]); break;
+                    case -3: printf(CB_RED "Error: invalid value \"%s\" for register \"%s\"\n" C_WHITE, argv[2], argv[3]); break;
+                    case -4: printf(CB_RED "The register \"%s\" is not supported by the device (%d)\n" C_WHITE, argv[2], id); break;
+                    case -5: printf(CB_RED "The value $d is not an integer value (required)\n" C_WHITE, argv[2], id); break;
+                }
             }
         }
         /**************************************** INFO ********************************************/
@@ -210,7 +225,6 @@ int main(int sargc, char **sargv) {
             printf(CB_RED "Unknown command, type \"help\" to list all the supported commands\n" C_WHITE);
         }
     }
-    controllerDestroy();
     return 0;
 }
 

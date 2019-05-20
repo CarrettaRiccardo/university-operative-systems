@@ -80,7 +80,7 @@ void controllerDestroy() {
 /*
     enable_stop : Serve per capire se inviare il flag stop. Alla prima iterazione (figli non attivi) non devo inviare tale flag, alla seconda iterazione si
 */
-void listDevicesInList(int responde_to, list_t children, int enable_stop) {
+void listDevicesInList(int responde_to, list_t children, int active_component) {
     node_t *p = children->head;
     while (p != NULL) {
         message_t request = buildListRequest(*(int *)p->value);
@@ -94,13 +94,14 @@ void listDevicesInList(int responde_to, list_t children, int enable_stop) {
                     perror("Error list reading response home_lib");
                 } else {
                     response.to = responde_to; //cambio il destinatario del messaggio ed inoltro al display a console (terminal.c)
+                    response.vals[LIST_VAL_ACTIVE] = active_component;
                     if(response.vals[LIST_VAL_STOP]){
-                        if(!enable_stop)
+                        if(!active_component)  //se sto stampando solo i componenti non attivi (li stampo per primi) setto il flag di stop a FALSE
                             response.vals[LIST_VAL_STOP] = 0;
                         stop = 1;
                     }
                     
-                    sendMessage(response);
+                    sendMessage(&response);
                 }
             } while (!stop);
         }
@@ -112,12 +113,13 @@ void listDevicesInList(int responde_to, list_t children, int enable_stop) {
     responde_to: pid processo al quale inoltrare ogni messaggio
 */
 void listDevices(int responde_to) {
-    message_t my_data;
+    message_t my_data;  //informazioni del componente corrente
     listDevicesInList(responde_to, disconnected_children, 0);
 
     my_data = buildListResponse(responde_to, id, 0, 0);
-    sprintf(ret.text, CB_CYAN "(0)" CB_WHITE " controller" C_WHITE "\n");
-    
+    sprintf(my_data.text, CB_CYAN "(0)" CB_WHITE " controller" C_WHITE "\n");
+    sendMessage(&my_data);
+
     listDevicesInList(responde_to, connected_children, 1);
 }
 
@@ -229,55 +231,23 @@ int linkDevices(int id1, int id2) {
 /**************************************** SWITCH ********************************************/
 /* Cambia lo stato dell'interruttore "label" del dispositivo "id" al valore "pos"           */
 /********************************************************************************************/
-int switchDevice(int id, char *label, char *pos) {
+int switchDevice(int id, int label_val, int pos_val) {
     int pid = getPidById(connected_children, id);
     if (pid == -1) {
-        if (getPidById(disconnected_children, id) != -1) {
-            printf(CB_RED "Error: device with id (%d) not connected to the controller\n" C_WHITE, id);
-        } else {
-            printf(CB_RED "Error: device with id (%d) not found\n" C_WHITE, id);
-        }
-        return;
-    }
-    int label_val = INVALID_VALUE;  // 0 = interruttore (generico), 1 = termostato
-    int pos_val = INVALID_VALUE;    // 0 = spento, 1 = acceso; x = valore termostato (°C)
-    // Map delle label (char*) in valori (int) per poterli inserire in un messaggio
-    if (strcmp(label, LABEL_LIGHT) == 0) {
-        label_val = LABEL_LIGHT_VALUE;  // 1 = interruttore (luce)
-    } else if (strcmp(label, LABEL_OPEN) == 0) {
-        label_val = LABEL_OPEN_VALUE;  // 2 = interruttore (apri/chiudi)
-    } else if (strcmp(label, LABEL_THERM) == 0) {
-        label_val = LABEL_THERM_VALUE;  // 4 = termostato
-    } else if (strcmp(label, LABEL_ALL) == 0) {
-        label_val = LABEL_ALL_VALUE;  // 8 = all (generico)
+        if (getPidById(disconnected_children, id) != -1)
+            return -1;
+        else
+            return -2;
     }
 
-    // Map valore pos (char*) in valori (int) per poterli inserire in un messaggio
-    if (label_val == LABEL_LIGHT_VALUE || label_val == LABEL_OPEN_VALUE || label_val == LABEL_ALL_VALUE) {
-        // Se è un interrutore on/off
-        if (strcmp(pos, SWITCH_POS_OFF_LABEL) == 0) {
-            pos_val = SWITCH_POS_OFF_LABEL_VALUE;  // 0 = spento/chiuso
-        } else if (strcmp(pos, SWITCH_POS_ON_LABEL) == 0) {
-            pos_val = SWITCH_POS_ON_LABEL_VALUE;  // 1 = acceso/aperto
-        }
-    } else if (label_val == LABEL_THERM_VALUE) {
-        if (isInt(pos) && atoi(pos) >= -30 && atoi(pos) <= 15) {
-            pos_val = atoi(pos);
-        }
-    }
-
-    // Se i parametri creano dei valori validi
+    // Controllo che i valori ricevuti siano validi
     if (label_val == INVALID_VALUE) {
-        printf(CB_RED "Error: invalid label \"%s\"\n" C_WHITE, label);
-        return;
+        return -3;
     } else if (pos_val == INVALID_VALUE) {
-        if (label_val == LABEL_THERM_VALUE) {
-            printf(CB_RED "Error: invalid pos value \"%s\" for label \"%s\". It must be a number between -30°C and 15°C \n" C_WHITE, pos, label);
-        } else {
-            printf(CB_RED "Error: invalid pos value \"%s\" for label \"%s\"" C_WHITE, pos, label);
-        }
-
-        return;
+        if (label_val == LABEL_THERM_VALUE) 
+            return -4;
+        else 
+            return -5;
     } else {
         message_t request = buildSwitchRequest(pid, label_val, pos_val);
         message_t response;
@@ -286,11 +256,10 @@ int switchDevice(int id, char *label, char *pos) {
         } else if (receiveMessage(&response) == -1) {
             perror("Error switch response");
         } else {
-            if (response.vals[SWITCH_VAL_SUCCESS] == SWITCH_ERROR_INVALID_VALUE) {
-                printf(CB_RED "The label \"%s\" is not supported by the device (%d)\n" C_WHITE, label, id);
-            } else {
-                printf(CB_GREEN "Switch executed\n" C_WHITE);
-            }
+            if (response.vals[SWITCH_VAL_SUCCESS] == SWITCH_ERROR_INVALID_VALUE) 
+                return -6;
+             else 
+                return 1;            
         }
     }
 }
@@ -301,10 +270,9 @@ int switchDevice(int id, char *label, char *pos) {
 int setDevice(int id, char *label, char *val) {
     int pid = getPidById(disconnected_children, id);
     if (pid == -1) pid = getPidById(connected_children, id);
-    if (pid == -1) {
-        printf(CB_RED "Error: device with id (%d) not found\n" C_WHITE, id);
-        return;
-    }
+    if (pid == -1) 
+        return -1;
+
     int label_val = INVALID_VALUE;  // 0 = interruttore (generico), 1 = termostato
     int pos_val = INVALID_VALUE;    // 0 = spento, 1 = acceso; x = valore termostato (°C)
     // Map delle label (char*) in valori (int) per poterli inserire in un messaggio
@@ -328,11 +296,9 @@ int setDevice(int id, char *label, char *val) {
 
         // Se i parametri creano dei valori validi
         if (label_val == INVALID_VALUE) {
-            printf(CB_RED "Error: invalid register \"%s\"\n" C_WHITE, label);
-            return;
+            return -2;
         } else if (pos_val == INVALID_VALUE) {
-            printf(CB_RED "Error: invalid value \"%s\" for register \"%s\"\n" C_WHITE, label, val);
-            return;
+            return -3;
         } else {
             message_t request = buildSetRequest(pid, label_val, pos_val);
             message_t response;
@@ -342,12 +308,12 @@ int setDevice(int id, char *label, char *val) {
                 perror("Error set response");
             } else {
                 if (response.vals[SET_VAL_SUCCESS] == -1) {
-                    printf(CB_RED "The register \"%s\" is not supported by the device (%d)\n" C_WHITE, label, id);
+                    return -4;
                 } else {
                     if (response.vals[SET_VAL_SUCCESS] == SET_TIMER_STARTED_ON_SUCCESS)
-                        printf(CB_GREEN "Set executed (a timer was started)\n" C_WHITE);
+                        return 1;
                     else
-                        printf(CB_GREEN "Set executed\n" C_WHITE);
+                        return 2;
                 }
             }
         }

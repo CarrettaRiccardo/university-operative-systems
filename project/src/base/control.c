@@ -91,8 +91,14 @@ int main(int argc, char **argv) {
                 sendMessage(&m);
             } break;
 
+            /*
+            Schema funzionamento :
+                Salvo tutti i messaggi ricevuti dai figli per reinviarli dopo. Serve per indivuare eventuali stati di override che vengono stampati 
+                relativamente all'HUB, ma le info dell' hub per una corretta identazione devono essere inviate per prima. 
+                Allora immagazino i messaggi per scoprire lo stato ed invio tutti i messaggi
+            */
             case INFO_MSG_TYPE: {
-                list_t msg_list = listMsgInit();  // Salvo tutti i messaggi ricevuti dai figli per reinviarli dopo
+                list_t msg_list = listMsgInit();  
                 int count_on = 0, count_off = 0;
                 short override = 0;
                 int label_values = 0;

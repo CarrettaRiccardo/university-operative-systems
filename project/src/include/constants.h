@@ -14,6 +14,7 @@
 #define LIST_VAL_LEVEL 1
 #define LIST_VAL_STATE 2
 #define LIST_VAL_STOP 3
+#define LIST_VAL_ACTIVE 4    //usato per riconoscere se un componente è attivo o disattivo. Per identare correttamente il comando LIST
 
 // INFO
 #define INFO_MSG_TYPE 1
@@ -22,6 +23,8 @@
 #define INFO_VAL_STATE 2
 #define INFO_VAL_STOP 3
 #define INFO_VAL_LABELS 4
+#define INFO_VAL_DEST 5
+
 // Per passare i valori dei registri nella INFO
 #define INFO_VAL_REG_TIME 5
 #define INFO_VAL_REG_DELAY 6
@@ -31,11 +34,13 @@
 // DELETE
 #define DELETE_MSG_TYPE 2
 #define DELETE_VAL_RESPONSE 0
+#define DELETE_VAL_DEST 1
 
 // LINK
 #define LINK_MSG_TYPE 3
 #define LINK_VAL_PID 0
 #define LINK_VAL_SUCCESS 1
+#define LINK_VAL_DEST 2
 #define LINK_ERROR_NOT_CONTROL -1
 #define LINK_ERROR_MAX_CHILD -2
 
@@ -56,10 +61,11 @@
 #define SWITCH_ERROR_INVALID_VALUE -1
 
 // SET
-#define SET_MSG_TYPE 8
+#define SET_MSG_TYPE 9
 #define SET_VAL_LABEL 0
 #define SET_VAL_VALUE 1
 #define SET_VAL_SUCCESS 2
+#define SET_VAL_DEST 3
 #define SET_TIMER_STARTED_ON_SUCCESS 2
 
 // TRANSLATE
@@ -75,10 +81,10 @@
 //Componente TERMINAL
 //#define TERMINAL_ADD_RESPONSE 0
 //#define TERMINAL_DELETE_RESPONSE 0
-#define TERMINAL_DELETE_DEST 0
-#define TERMINAL_LINK_DEST 0
+//#define TERMINAL_DELETE_DEST 0
+//#define TERMINAL_LINK_DEST 0
 //#define TERMINAL_LINK_RESPONSE 0
-#define TERMINAL_INFO_DEST 0
+//#define TERMINAL_INFO_DEST 0
 
 /*************************  Tipi interruttori SWITCH  *************************/
 #define INVALID_VALUE __INT_MAX__

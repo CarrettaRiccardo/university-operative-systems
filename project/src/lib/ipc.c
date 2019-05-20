@@ -116,7 +116,7 @@ message_t buildAddRequest(int to_pid, char* device){
 */
 message_t buildTerminalLinkRequest(int to_pid, int src, int dest){
     message_t ret = buildLinkRequest(to_pid, src);
-    ret.vals[TERMINAL_LINK_DEST] = dest;
+    ret.vals[LINK_VAL_DEST] = dest;
     return ret;
 }
 
@@ -127,7 +127,7 @@ message_t buildTerminalLinkRequest(int to_pid, int src, int dest){
 */
 message_t buildTerminalDeleteRequest(int to_pid, int dest){
     message_t ret = buildDeleteRequest(to_pid);
-    ret.vals[TERMINAL_DELETE_DEST] = dest;
+    ret.vals[DELETE_VAL_DEST] = dest;
     return ret;
 }
 
@@ -137,11 +137,22 @@ message_t buildTerminalDeleteRequest(int to_pid, int dest){
 */
 message_t buildTerminalInfoRequest(int to_pid, int dest){  //wrapper per inviare alla home l'id di chi voglio la INFO
     message_t ret = buildInfoRequest(to_pid);
-    ret.vals[TERMINAL_INFO_DEST] = dest;  //il dispositivo su cui voglio fare la INFO
+    ret.vals[INFO_VAL_DEST] = dest;  //il dispositivo su cui voglio fare la INFO
     return ret;
 }
 
 
+/*
+    home_pid: pid della home
+    id: Destinatariodel comando
+    label: Label dell' interuttore
+    val: Valore che l'interuttore deve assumere
+*/
+message_t buildTerminalSetRequest(int home_pid, int id, int label, int val){
+    message_t ret = buildSetRequest(home_pid, label, val);
+    ret.vals[SET_VAL_DEST] = id;  //il dispositivo su cui voglio fare la INFO
+    return ret;
+}
 
 
 ///////////////////////////////////////////////  RESPONSE ///////////////////////////////////////////////
