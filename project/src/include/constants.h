@@ -10,11 +10,7 @@
 
 // LIST
 #define LIST_MSG_TYPE 0
-#define LIST_VAL_ID 0
-#define LIST_VAL_LEVEL 1
-#define LIST_VAL_STATE 2
-#define LIST_VAL_STOP 3
-#define LIST_VAL_ACTIVE 4    //usato per riconoscere se un componente è attivo o disattivo. Per identare correttamente il comando LIST
+// List usa gli stessi parametri di INFO definiti sotto
 
 // INFO
 #define INFO_MSG_TYPE 1
@@ -65,8 +61,9 @@
 #define SET_VAL_LABEL 0
 #define SET_VAL_VALUE 1
 #define SET_VAL_SUCCESS 2
-#define SET_VAL_DEST 3
-#define SET_TIMER_STARTED_ON_SUCCESS 2
+#define SET_TIMER_STARTED_SUCCESS 2
+#define SET_ERROR_INVALID_VALUE -1
+#define SET_ERROR_INVALID_PERC -2
 
 // TRANSLATE
 #define TRANSLATE_MSG_TYPE 7

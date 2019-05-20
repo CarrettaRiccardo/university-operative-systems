@@ -78,8 +78,12 @@ int handleSetDevice(message_t *msg) {
         delay = msg->vals[SET_VAL_VALUE];
         success = 1;
     } else if (msg->vals[SET_VAL_LABEL] == LABEL_PERC_VALUE) {  // Percentuale riempimento
-        perc = msg->vals[SET_VAL_VALUE];
-        success = 1;
+        if (msg->vals[SET_VAL_VALUE] < 0 || msg->vals[SET_VAL_VALUE] > 100) {
+            success = SET_ERROR_INVALID_PERC;
+        } else {
+            perc = msg->vals[SET_VAL_VALUE];
+            success = 1;
+        }
     }
     return success;
 }
@@ -101,6 +105,7 @@ message_t buildInfoResponseDevice(int to_pid, int id, int lv) {
 message_t buildListResponseDevice(int to_pid, int id, int lv) {
     message_t ret = buildListResponse(to_pid, id, lv, 1);
     sprintf(ret.text, CB_WHITE "%s %s" C_WHITE, FRIDGE, state == 1 ? CB_GREEN "open" : CB_RED "closed");
+    ret.vals[INFO_VAL_STATE] = state;
     return ret;
 }
 

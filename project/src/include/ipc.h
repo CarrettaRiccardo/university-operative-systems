@@ -15,10 +15,10 @@
 time_t session;
 int mqid;
 
-/////////////////////////////// WORKERS ///////////////////////////////
+/********************************** Workers **********************************/
 void doLink(list_t children, int to_clone_pid, const char* base_dir);
 
-/////////////////////////////// REQUESTS ///////////////////////////////
+/********************************** Requests **********************************/
 message_t buildRequest(int to_pid, short msg_type);
 message_t buildInfoRequest(int to_pid);
 message_t buildTranslateRequest(int to_pid, int search_id);
@@ -36,7 +36,7 @@ message_t buildTerminalSwitchRequest(int home_pid, int to_pid, int label_val, in
 message_t buildTerminalInfoRequest(int to_pid, int dest);
 message_t buildTerminalSetRequest(int home_pid, int id, int label, int val);
 
-/////////////////////////////// RESPONSES ///////////////////////////////
+/********************************** Responses **********************************/
 message_t buildResponse(int to_pid, short msg_type);
 message_t buildInfoResponse(int to_pid, int id, int lv, short stop);
 message_t buildSwitchResponse(int to_pid, int success);
@@ -51,15 +51,15 @@ message_t buildBusyResponse(int to_pid);
 message_t buildAddResponse(int to_pid, int result);
 
 
-/////////////////////////////// IPC ///////////////////////////////
+/********************************** Send/Receive **********************************/
 int sendMessage(const message_t* request);
 int receiveMessage(message_t* response);
 
-/////////////////////////////// SIGNALS ///////////////////////////////
+/********************************** Signals **********************************/
 /* Invia la richiesta di traduzione id in pid al controller / invia il pid risolto alla shell manuale */
 int sendGetPidByIdSignal(int to_pid, int id);
 
-/////////////////////////////// INIT ///////////////////////////////
+/********************************** Init **********************************/
 /* Inizializza i componenti per comunicare */
 void ipcInit(int _mqid);
 

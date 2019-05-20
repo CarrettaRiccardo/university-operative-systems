@@ -1,6 +1,6 @@
 #include "../include/ipc.h"
 
-///////////////////////////////////////////////  WORKERS ///////////////////////////////////////////////
+/********************************** Workers **********************************/
 void doLink(list_t children, int to_clone_pid, const char *base_dir) {
     message_t request = buildCloneRequest(to_clone_pid);
     message_t response;
@@ -35,7 +35,7 @@ void doLink(list_t children, int to_clone_pid, const char *base_dir) {
     }
 }
 
-///////////////////////////////////////////////  REQUEST ///////////////////////////////////////////////
+/********************************** Requests **********************************/
 message_t buildRequest(int to_pid, short msg_type) {
     message_t ret = {.to = to_pid, .sender = getpid(), .session = session, .type = msg_type};
     return ret;
@@ -99,63 +99,7 @@ message_t buildSetRequest(int to_pid, int label_val, int val_val) {
     return ret;
 }
 
-/*
-    to_pid: Destinatario messaggio
-    device: Stringa che rappresenta il nome del dispositivo da aggiungere    
-*/
-message_t buildAddRequest(int to_pid, char* device){
-    message_t ret = buildRequest(to_pid, ADD_MSG_TYPE);
-    strcpy(ret.text, device);
-    return ret;
-}
-
-/*
-    to_pid: Destinatario messaggio
-    src: Componente da clonare
-    dest: Componente che deve ricevere il clone di 'src'
-*/
-message_t buildTerminalLinkRequest(int to_pid, int src, int dest){
-    message_t ret = buildLinkRequest(to_pid, src);
-    ret.vals[LINK_VAL_DEST] = dest;
-    return ret;
-}
-
-
-/*
-    to_pid: Destinatario messaggio, ovvero home che applicherà il messaggio
-    dest: Componente che deve essere cancellato
-*/
-message_t buildTerminalDeleteRequest(int to_pid, int dest){
-    message_t ret = buildDeleteRequest(to_pid);
-    ret.vals[DELETE_VAL_DEST] = dest;
-    return ret;
-}
-
-/*
-    to_pid: pid_home
-    dest: Destinatario del comando INFO
-*/
-message_t buildTerminalInfoRequest(int to_pid, int dest){  //wrapper per inviare alla home l'id di chi voglio la INFO
-    message_t ret = buildInfoRequest(to_pid);
-    ret.vals[INFO_VAL_DEST] = dest;  //il dispositivo su cui voglio fare la INFO
-    return ret;
-}
-
-
-/*
-    home_pid: pid della home
-    id: Destinatariodel comando
-    label: Label dell' interuttore
-    val: Valore che l'interuttore deve assumere
-*/
-message_t buildTerminalSetRequest(int home_pid, int id, int label, int val){
-    message_t ret = buildSetRequest(home_pid, label, val);
-    ret.vals[SET_VAL_DEST] = id;  //il dispositivo su cui voglio fare la INFO
-    return ret;
-}
-
-
-///////////////////////////////////////////////  RESPONSE ///////////////////////////////////////////////
+/********************************** Responses **********************************/
 message_t buildResponse(int to_pid, short msg_type) {
     message_t ret = {.to = to_pid, .sender = getpid(), .session = session, .type = msg_type};
     return ret;
@@ -199,9 +143,9 @@ message_t buildDeleteResponse(int to_pid, int response) {
 
 message_t buildListResponse(int to_pid, int id, int lv, short stop) {
     message_t ret = buildResponse(to_pid, LIST_MSG_TYPE);
-    ret.vals[LIST_VAL_ID] = id;
-    ret.vals[LIST_VAL_LEVEL] = lv;
-    ret.vals[LIST_VAL_STOP] = stop;
+    ret.vals[INFO_VAL_ID] = id;
+    ret.vals[INFO_VAL_LEVEL] = lv;
+    ret.vals[INFO_VAL_STOP] = stop;
     return ret;
 }
 
@@ -234,17 +178,7 @@ message_t buildBusyResponse(const int to) {
     return ret;
 }
 
-/*
-    to_pid: Destinatario messaggio
-    response: Codice di ritorno delle operazini indicante successo o fallimento
-*/
-message_t buildAddResponse(int to_pid, int response){
-    message_t ret = buildResponse(to_pid, ADD_MSG_TYPE);
-    ret.vals[ADD_VAL_RESPONSE] = response;
-    return ret;
-}
-
-////////////////////////////////////////////////////////////////// SEND/RECEIVE //////////////////////////////////////////////////////////////////
+/********************************** Send/Receive **********************************/
 int sendMessage(const message_t *msg) {
     if (msg->to <= 0) return -1;
     return msgsnd(mqid, msg, sizeof(message_t) - sizeof(int), 0);
@@ -254,14 +188,14 @@ int receiveMessage(message_t *msg) {
     return msgrcv(mqid, msg, sizeof(message_t) - sizeof(int), getpid(), 0);
 }
 
-///////////////////////////////////////////////  SIGNALS ///////////////////////////////////////////////
+/********************************** Signals **********************************/
 int sendGetPidByIdSignal(int to_pid, int id) {
     union sigval sv;
     sv.sival_int = id;
     return sigqueue(to_pid, SIGUSR1, sv);
 }
 
-///////////////////////////////////////////////  INIT ///////////////////////////////////////////////
+/********************************** Init **********************************/
 // Inizializza i componenti per comunicare
 void ipcInit(int _mqid) {
     session = time(NULL);

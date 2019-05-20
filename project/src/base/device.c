@@ -30,7 +30,8 @@ int main(int argc, char **argv) {
     // Esecuzione device
     while (1) {
         message_t msg;
-        if (receiveMessage(&msg) == -1) continue;  // Ignoro eventuali errori di ricezione, riprova in automatico dato il do while
+        if (receiveMessage(&msg) == -1)
+            continue;  // Ignoro eventuali errori di ricezione, riprova in automatico dato il do while
         else {
             switch (msg.type) {
                 case TRANSLATE_MSG_TYPE: {
@@ -56,7 +57,7 @@ int main(int argc, char **argv) {
                 } break;
 
                 case LIST_MSG_TYPE: {
-                    message_t m = buildListResponseDevice(msg.sender, id, msg.vals[LIST_VAL_LEVEL]);  // Implementazione specifica dispositivo
+                    message_t m = buildListResponseDevice(msg.sender, id, msg.vals[INFO_VAL_LEVEL]);  // Implementazione specifica dispositivo
                     sendMessage(&m);
                 } break;
 
