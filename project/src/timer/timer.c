@@ -34,7 +34,7 @@ int handleSetControl(message_t *msg) {
         time(&now);
         begin = *localtime(&now);
         begin.tm_sec += msg->vals[SET_VAL_VALUE];
-        
+
         printf("(DEBUG) %d:%d:%d\n", begin.tm_hour, begin.tm_min, begin.tm_sec);
         success = 1;
     } else if (msg->vals[SET_VAL_LABEL] == LABEL_END_VALUE) {
@@ -76,9 +76,9 @@ message_t buildInfoResponseControl(int to_pid, int id, char *children_state, cha
     return ret;
 }
 
-message_t buildListResponseControl(int to_pid, int id, int lv, short stop) {
+message_t buildListResponseControl(int to_pid, int id, char *children_state, int lv, short stop) {
     message_t ret = buildListResponse(to_pid, id, lv, stop);
-    sprintf(ret.text, CB_WHITE "%s" C_WHITE, TIMER);
+    sprintf(ret.text, CB_WHITE "%s %s" C_WHITE, TIMER, children_state);
     return ret;
 }
 
