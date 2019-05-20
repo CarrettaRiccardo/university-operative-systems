@@ -10,6 +10,10 @@ Per la comunicazione tra processi abbiamo utilizzato nella maggior parte dei cas
 
 Per la comunicazione tra shell manuale e controller abbiamo optato per l'utilizzo dei __segnali__.
 
+Da comando manuale non è possibile esegyire unlink, dato che è un a comando che rende disponibile al controllo un componetnte alla centralina. Quindi eseguito solo da terminal standard.
+
+Mentra il link è possibile effeturalo da manual, in quanto rappresenta l'operazione di collegare un componente ad un altro (collegare una lampadina fisicamente ad un HUB)
+
 
 ##Aggiunte
 - Hub con figli eterogenei
