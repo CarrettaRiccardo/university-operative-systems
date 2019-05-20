@@ -14,6 +14,7 @@ Da comando manuale non è possibile esegyire unlink, dato che è un a comando ch
 
 Mentra il link è possibile effeturalo da manual, in quanto rappresenta l'operazione di collegare un componente ad un altro (collegare una lampadina fisicamente ad un HUB)
 
+Usare __./terminal__ per la shell normale e __./manual__ per quella manuale
 
 ##Aggiunte
 - Hub con figli eterogenei
