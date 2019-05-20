@@ -95,7 +95,7 @@ void listDevicesInList(list_t children, short show_tree) {
 
 void listDevices() {
     listDevicesInList(disconnected_children, 0);
-    printf(CB_CYAN "(0)" CB_WHITE " controller" C_WHITE "\n");
+    printf(CB_CYAN "(0) " CB_WHITE "controller" C_WHITE "\n");
     listDevicesInList(connected_children, 1);
 }
 
@@ -134,7 +134,7 @@ void delDevice(int id) {
     int pid = getPidById(disconnected_children, id);
     if (pid == -1) pid = getPidById(connected_children, id);
     if (pid == -1) {
-        printf(CB_RED "Error: device with id (%d) not found\n" C_WHITE, id);
+        printf(CB_RED "Error: device with id %d not found\n" C_WHITE, id);
         return;
     }
     message_t request = buildDeleteRequest(pid);
@@ -161,7 +161,7 @@ void linkDevices(int id1, int id2) {
     int src = getPidById(disconnected_children, id1);
     if (src == -1) src = getPidById(connected_children, id1);
     if (src == -1) {
-        printf(CB_RED "Error: device with id (%d) not found\n" C_WHITE, id1);
+        printf(CB_RED "Error: device with id %d not found\n" C_WHITE, id1);
         return;
     }
 
@@ -175,7 +175,7 @@ void linkDevices(int id1, int id2) {
         int dest = getPidById(disconnected_children, id2);
         if (dest == -1) dest = getPidById(connected_children, id2);
         if (dest == -1) {
-            printf(CB_RED "Error: device with id (%d) not found\n" C_WHITE, id2);
+            printf(CB_RED "Error: device with id %d not found\n" C_WHITE, id2);
             return;
         }
 
@@ -188,7 +188,7 @@ void linkDevices(int id1, int id2) {
             perror("Error get pid by id response");
             return;
         } else if (response.vals[TRANSLATE_VAL_ID] > 0) {
-            printf(CB_RED "Error: cycle identified, (%d) is a child of (%d)\n" C_WHITE, id2, id1);
+            printf(CB_RED "Error: cycle identified, %d is a child of %d\n" C_WHITE, id2, id1);
             return;
         }
 
@@ -201,10 +201,10 @@ void linkDevices(int id1, int id2) {
             perror("Error linking devices response");
             return;
         } else if (response.vals[LINK_VAL_SUCCESS] == LINK_ERROR_NOT_CONTROL) {
-            printf(CB_RED "Error: the device with id (%d) is not a control device\n" C_WHITE, id2);
+            printf(CB_RED "Error: the device with id %d is not a control device\n" C_WHITE, id2);
             return;
         } else if (response.vals[LINK_VAL_SUCCESS] == LINK_ERROR_MAX_CHILD) {
-            printf(CB_RED "Error: the device with id (%d) already has a child\n" C_WHITE, id2);
+            printf(CB_RED "Error: the device with id %d already has a child\n" C_WHITE, id2);
             return;
         }
     }
@@ -215,7 +215,7 @@ void linkDevices(int id1, int id2) {
     } else if (receiveMessage(&response) == -1) {
         perror("Error deleting device response");
     } else {
-        printf(CB_GREEN "Device (%d) linked to (%d)\n" C_WHITE, id1, id2);
+        printf(CB_GREEN "Device %d linked to %d\n" C_WHITE, id1, id2);
     }
 }
 
@@ -226,9 +226,9 @@ int switchDevice(int id, char *label, char *pos) {
     int pid = getPidById(connected_children, id);
     if (pid == -1) {
         if (getPidById(disconnected_children, id) != -1) {
-            printf(CB_RED "Error: device with id (%d) not connected to the controller\n" C_WHITE, id);
+            printf(CB_RED "Error: device with id %d not connected to the controller\n" C_WHITE, id);
         } else {
-            printf(CB_RED "Error: device with id (%d) not found\n" C_WHITE, id);
+            printf(CB_RED "Error: device with id %d not found\n" C_WHITE, id);
         }
         return;
     }
@@ -280,7 +280,7 @@ int switchDevice(int id, char *label, char *pos) {
             perror("Error switch response");
         } else {
             if (response.vals[SWITCH_VAL_SUCCESS] == SWITCH_ERROR_INVALID_VALUE) {
-                printf(CB_RED "The label \"%s\" is not supported by the device (%d)\n" C_WHITE, label, id);
+                printf(CB_RED "The label \"%s\" is not supported by the device %d\n" C_WHITE, label, id);
             } else {
                 printf(CB_GREEN "Switch executed\n" C_WHITE);
             }
@@ -295,7 +295,7 @@ int setDevice(int id, char *label, char *val) {
     int pid = getPidById(disconnected_children, id);
     if (pid == -1) pid = getPidById(connected_children, id);
     if (pid == -1) {
-        printf(CB_RED "Error: device with id (%d) not found\n" C_WHITE, id);
+        printf(CB_RED "Error: device with id %d not found\n" C_WHITE, id);
         return;
     }
     int label_val = INVALID_VALUE;  // 0 = interruttore (generico), 1 = termostato
@@ -335,7 +335,7 @@ int setDevice(int id, char *label, char *val) {
                 perror("Error set response");
             } else {
                 if (response.vals[SET_VAL_SUCCESS] == -1) {
-                    printf(CB_RED "The register \"%s\" is not supported by the device (%d)\n" C_WHITE, label, id);
+                    printf(CB_RED "The register \"%s\" is not supported by the device %d\n" C_WHITE, label, id);
                 } else {
                     if (response.vals[SET_VAL_SUCCESS] == SET_TIMER_STARTED_ON_SUCCESS)
                         printf(CB_GREEN "Set executed (a timer was started)\n" C_WHITE);
@@ -352,12 +352,12 @@ int setDevice(int id, char *label, char *val) {
 /**********************************************************************************************/
 void infoDevice(int id) {
     if (id == 0) {
-        printf(CB_CYAN "(0)" CB_WHITE " controller" C_WHITE ", " CB_GREEN "registers:" C_WHITE " num = %d\n", listCount(connected_children));
+        printf(CB_CYAN "(0) controller" C_WHITE ", " CB_WHITE "registers:" C_WHITE " num = %d\n", listCount(connected_children));
     } else {
         int pid = getPidById(disconnected_children, id);
         if (pid == -1) pid = getPidById(connected_children, id);
         if (pid == -1) {
-            printf(CB_RED "Error: device with id (%d) not found\n" C_WHITE, id);
+            printf(CB_RED "Error: device with id %d not found\n" C_WHITE, id);
             return;
         }
         message_t request = buildInfoRequest(pid);

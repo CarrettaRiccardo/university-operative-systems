@@ -12,7 +12,7 @@ int handleSetControl(message_t *msg) {
 
 message_t buildInfoResponseControl(int to_pid, int id, char *children_state, char *available_labels, char *registers_values, int lv, short stop) {
     message_t ret = buildInfoResponse(to_pid, id, lv, stop);
-    sprintf(ret.text, CB_WHITE "%s" C_WHITE ", " CB_YELLOW "state:" C_WHITE " %s, " CB_RED "labels:" C_WHITE "%s, " CB_GREEN "registers (max values):" C_WHITE "%s", HUB, children_state, available_labels, registers_values);
+    sprintf(ret.text, CB_CYAN "%s" C_WHITE ", " CB_WHITE "state: %s" C_WHITE ", " CB_WHITE "labels:" C_WHITE "%s, " CB_WHITE "registers (max values):" C_WHITE "%s", HUB, children_state, available_labels, registers_values);
     return ret;
 }
 

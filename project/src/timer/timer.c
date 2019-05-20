@@ -30,7 +30,12 @@ int handleSetControl(message_t *msg) {
     int success = -1;
     if (msg->vals[SET_VAL_LABEL] == LABEL_BEGIN_VALUE) {
         // TODO
-        //begin = *localtime(msg->vals[SET_VAL_VALUE]);
+        time_t now;
+        time(&now);
+        begin = *localtime(&now);
+        begin.tm_sec += msg->vals[SET_VAL_VALUE];
+        
+        printf("(DEBUG) %d:%d:%d\n", begin.tm_hour, begin.tm_min, begin.tm_sec);
         success = 1;
     } else if (msg->vals[SET_VAL_LABEL] == LABEL_END_VALUE) {
         // TODO
@@ -67,7 +72,7 @@ message_t buildInfoResponseControl(int to_pid, int id, char *children_state, cha
     // genero la stringa di testo personalizzata
     strftime(begin_str, sizeof(begin_str), "%H:%M:%S", &begin);
     strftime(end_str, sizeof(end_str), "%H:%M:%S", &end);
-    sprintf(ret.text, CB_WHITE "%s" C_WHITE ", " CB_YELLOW "state:" C_WHITE " %s, " CB_RED "labels:" C_WHITE "%s, " CB_GREEN "registers (max values):" C_WHITE " begin=%s end=%s%s", TIMER, children_state, available_labels, begin_str, end_str, registers_values);
+    sprintf(ret.text, CB_CYAN "%s" C_WHITE ", " CB_WHITE "state: %s" C_WHITE ", " CB_WHITE "labels:" C_WHITE "%s, " CB_WHITE "registers (max values):" C_WHITE " begin=%s end=%s%s", TIMER, children_state, available_labels, begin_str, end_str, registers_values);
     return ret;
 }
 
