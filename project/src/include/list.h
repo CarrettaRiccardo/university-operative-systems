@@ -42,6 +42,9 @@ void listDestroy(list_t l);
 /*  Aggiunge "value" alla fine della lista */
 int listPushBack(list_t l, void *value, size_t size);
 
+/*  Aggiunge "value" all'inizio della lista */
+int listPushFront(list_t l, void *value, size_t size);
+
 /*  Rimuove il primo elemento con valore "value" dalla lista */
 int listRemove(list_t l, void *value);
 
@@ -50,6 +53,9 @@ int listContains(list_t l, void *value);
 
 /*  Ritorna il numero di elementi nella lista */
 int listCount(list_t l);
+
+/*  Ritorna l' ultimo elemento della lista */
+void* listLast(list_t l);
 
 /*  Ritorna 1 se la lista è vuota, 0 altrimenti */
 int listEmpty(list_t l);

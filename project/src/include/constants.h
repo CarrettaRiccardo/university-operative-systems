@@ -123,7 +123,7 @@
 #define WINDOW "window"
 #define HUB "hub"
 #define TIMER "timer"
-#define HOME "home"
+#define CONTROLLER "controller"
 
 /*************************  Colori per printf  *************************/
 #define C_RESET "\x1b[0m"

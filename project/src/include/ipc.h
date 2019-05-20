@@ -75,6 +75,9 @@ void closeMq(int id);
 /* Traduzione id-pid, ritorna il pid corrispondente all'id passato o -1 se non esiste */
 int getPidById(list_t figli, int id);
 
+/* Funzione appoggio per implementare getPidById */
+int getPidByIdSingle(int to_pid, int id);
+
 /* Controlla se il processo child_pid è tra i figli, percorrendo tutto l'albero */
 int containsChild(list_t figli, int child_pid);
 

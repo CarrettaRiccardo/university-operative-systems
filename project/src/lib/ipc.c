@@ -223,20 +223,27 @@ void closeMq(int id) {
 int getPidById(list_t children, int id) {
     node_t *p = children->head;
     while (p != NULL) {
-        int id_processo = *(int *)p->value;
-        message_t request = buildTranslateRequest(id_processo, id);
-        message_t response;
-
-        if (sendMessage(&request) == -1) {
-            perror("Error get pid by id request");
-        } else if (receiveMessage(&response) == -1) {
-            perror("Error get pid by id response");
-        } else if (response.vals[TRANSLATE_VAL_ID] > 0 && response.type == TRANSLATE_MSG_TYPE) {
-            return response.vals[TRANSLATE_VAL_ID];  // Id trovato
-        }
+        int to_pid = *(int *)p->value;
+        int res = getPidByIdSingle(to_pid, id);
+        if(res > 0)
+          return res;
         p = p->next;
     }
     return -1;
+}
+
+int getPidByIdSingle(int to_pid, int id){
+  message_t request = buildTranslateRequest(to_pid, id);
+  message_t response;
+
+  if (sendMessage(&request) == -1) {
+      perror("Error get pid by id request");
+  } else if (receiveMessage(&response) == -1) {
+      perror("Error get pid by id response");
+  } else if (response.vals[TRANSLATE_VAL_ID] > 0 && response.type == TRANSLATE_MSG_TYPE) {
+      return response.vals[TRANSLATE_VAL_ID];  // Id trovato
+  }
+  return -1;
 }
 
 // stampa nel file con nome della session il messaggio

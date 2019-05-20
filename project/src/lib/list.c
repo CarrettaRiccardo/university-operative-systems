@@ -54,6 +54,16 @@ int listPushBack(list_t l, void *value, size_t size) {
     return 1;
 }
 
+int listPushFront(list_t l, void *value, size_t size) {
+  node_t *new_node = (node_t *)malloc(sizeof(node_t));
+  if (new_node == NULL) return 0;
+  new_node->value = malloc(size);
+  memcpy(new_node->value, value, size);
+  new_node->next = l->head;
+  l->head = new_node;
+  return 1;
+}
+
 int listRemove(list_t l, void *value) {
     if (l->head == NULL) return 0;
     node_t *p = l->head;
@@ -94,6 +104,15 @@ int listCount(list_t l) {
         p = p->next;
     }
     return count;
+}
+
+void* listLast(list_t l){
+  node_t *p = l->head;
+  if(p == NULL)  return NULL;
+  while (p->next != NULL) {
+      p = p->next;
+  }
+  return p->value;
 }
 
 void listIntPrint(list_t l) {
