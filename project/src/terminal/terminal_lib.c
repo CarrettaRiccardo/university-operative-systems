@@ -252,12 +252,14 @@ void linkDevices(int id1, int id2) {
     }
 }
 
+
+#ifndef MANUAL
 /**************************************** UNLINK ********************************************/
 /* Disabilita un componente, rendendolo non più interagibile dal controller                 */
 /* Operazione ammessa solamente da terminal e non comando manuale (il quale può al          */
 /* più fare un DELETE)                                                                      */
 /********************************************************************************************/
-int unlinkDevice(int id){
+int unlinkDevices(int id){
     if(id <= 0)
         printf(CB_RED "Error: <id> must be a positive number\n" C_WHITE);
     int to_pid = solveId(id);
@@ -270,6 +272,7 @@ int unlinkDevice(int id){
     
     doLink(children, to_pid, base_dir); //TODO: do a pushFront and not a pushBack
 }
+#endif
 
 
 /**************************************** SWITCH ********************************************/

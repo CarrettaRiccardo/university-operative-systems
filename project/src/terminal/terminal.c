@@ -90,6 +90,7 @@ int main(int sargc, char **sargv) {
 #endif
             printHelp("del <id>", "Remove device <id>. If the device is a control device, remove also the linked devices.");
             printHelp("link <id> to <id>", "Link two devices.");
+            printHelp("unlink <id>", "Disable component.");
             printHelp("switch <id> <label> <pos>", "Change the value of the switch <label> of the device <id> to <pos>.");
             printHelp("set <id> <register> <value>", "Change the value of the register <register> of the device <id> to <value>.");
             printHelp("info <id>", "Print device <id> info.");
@@ -138,7 +139,12 @@ int main(int sargc, char **sargv) {
             } else if (!isInt(argv[1])) {
                 printf(CB_RED "Error: <id> must be a positive number\n" C_WHITE);
             } else {
-                unlinkDevices(atoi(argv[1]));
+                int res = unlinkDevices(atoi(argv[1]));
+
+                if (res == -1)
+                    perror(CB_RED "Error while disabling device" C_WHITE);
+                else if (res != 0)  //  Se ho aggiunto un device supportato
+                    printf(CB_GREEN "Device disabled\n" C_WHITE);
             }
         }
 #endif
