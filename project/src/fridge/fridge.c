@@ -1,15 +1,18 @@
 #include "../base/device.c"
 #include "../include/ipc.h"
 
-short state;         // 0 = chiusa, 1 = aperta
-short interruttore;  // 0 = fermo, 1 = apertura/chiusura (torna subito ad off, ma se azionato apre la porta o la chiude
-int delay;           // Tempo di chiusura automatica porta
-int temp;            // Temperatura interna
-int perc;            // Percentuale riempimento (0-100%)
-int open_time;       // Tempo apertura porta
-int last_open_time;  // Tempo ultima apertura
+short state;                // 0 = chiusa, 1 = aperta
+short interruttore;         // 0 = fermo, 1 = apertura/chiusura (torna subito ad off, ma se azionato apre la porta o la chiude
+int delay;                  // Tempo di chiusura automatica porta
+int temp;                   // Temperatura interna
+int perc;                   // Percentuale riempimento (0-100%)
+int open_time;              // Tempo apertura porta
+int last_open_time;         // Tempo ultima apertura
+unsigned int missing_time;  // Tempo mancante alla chiusura della porta per poter riprendere correttamente se il sistema è fermato
 
 void closeDoor();
+void generalStart();
+void generalStop();
 
 void initData() {
     // Associo il metodo switch al segnare alarm per la chiusura automatica dopo il delay
@@ -21,6 +24,7 @@ void initData() {
     perc = 0;
     open_time = 0;
     last_open_time = 0;
+    missing_time = 0;
 }
 
 void cloneData(char **vals) {
@@ -33,6 +37,11 @@ void cloneData(char **vals) {
     perc = atoi(vals[4]);
     open_time = atoi(vals[5]);
     last_open_time = atoi(vals[6]);
+    missing_time = atoi(vals[7]);
+    // riaccendo il timer di chiusura automatica se era aperto
+    if (state == SWITCH_POS_ON_LABEL_VALUE && delay > 0){
+        alarm((time(NULL) - last_open_time) < delay ? delay - (time(NULL) - last_open_time) : delay);
+    }
 }
 
 int handleSwitchDevice(message_t *msg) {
@@ -106,7 +115,7 @@ message_t buildListResponseDevice(int to_pid, int id, int lv) {
 }
 
 message_t buildCloneResponseDevice(int to_pid, int id) {
-    int vals[] = {state, interruttore, delay, temp, perc, open_time, last_open_time};
+    int vals[] = {state, interruttore, delay, temp, perc, open_time, last_open_time, missing_time};
     return buildCloneResponse(to_pid, FRIDGE, id, vals, 0);
 }
 
@@ -120,4 +129,18 @@ void closeDoor() {
         interruttore = SWITCH_POS_OFF_LABEL_VALUE;
     }
     // Altrimenti è gia su "off"
+}
+
+void generalStart(){
+    if (missing_time > 0){
+        // riaccendo il timer di chiusura automatica se era aperta la porta
+        if (state == SWITCH_POS_ON_LABEL_VALUE && delay > 0){
+            alarm(missing_time);
+        }
+    }
+}
+
+void generalStop(){
+    // spengo il timer di chiusura automatica e salvo quanto tempo mancava
+    missing_time = alarm(0);
 }
