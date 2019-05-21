@@ -111,6 +111,16 @@ void terminalInit(char *file) {
 /*  Dealloca il terminal  */
 void terminalDestroy() {
 #ifndef MANUAL
+    node_t *p = children->head;
+    while (p != NULL) {
+        message_t request = buildDeleteRequest(*(int *)p->value);
+        message_t response;
+        if (sendMessage(&request) == -1)
+            perror("Error deleting device request");
+        else if (receiveMessage(&response) == -1)
+            perror("Error deleting device response");
+        p = p->next;
+    }
     listDestroy(children);
     free(base_dir);
 #endif
@@ -166,7 +176,6 @@ int addDevice(char *device) {
     }
 }
 
-
 /**************************************** UNLINK ********************************************/
 /* Disabilita un componente, rendendolo non più interagibile dal controller                 */
 /* Operazione ammessa solamente da terminal e non comando manuale (il quale può al          */
@@ -201,9 +210,7 @@ int unlinkDevices(int id){
     } else if (receiveMessage(&response) == -1) {
         perror("Error deleting device response");
         return -1;
-    } 
-
-    listIntPrint(children);
+    }
     return 1;
 }
 #endif
@@ -288,7 +295,6 @@ void linkDevices(int id1, int id2) {
         printf(CB_GREEN "Device %d linked to %d\n" C_WHITE, id1, id2);
     }
 }
-
 
 /**************************************** SWITCH ********************************************/
 /* Cambia lo stato dell'interruttore "label" del dispositivo "id" al valore "pos"           */
