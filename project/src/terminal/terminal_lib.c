@@ -37,6 +37,20 @@ void getPidByIdSignalHandler(int sig, siginfo_t *siginfo, void *context) {
 int solveId(id) {
     return getPidById(children, id);
 }
+
+int isControllerEnabled(int controller_pid) {
+    message_t request = buildCloneRequest(controller_pid);
+    message_t response;
+    if (sendMessage(&request) == -1) {
+        perror("Error checking controller enabled request\n");
+    } else if (receiveMessage(&response) == -1) {
+        perror("Error checking controller enabled response\n");
+    } else {
+        return response.vals[3];  // Valore di stato del controller
+    }
+    return 0;
+}
+
 #else
 int terminal_pid;  // PID del terminale collegato
 int solved_pid;
@@ -262,6 +276,7 @@ int unlinkDevice(int id){
 /* Cambia lo stato dell'interruttore "label" del dispositivo "id" al valore "pos"           */
 /* Uno switch può essere fatto solo su dispostivi attivi                                    */
 /********************************************************************************************/
+
 void switchDevice(int id, char *label, char *pos) {
 #ifndef MANUAL
     void *controller_pid = listLast(children);
@@ -269,6 +284,12 @@ void switchDevice(int id, char *label, char *pos) {
         printf(CB_RED "Error: controller not found, aborting...\n" C_WHITE);
         exit(1);
     }
+
+    if (id != 0 && isControllerEnabled(*(int *)controller_pid) == 0) {
+        printf(CB_RED "Error: the controller is disabled. Run " CB_WHITE "switch 0 general on" CB_RED " to enable it\n" C_WHITE);
+        return;
+    }
+
     int pid = getPidByIdSingle(*(int *)controller_pid, id);
     if (pid == -1) {
         if (getPidById(children, id) != -1) {
@@ -278,6 +299,7 @@ void switchDevice(int id, char *label, char *pos) {
         }
         return;
     }
+
 #else
     int pid = solveId(id);
     if (pid == -1) {
@@ -285,21 +307,25 @@ void switchDevice(int id, char *label, char *pos) {
         return;
     }
 #endif
-    int label_val = INVALID_VALUE;  // 0 = interruttore (generico), 1 = termostato
-    int pos_val = INVALID_VALUE;    // 0 = spento, 1 = acceso; x = valore termostato (°C)
+    int label_val = INVALID_VALUE;
+    int pos_val = INVALID_VALUE;  // 0 = spento, 1 = acceso; x = valore termostato (°C)
     // Map delle label (char*) in valori (int) per poterli inserire in un messaggio
     if (strcmp(label, LABEL_LIGHT) == 0) {
-        label_val = LABEL_LIGHT_VALUE;  // 1 = interruttore (luce)
+        label_val = LABEL_LIGHT_VALUE;
     } else if (strcmp(label, LABEL_OPEN) == 0) {
-        label_val = LABEL_OPEN_VALUE;  // 2 = interruttore (apri/chiudi)
+        label_val = LABEL_OPEN_VALUE;
+    } else if (strcmp(label, LABEL_CLOSE) == 0) {
+        label_val = LABEL_CLOSE_VALUE;
     } else if (strcmp(label, LABEL_THERM) == 0) {
-        label_val = LABEL_THERM_VALUE;  // 4 = termostato
+        label_val = LABEL_THERM_VALUE;
     } else if (strcmp(label, LABEL_ALL) == 0) {
-        label_val = LABEL_ALL_VALUE;  // 8 = all (generico)
+        label_val = LABEL_ALL_VALUE;
+    } else if (strcmp(label, LABEL_GENERAL) == 0) {
+        label_val = LABEL_GENERAL_VALUE;
     }
 
     // Map valore pos (char*) in valori (int) per poterli inserire in un messaggio
-    if (label_val == LABEL_LIGHT_VALUE || label_val == LABEL_OPEN_VALUE || label_val == LABEL_ALL_VALUE) {
+    if (label_val == LABEL_LIGHT_VALUE || label_val == LABEL_OPEN_VALUE || label_val == LABEL_CLOSE_VALUE || label_val == LABEL_ALL_VALUE || label_val == LABEL_GENERAL_VALUE) {
         // Se è un interrutore on/off
         if (strcmp(pos, SWITCH_POS_OFF_LABEL) == 0) {
             pos_val = SWITCH_POS_OFF_LABEL_VALUE;  // 0 = spento/chiuso
@@ -307,7 +333,7 @@ void switchDevice(int id, char *label, char *pos) {
             pos_val = SWITCH_POS_ON_LABEL_VALUE;  // 1 = acceso/aperto
         }
     } else if (label_val == LABEL_THERM_VALUE) {
-        if (isInt(pos) && atoi(pos) >= -30 && atoi(pos) <= 15) {
+        if (isInt(pos) && atoi(pos) >= -20 && atoi(pos) <= 15) {
             pos_val = atoi(pos);
         }
     }
@@ -318,7 +344,7 @@ void switchDevice(int id, char *label, char *pos) {
         return;
     } else if (pos_val == INVALID_VALUE) {
         if (label_val == LABEL_THERM_VALUE) {
-            printf(CB_RED "Error: invalid pos value \"%s\" for label \"%s\". It must be a number between -30°C and 15°C \n" C_WHITE, pos, label);
+            printf(CB_RED "Error: invalid pos value %s°C for label \"%s\". It must be a number between -20°C and 15°C \n" C_WHITE, pos, label);
         } else {
             printf(CB_RED "Error: invalid pos value \"%s\" for label \"%s\"\n" C_WHITE, pos, label);
         }
@@ -346,33 +372,50 @@ void switchDevice(int id, char *label, char *pos) {
 /********************************************************************************************/
 void setDevice(int id, char *label, char *val) {
 #ifndef MANUAL
-    int pid = solveId(id);
+    void *controller_pid = listLast(children);
+    if (controller_pid == NULL) {
+        printf(CB_RED "Error: controller not found, aborting...\n" C_WHITE);
+        exit(1);
+    }
+
+    if (id != 0 && isControllerEnabled(*(int *)controller_pid) == 0) {
+        printf(CB_RED "Error: the controller is disabled. Run " CB_WHITE "switch 0 general on" CB_RED " to enable it\n" C_WHITE);
+        return;
+    }
+
+    int pid = getPidByIdSingle(*(int *)controller_pid, id);
+    if (pid == -1) {
+        if (getPidById(children, id) != -1) {
+            printf(CB_RED "Error: device with id %d not connected to the controller\n" C_WHITE, id);
+        } else {
+            printf(CB_RED "Error: device with id %d not found\n" C_WHITE, id);
+        }
+        return;
+    }
 #else
     int pid = solveId(id);
-#endif
     if (pid == -1) {
         printf(CB_RED "Error: device with id %d not found\n" C_WHITE, id);
         return;
     }
+#endif
     int label_val = INVALID_VALUE;  // 0 = interruttore (generico), 1 = termostato
     int pos_val = INVALID_VALUE;    // 0 = spento, 1 = acceso; x = valore termostato (°C)
     // Map delle label (char*) in valori (int) per poterli inserire in un messaggio
-    if (strcmp(label, LABEL_DELAY) == 0) {
-        label_val = LABEL_DELAY_VALUE;  // 1 = delay (fridge)
-    } else if (strcmp(label, LABEL_BEGIN) == 0) {
-        label_val = LABEL_BEGIN_VALUE;  // 2 = begin (timer)
-    } else if (strcmp(label, LABEL_END) == 0) {
-        label_val = LABEL_END_VALUE;  // 4 = end (timer)
-    } else if (strcmp(label, LABEL_PERC) == 0) {
-        label_val = LABEL_PERC_VALUE;  // 8 = perc (fridge)
+    if (strcmp(label, REGISTER_DELAY) == 0) {
+        label_val = REGISTER_DELAY_VALUE;  // 1 = delay (fridge)
+    } else if (strcmp(label, REGISTER_BEGIN) == 0) {
+        label_val = REGISTER_BEGIN_VALUE;  // 2 = begin (timer)
+    } else if (strcmp(label, REGISTER_END) == 0) {
+        label_val = REGISTER_END_VALUE;  // 4 = end (timer)
+    } else if (strcmp(label, REGISTER_PERC) == 0) {
+        label_val = REGISTER_PERC_VALUE;  // 8 = perc (fridge)
     }
 
     // valore del delay, di inizio o fine timer
-    if (label_val == LABEL_DELAY_VALUE || label_val == LABEL_PERC_VALUE) {  // valore inserito nel delay o percentuale riempimento
-        if (isInt(val)) {                                                   // E' un valore valido solo se è un numero (i register sono delay, begin o end)
-            pos_val = atoi(val);
-        }
-    } else if (label_val == LABEL_BEGIN_VALUE || label_val == LABEL_END_VALUE) {  // se è begin/end, il numero inserito indica quanti seconda da ORA
+    if (label_val == REGISTER_DELAY_VALUE && isInt(val)) {  // E' un valore valido solo se è un numero (i register sono delay, begin o end)
+        pos_val = atoi(val);
+    } else if (label_val == REGISTER_BEGIN_VALUE || label_val == REGISTER_END_VALUE) {  // se è begin/end, il numero inserito indica quanti seconda da ORA
         int hr = 0;
         int min = 0;
         int sec = 0;
@@ -385,6 +428,8 @@ void setDevice(int id, char *label, char *val) {
             sec -= now.tm_sec;
             pos_val = time(NULL) + (hr * 3600) + (min * 60) + sec;
         }
+    } else if (label_val == REGISTER_PERC_VALUE && isInt(val) && atoi(val) >= 0 && atoi(val) <= 100) {
+        pos_val = atoi(val);
     }
 
     // Se i parametri creano dei valori validi
@@ -392,7 +437,12 @@ void setDevice(int id, char *label, char *val) {
         printf(CB_RED "Error: invalid register \"%s\"\n" C_WHITE, label);
         return;
     } else if (pos_val == INVALID_VALUE) {
-        printf(CB_RED "Error: invalid value \"%s\" for register \"%s\"\n" C_WHITE, val, label);
+        if (label_val == REGISTER_PERC_VALUE) {
+            printf(CB_RED "Error: invalid value %s%% for register \"%s\". It must be a number between 0 and 100\n" C_WHITE, val, label);
+        } else {
+            printf(CB_RED "Error: invalid value \"%s\" for register \"%s\"\n" C_WHITE, val, label);
+        }
+        return;
         return;
     } else {
         message_t request = buildSetRequest(pid, label_val, pos_val);
@@ -404,8 +454,6 @@ void setDevice(int id, char *label, char *val) {
         } else {
             if (response.vals[SET_VAL_SUCCESS] == SET_ERROR_INVALID_VALUE)
                 printf(CB_RED "Error: the register \"%s\" is not supported by the device %d\n" C_WHITE, label, id);
-            else if (response.vals[SET_VAL_SUCCESS] == SET_ERROR_INVALID_PERC)
-                printf(CB_RED "Error: the register \"perc\" must be a number between 0 and 100\n" C_WHITE);
             else if (response.vals[SET_VAL_SUCCESS] == SET_TIMER_STARTED_SUCCESS)
                 printf(CB_GREEN "Set executed (timer started)\n" C_WHITE);
             else

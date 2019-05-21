@@ -116,12 +116,14 @@ int main(int sargc, char **sargv) {
                     result = addDevice(FRIDGE);
                 else if (strcmp(argv[1], WINDOW) == 0)
                     result = addDevice(WINDOW);
+                else if (strcmp(argv[1], ALARM) == 0)
+                    result = addDevice(ALARM);
                 else if (strcmp(argv[1], HUB) == 0)
                     result = addDevice(HUB);
                 else if (strcmp(argv[1], TIMER) == 0)
                     result = addDevice(TIMER);
                 else
-                    printf(CB_RED "Unknown device, supported devices: bulb, fridge, window, hub, timer\n" C_WHITE);
+                    printf(CB_RED "Unknown device, supported devices: bulb, fridge, window, hub, timer, alarm\n" C_WHITE);
 
                 if (result == -1)
                     perror(CB_RED "Error while adding device" C_WHITE);

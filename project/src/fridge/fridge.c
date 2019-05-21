@@ -74,16 +74,12 @@ int handleSwitchDevice(message_t *msg) {
 
 int handleSetDevice(message_t *msg) {
     int success = -1;
-    if (msg->vals[SET_VAL_LABEL] == LABEL_DELAY_VALUE) {  // Tempo chiusura porta (il cambio sarà effettivo dalla prossima apertura se è già apertou)
+    if (msg->vals[SET_VAL_LABEL] == REGISTER_DELAY_VALUE) {  // Tempo chiusura porta (il cambio sarà effettivo dalla prossima apertura se è già apertou)
         delay = msg->vals[SET_VAL_VALUE];
         success = 1;
-    } else if (msg->vals[SET_VAL_LABEL] == LABEL_PERC_VALUE) {  // Percentuale riempimento
-        if (msg->vals[SET_VAL_VALUE] < 0 || msg->vals[SET_VAL_VALUE] > 100) {
-            success = SET_ERROR_INVALID_PERC;
-        } else {
-            perc = msg->vals[SET_VAL_VALUE];
-            success = 1;
-        }
+    } else if (msg->vals[SET_VAL_LABEL] == REGISTER_PERC_VALUE) {  // Percentuale riempimento
+        perc = msg->vals[SET_VAL_VALUE];
+        success = 1;
     }
     return success;
 }

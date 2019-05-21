@@ -2,7 +2,7 @@
 #include "../include/ipc.h"
 
 short state;
-short interruttore;  // valore interruttore che è 1 a 1 con lo stato
+short interruttore;  // Valore interruttore che è 1 a 1 con lo stato
 int on_time;
 int last_on_time;
 
@@ -47,7 +47,7 @@ int handleSwitchDevice(message_t *msg) {
 }
 
 int handleSetDevice(message_t *msg) {
-    // la bulb non ha registri da modificare
+    // La bulb non ha registri da modificare
     return -1;
 }
 
@@ -55,7 +55,7 @@ message_t buildInfoResponseDevice(int to_pid, int id, int lv) {
     message_t ret = buildInfoResponse(to_pid, id, lv, 1);
     time_t now = time(NULL);
     int tot_time = on_time + (now - ((state == SWITCH_POS_OFF_LABEL_VALUE) ? now : last_on_time));  // Se è spenta ritorno solo "on_time", altrimenti on_time+differenza da quanto accesa
-    sprintf(ret.text, CB_CYAN "%s" C_WHITE ", " CB_WHITE "state: %s" C_WHITE ", " CB_WHITE "labels:" C_WHITE " %s, " CB_WHITE "registers:" C_WHITE " time=%ds", BULB, state == 1 ? CB_GREEN "on" : CB_RED "off", LABEL_LIGHT, tot_time);
+    sprintf(ret.text, CB_CYAN "%s" C_WHITE ", " CB_WHITE "state: %s" C_WHITE ", " CB_WHITE "labels:" C_WHITE " %s, " CB_WHITE "registers:" C_WHITE " time=%ds", BULB, state ? CB_GREEN "on" : CB_RED "off", LABEL_LIGHT, tot_time);
     ret.vals[INFO_VAL_STATE] = state;
     ret.vals[INFO_VAL_LABELS] = LABEL_LIGHT_VALUE;
     ret.vals[INFO_VAL_REG_TIME] = tot_time;
@@ -67,7 +67,7 @@ message_t buildInfoResponseDevice(int to_pid, int id, int lv) {
 
 message_t buildListResponseDevice(int to_pid, int id, int lv) {
     message_t ret = buildListResponse(to_pid, id, lv, 1);
-    sprintf(ret.text, CB_WHITE "%s %s" C_WHITE, BULB, state == 1 ? CB_GREEN "on" : CB_RED "off");
+    sprintf(ret.text, CB_WHITE "%s %s" C_WHITE, BULB, state ? CB_GREEN "on" : CB_RED "off");
     ret.vals[INFO_VAL_STATE] = state;
     return ret;
 }

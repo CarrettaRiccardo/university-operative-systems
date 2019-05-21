@@ -12,7 +12,7 @@ void cloneData(char **vals);
 int handleSetControl(message_t *msg);
 message_t buildInfoResponseControl(int to_pid, int id, char *children_state, char *available_labels, char *registers_vals, int lv, short stop);
 message_t buildListResponseControl(int to_pid, int id, char *children_state, int lv, short stop);
-message_t buildCloneResponseControl(int to_pid, int id);
+message_t buildCloneResponseControl(int to_pid, int id, int state);
 
 /* Gestione figlio eliminato */
 void sigchldHandler(int signum);
@@ -22,6 +22,7 @@ void doInfoList(message_t *msg, short type);
 
 char *base_dir;
 int id;
+short state;
 list_t children;
 int max_children_count;  // Numero massimo di figli supportati. -1 = inf
 
@@ -84,20 +85,26 @@ int main(int argc, char **argv) {
                 } break;
 
                 case SWITCH_MSG_TYPE: {
-                    if (id != 0) {  //il contrller (sempre id = 0) non deve eseguire nessuno switch nei figli, perchè il terminale inviaerà direttamente al componente il comando
+                    if (id != 0) {  // Il controller (id = 0) non esegue il mirroring degli interruttori dei figli
                         int success = doSwitchChildren(msg.vals[SWITCH_VAL_LABEL], msg.vals[SWITCH_VAL_POS]);
                         message_t m = buildSwitchResponse(msg.sender, success);
                         sendMessage(&m);
+                    } else if (msg.vals[SWITCH_VAL_LABEL] == LABEL_GENERAL_VALUE) {  // Il controller supporta solo l'interruttore "general"
+                        state = msg.vals[SWITCH_VAL_POS] == SWITCH_POS_ON_LABEL_VALUE ? 1 : 0;
+                        message_t m = buildSwitchResponse(msg.sender, 1);
+                        sendMessage(&m);
+                    } else {
+                        message_t m = buildSwitchResponse(msg.sender, SWITCH_ERROR_INVALID_VALUE);
+                        sendMessage(&m);
                     }
-
                 } break;
 
                 case SET_MSG_TYPE: {
-                    if (id != 0) {  //il contrller (sempre id = 0) non deve eseguire nessuno switch nei figli, perchè il terminale inviaerà direttamente al componente il comando
+                    if (id != 0) {  // Il controller (id = 0) non esegue il mirroring dei registri dei figli
                         int success = handleSetControl(&msg);
                         message_t m = buildSetResponse(msg.sender, success);
                         sendMessage(&m);
-                    } else {  //il contrller ritorna sempre un messaggio di errore
+                    } else {  // Il controller ritorna sempre un messaggio di errore, in quanto non ha registri settabili
                         message_t m = buildSetResponse(msg.sender, -1);
                         sendMessage(&m);
                     }
@@ -129,10 +136,8 @@ int main(int argc, char **argv) {
                 } break;
 
                 case CLONE_MSG_TYPE: {
-                    if (id != 0) {                                                //il controller non può essere clonato
-                        message_t m = buildCloneResponseControl(msg.sender, id);  // Implementazione specifica dispositivo
-                        sendMessage(&m);
-                    }
+                    message_t m = buildCloneResponseControl(msg.sender, id, state);  // Implementazione specifica dispositivo
+                    sendMessage(&m);
                 } break;
 
                 case GET_CHILDREN_MSG_TYPE: {
@@ -281,6 +286,7 @@ void doInfoList(message_t *msg, short type) {
     if (label_values & LABEL_ALL_VALUE) strcat(labels_str, " " LABEL_ALL);
     if (label_values & LABEL_LIGHT_VALUE) strcat(labels_str, " " LABEL_LIGHT);
     if (label_values & LABEL_OPEN_VALUE) strcat(labels_str, " " LABEL_OPEN);
+    if (label_values & LABEL_CLOSE_VALUE) strcat(labels_str, " " LABEL_CLOSE);
     if (label_values & LABEL_THERM_VALUE) strcat(labels_str, " " LABEL_THERM);
     if (strlen(labels_str) == 0) strcat(labels_str, " (empty)");  // Nel caso non avessi nessun interruttore
 
@@ -291,10 +297,10 @@ void doInfoList(message_t *msg, short type) {
         if (registers_count[i] > 0) {
             int value = registers_values[i];
             char reg_str[16] = "";
-            if (i == INFO_VAL_REG_TIME) snprintf(reg_str, 16, " " LABEL_TIME "=%ds", value);
-            if (i == INFO_VAL_REG_DELAY) snprintf(reg_str, 16, " " LABEL_DELAY "=%ds", value);
-            if (i == INFO_VAL_REG_PERC) snprintf(reg_str, 16, " " LABEL_PERC "=%d%%", value);
-            if (i == INFO_VAL_REG_TEMP) snprintf(reg_str, 16, " " LABEL_TEMP "=%d°C", value);
+            if (i == INFO_VAL_REG_TIME) snprintf(reg_str, 16, " " REGISTER_TIME "=%ds", value);
+            if (i == INFO_VAL_REG_DELAY) snprintf(reg_str, 16, " " REGISTER_DELAY "=%ds", value);
+            if (i == INFO_VAL_REG_PERC) snprintf(reg_str, 16, " " REGISTER_PERC "=%d%%", value);
+            if (i == INFO_VAL_REG_TEMP) snprintf(reg_str, 16, " " REGISTER_TEMP "=%d°C", value);
             strcat(registers_str, reg_str);
         }
     }
