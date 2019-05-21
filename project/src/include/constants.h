@@ -117,6 +117,7 @@
 #define HUB "hub"
 #define TIMER "timer"
 #define CONTROLLER "controller"
+#define ALARM "alarm"
 
 /*************************  Colori per printf  *************************/
 #define C_RESET "\x1b[0m"
