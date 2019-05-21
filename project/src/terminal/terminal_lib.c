@@ -173,15 +173,22 @@ int addDevice(char *device) {
 /* più fare un DELETE)                                                                      */
 /********************************************************************************************/
 int unlinkDevices(int id){
-    if(id <= 0)
-        printf(CB_RED "Error: <id> must be a positive number\n" C_WHITE);
+    if(id <= 0){
+        printf(CB_RED "Error: <id> must be > 0\n" C_WHITE);
+        return -8;
+    }
     int to_pid = solveId(id);
     if (to_pid == -1) {
         printf(CB_RED "Error: device with id %d not found\n" C_WHITE, id);
         return -9;
     }
-    int res = doLink(children, to_pid, base_dir, 1);
 
+    if(listContains(children, &to_pid)){  //è già presente nella lista dei figli del terminal, quindi è già disabilitato
+        printf(CB_YELLOW "Device already disabled\n" C_WHITE);
+        return -7;
+    }
+
+    int res = doLink(children, to_pid, base_dir, 1);
     if(res <= 0)
         return res;
 
@@ -195,6 +202,8 @@ int unlinkDevices(int id){
         perror("Error deleting device response");
         return -1;
     } 
+
+    listIntPrint(children);
     return 1;
 }
 #endif

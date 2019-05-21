@@ -314,3 +314,4 @@ void doInfoList(message_t *msg, short type) {
     }
     listDestroy(msg_list);
 }
+

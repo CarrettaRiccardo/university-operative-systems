@@ -143,7 +143,6 @@ int main(int sargc, char **sargv) {
                 int res = unlinkDevices(atoi(argv[1]));
                 if (res > 0)
                     printf(CB_GREEN "Device disabled\n" C_WHITE);
-                else printf("NOOO\n");
             }
         }
 #endif
