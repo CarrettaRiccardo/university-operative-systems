@@ -1,9 +1,13 @@
 #include "../base/control.c"
 #include "../include/ipc.h"
 
-void initData() {}
+void initData() {
+    state = SWITCH_POS_OFF_LABEL_VALUE;
+}
 
-void cloneData(char **vals) {}
+void cloneData(char **vals) {
+    state = atoi(vals[0]);
+}
 
 int handleSetControl(message_t *msg) {
     // l'hub non ha registri da modificare
@@ -29,7 +33,7 @@ message_t buildListResponseControl(int to_pid, int id, char *children_state, int
  * Copia i valori dei registri per essere ripristinati.
  * HUB non ha registri.
  **/
-message_t buildCloneResponseControl(int to_pid, int id) {
-    int vals[] = {};
+message_t buildCloneResponseControl(int to_pid, int id, int state) {
+    int vals[] = {state};
     return buildCloneResponse(to_pid, HUB, id, vals, 1);
 }

@@ -12,6 +12,7 @@ void initData() {
     // Associo il metodo switch al segnare alarm per il begin/end automatico (se TIMER)
     signal(SIGALRM, setAlarm);
     max_children_count = 1;
+    state = SWITCH_POS_OFF_LABEL_VALUE;
     begin = *localtime(&(time_t){0});  // inizializzo a 0 il tempo
     end = *localtime(&(time_t){0});    // inizializzo a 0 il tempo
     waitForBegin = 0;
@@ -21,10 +22,11 @@ void cloneData(char **vals) {
     // Associo il metodo switch al segnare alarm per il begin/end automatico (se TIMER)
     signal(SIGALRM, setAlarm);
     max_children_count = 1;
-    begin = *localtime(&(time_t){atoi(vals[0])});
-    end = *localtime(&(time_t){atoi(vals[1])});
-    waitForBegin = atoi(vals[2]);
-    alarm(atoi(vals[3]));  // fa ripartire il timer da dove si trovava prima
+    state = atoi(vals[0]);
+    begin = *localtime(&(time_t){atoi(vals[1])});
+    end = *localtime(&(time_t){atoi(vals[2])});
+    waitForBegin = atoi(vals[3]);
+    alarm(atoi(vals[4]));  // fa ripartire il timer da dove si trovava prima
 }
 
 int handleSetControl(message_t *msg) {
@@ -79,8 +81,8 @@ message_t buildListResponseControl(int to_pid, int id, char *children_state, int
     return ret;
 }
 
-message_t buildCloneResponseControl(int to_pid, int id) {
-    int vals[] = {mktime(&begin), mktime(&end), waitForBegin, alarm()};
+message_t buildCloneResponseControl(int to_pid, int id, int state) {
+    int vals[] = {state, mktime(&begin), mktime(&end), waitForBegin, alarm()};
     return buildCloneResponse(to_pid, TIMER, id, vals, 1);
 }
 

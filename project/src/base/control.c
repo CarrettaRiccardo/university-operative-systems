@@ -12,7 +12,7 @@ void cloneData(char **vals);
 int handleSetControl(message_t *msg);
 message_t buildInfoResponseControl(int to_pid, int id, char *children_state, char *available_labels, char *registers_vals, int lv, short stop);
 message_t buildListResponseControl(int to_pid, int id, char *children_state, int lv, short stop);
-message_t buildCloneResponseControl(int to_pid, int id);
+message_t buildCloneResponseControl(int to_pid, int id, int state);
 
 /* Gestione figlio eliminato */
 void sigchldHandler(int signum);
@@ -22,6 +22,7 @@ void doInfoList(message_t *msg, short type);
 
 char *base_dir;
 int id;
+short state;
 list_t children;
 int max_children_count;  // Numero massimo di figli supportati. -1 = inf
 
@@ -84,20 +85,19 @@ int main(int argc, char **argv) {
                 } break;
 
                 case SWITCH_MSG_TYPE: {
-                    if (id != 0) {  //il contrller (sempre id = 0) non deve eseguire nessuno switch nei figli, perchè il terminale inviaerà direttamente al componente il comando
+                    if (id != 0) {  // Il controller (id = 0) non esegue il mirroring degli interruttori dei figli
                         int success = doSwitchChildren(msg.vals[SWITCH_VAL_LABEL], msg.vals[SWITCH_VAL_POS]);
                         message_t m = buildSwitchResponse(msg.sender, success);
                         sendMessage(&m);
                     }
-
                 } break;
 
                 case SET_MSG_TYPE: {
-                    if (id != 0) {  //il contrller (sempre id = 0) non deve eseguire nessuno switch nei figli, perchè il terminale inviaerà direttamente al componente il comando
+                    if (id != 0) {  // Il controller (id = 0) non esegue il mirroring dei registri dei figli
                         int success = handleSetControl(&msg);
                         message_t m = buildSetResponse(msg.sender, success);
                         sendMessage(&m);
-                    } else {  //il contrller ritorna sempre un messaggio di errore
+                    } else {  // Il controller ritorna sempre un messaggio di errore, in qunato non ha registri settabili
                         message_t m = buildSetResponse(msg.sender, -1);
                         sendMessage(&m);
                     }
@@ -129,8 +129,8 @@ int main(int argc, char **argv) {
                 } break;
 
                 case CLONE_MSG_TYPE: {
-                    if (id != 0) {                                                //il controller non può essere clonato
-                        message_t m = buildCloneResponseControl(msg.sender, id);  // Implementazione specifica dispositivo
+                    if (id != 0) {                                                       //il controller non può essere clonato
+                        message_t m = buildCloneResponseControl(msg.sender, id, state);  // Implementazione specifica dispositivo
                         sendMessage(&m);
                     }
                 } break;
