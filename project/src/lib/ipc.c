@@ -1,13 +1,15 @@
 #include "../include/ipc.h"
 
 /********************************** Workers **********************************/
-void doLink(list_t children, int to_clone_pid, const char *base_dir) {
+int doLink(list_t children, int to_clone_pid, const char *base_dir, short is_terminal) {
     message_t request = buildCloneRequest(to_clone_pid);
     message_t response;
     if (sendMessage(&request) == -1) {
         printf("Error sending clone request to %d from %d: %s\n", to_clone_pid, getpid(), strerror(errno));
+        return -1;
     } else if (receiveMessage(&response) == -1) {
         printf("Error receiving clone response in %d from %d: %s\n", getpid(), to_clone_pid, strerror(errno));
+        return -1;
     } else {
         int pid = fork();
         char exec_file[50];
@@ -25,14 +27,21 @@ void doLink(list_t children, int to_clone_pid, const char *base_dir) {
             args[NVAL + 1] = NULL;
             if (execvp(args[0], args) == -1) {
                 printf("Error: clone failed, execvp %s: %s\n", args[0], strerror(errno));
+                return -1;
             }
             for (i = 1; i < NVAL + 1; i++) free(args[i]);
         }
         // Padre
         else {
-            if (pid != -1) listPushBack(children, &pid, sizeof(int));
+            if (pid == -1) return -1;
+            if (is_terminal) {  // Se è il terminale sto eseguendo un unlink. Metto il dispositivo all'inizio della coda per lasciare il controller come ultimo elemento
+                listPushFront(children, &pid, sizeof(int));
+            } else {
+                listPushBack(children, &pid, sizeof(int));
+            }
         }
     }
+    return 0;
 }
 
 /********************************** Requests **********************************/

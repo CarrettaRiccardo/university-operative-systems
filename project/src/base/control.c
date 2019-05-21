@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
             receiveMessage(&response);
             child_pid = response.vals[GET_CHILDREN_VAL_ID];
             if (child_pid != -1) {
-                doLink(children, child_pid, base_dir);  // Per ogni figlio di to_clone_pid, effettuo il link di quel device al nuovo device appena clonato
+                doLink(children, child_pid, base_dir, 0);  // Per ogni figlio di to_clone_pid, effettuo il link di quel device al nuovo device appena clonato
                 message_t ack;
                 receiveMessage(&ack);  //  Attendo una conferma di avvenuta clonazione dal figlio clonato
                 ack.to = to_clone_pid;
@@ -126,7 +126,7 @@ int main(int argc, char **argv) {
                 case LINK_MSG_TYPE: {
                     // Controllo sul numero di figli massimo supportato
                     if (max_children_count == -1 || listCount(children) < max_children_count) {
-                        doLink(children, msg.vals[LINK_VAL_PID], base_dir);
+                        doLink(children, msg.vals[LINK_VAL_PID], base_dir, 0);
                         //  Attendo una conferma dal figlio clonato e la inoltro al mittente.
                         message_t ack;
                         receiveMessage(&ack);
