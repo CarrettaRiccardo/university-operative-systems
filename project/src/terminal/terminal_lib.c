@@ -170,23 +170,25 @@ int addDevice(char *device) {
     }
 }
 
+
 /**************************************** UNLINK ********************************************/
 /* Disabilita un componente, rendendolo non più interagibile dal controller                 */
 /* Operazione ammessa solamente da terminal e non comando manuale (il quale può al          */
 /* più fare un DELETE)                                                                      */
 /********************************************************************************************/
-void unlinkDevice(int id) {
-    if (id <= 0)
+int unlinkDevices(int id){
+    if(id <= 0)
         printf(CB_RED "Error: <id> must be a positive number\n" C_WHITE);
-    int pid = solveId(id);
-    if (pid == -1) {
+    int to_pid = solveId(id);
+    if (to_pid == -1) {
         printf(CB_RED "Error: device with id %d not found\n" C_WHITE, id);
         return;
     }
-    /*message_t request = buildUnlinkRequest(to_pid);
-    message_t response;*/
 
-    doLink(children, pid, base_dir, 1);
+    if(doLink(children, to_pid, base_dir, 1) > 0)
+        printf(CB_GREEN "Device disabled\n" C_WHITE);
+    else
+        printf(CB_RED "Error disabling component\n" C_WHITE);
 }
 #endif
 
@@ -271,27 +273,6 @@ void linkDevices(int id1, int id2) {
     }
 }
 
-
-#ifndef MANUAL
-/**************************************** UNLINK ********************************************/
-/* Disabilita un componente, rendendolo non più interagibile dal controller                 */
-/* Operazione ammessa solamente da terminal e non comando manuale (il quale può al          */
-/* più fare un DELETE)                                                                      */
-/********************************************************************************************/
-int unlinkDevices(int id){
-    if(id <= 0)
-        printf(CB_RED "Error: <id> must be a positive number\n" C_WHITE);
-    int to_pid = solveId(id);
-    if (to_pid == -1) {
-        printf(CB_RED "Error: device with id %d not found\n" C_WHITE, id);
-        return;
-    }
-    /*message_t request = buildUnlinkRequest(to_pid);
-    message_t response;*/
-    
-    doLink(children, to_pid, base_dir); //TODO: do a pushFront and not a pushBack
-}
-#endif
 
 
 /**************************************** SWITCH ********************************************/

@@ -34,7 +34,7 @@ void terminalDestroy();
 #ifndef MANUAL
 void listDevices();
 int addDevice(char *device);
-void unlinkDevice(int id);
+int unlinkDevices(int id);
 #endif
 void delDevice(int id);
 void linkDevices(int id1, int id2);
