@@ -141,9 +141,7 @@ int main(int sargc, char **sargv) {
                 printf(CB_RED "Error: <id> must be a positive number\n" C_WHITE);
             } else {
                 int res = unlinkDevices(atoi(argv[1]));
-                if (res == -1)
-                    perror(CB_RED "Error while disabling device" C_WHITE);
-                else if (res != 0)  //  Se ho aggiunto un device supportato
+                if (res > 0)
                     printf(CB_GREEN "Device disabled\n" C_WHITE);
             }
         }

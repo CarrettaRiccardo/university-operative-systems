@@ -87,14 +87,13 @@ int main(int argc, char **argv) {
                 case SWITCH_MSG_TYPE: {
                     if (id != 0) {  // Il controller (id = 0) non esegue il mirroring degli interruttori dei figli
                         int success = doSwitchChildren(msg.vals[SWITCH_VAL_LABEL], msg.vals[SWITCH_VAL_POS]);
-                        if (success) {
-                            if (msg.vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_LABEL_VALUE || msg.vals[SWITCH_VAL_POS] == SWITCH_POS_ON_LABEL_VALUE) {
-                                state = msg.vals[SWITCH_VAL_POS];
-                            }
+                        if (success && msg.vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_LABEL_VALUE || msg.vals[SWITCH_VAL_POS] == SWITCH_POS_ON_LABEL_VALUE) {
+                            state = msg.vals[SWITCH_VAL_POS];
                         }
                         message_t m = buildSwitchResponse(msg.sender, success);
                         sendMessage(&m);
                     } else if (msg.vals[SWITCH_VAL_LABEL] == LABEL_GENERAL_VALUE) {  // Il controller supporta solo l'interruttore "general"
+                        int success = doSwitchChildren(msg.vals[SWITCH_VAL_LABEL], msg.vals[SWITCH_VAL_POS]);
                         state = msg.vals[SWITCH_VAL_POS] == SWITCH_POS_ON_LABEL_VALUE ? 1 : 0;
                         message_t m = buildSwitchResponse(msg.sender, 1);
                         sendMessage(&m);
@@ -160,24 +159,19 @@ int main(int argc, char **argv) {
 
                 } break;
 
-                case DELETE_MSG_TYPE: {  //uccido tutti i miei figli e poi me stesso
-                    if (id != 0) {
-                        signal(SIGCHLD, NULL);  // Rimuovo l'handler in modo da non interrompere l'esecuzione mentre elimino ricorsivamente i figli
-                        node_t *p = children->head;
-                        message_t kill_req, kill_resp;
-                        while (p != NULL) {
-                            kill_req = buildDeleteRequest(*(int *)p->value);
-                            sendMessage(&kill_req);
-                            receiveMessage(&kill_resp);
-                            p = p->next;
-                        }
-                        message_t m = buildDeleteResponse(msg.sender, 1);
-                        sendMessage(&m);
-                        exit(0);
-                    } else {
-                        message_t m = buildDeleteResponse(msg.sender, -1);  //invio msg errore perchè non si può uccidere la centalina
-                        sendMessage(&m);
+                case DELETE_MSG_TYPE: {     //uccido tutti i miei figli e poi me stesso
+                    signal(SIGCHLD, NULL);  // Rimuovo l'handler in modo da non interrompere l'esecuzione mentre elimino ricorsivamente i figli
+                    node_t *p = children->head;
+                    message_t kill_req, kill_resp;
+                    while (p != NULL) {
+                        kill_req = buildDeleteRequest(*(int *)p->value);
+                        sendMessage(&kill_req);
+                        receiveMessage(&kill_resp);
+                        p = p->next;
                     }
+                    message_t m = buildDeleteResponse(msg.sender, 1);
+                    sendMessage(&m);
+                    exit(0);
                 } break;
             }
         }
@@ -314,3 +308,4 @@ void doInfoList(message_t *msg, short type) {
     }
     listDestroy(msg_list);
 }
+

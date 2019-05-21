@@ -111,6 +111,16 @@ void terminalInit(char *file) {
 /*  Dealloca il terminal  */
 void terminalDestroy() {
 #ifndef MANUAL
+    node_t *p = children->head;
+    while (p != NULL) {
+        message_t request = buildDeleteRequest(*(int *)p->value);
+        message_t response;
+        if (sendMessage(&request) == -1)
+            perror("Error deleting device request");
+        else if (receiveMessage(&response) == -1)
+            perror("Error deleting device response");
+        p = p->next;
+    }
     listDestroy(children);
     free(base_dir);
 #endif
@@ -166,25 +176,37 @@ int addDevice(char *device) {
     }
 }
 
-
 /**************************************** UNLINK ********************************************/
 /* Disabilita un componente, rendendolo non più interagibile dal controller                 */
 /* Operazione ammessa solamente da terminal e non comando manuale (il quale può al          */
 /* più fare un DELETE)                                                                      */
 /********************************************************************************************/
-int unlinkDevices(int id){
-    if(id <= 0)
-        printf(CB_RED "Error: <id> must be a positive number\n" C_WHITE);
+int unlinkDevices(int id) {
     int to_pid = solveId(id);
     if (to_pid == -1) {
         printf(CB_RED "Error: device with id %d not found\n" C_WHITE, id);
-        return;
+        return -9;
     }
 
-    if(doLink(children, to_pid, base_dir, 1) > 0)
-        printf(CB_GREEN "Device disabled\n" C_WHITE);
-    else
-        printf(CB_RED "Error disabling component\n" C_WHITE);
+    if (listContains(children, &to_pid)) {  //è già presente nella lista dei figli del terminal, quindi è già disabilitato
+        printf(CB_YELLOW "Device already disabled\n" C_WHITE);
+        return -7;
+    }
+
+    int res = doLink(children, to_pid, base_dir, 1);
+    if (res <= 0) return res;
+
+    //  Killo il processo disabilitato
+    message_t request, response;
+    request = buildDeleteRequest(to_pid);
+    if (sendMessage(&request) == -1) {
+        perror("Error deleting device request");
+        return 0;
+    } else if (receiveMessage(&response) == -1) {
+        perror("Error deleting device response");
+        return -1;
+    }
+    return 1;
 }
 #endif
 
@@ -268,7 +290,6 @@ void linkDevices(int id1, int id2) {
         printf(CB_GREEN "Device %d linked to %d\n" C_WHITE, id1, id2);
     }
 }
-
 
 /**************************************** SWITCH ********************************************/
 /* Cambia lo stato dell'interruttore "label" del dispositivo "id" al valore "pos"           */
