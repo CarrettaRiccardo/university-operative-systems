@@ -9,7 +9,7 @@ int perc;            // Probabilità di accensione automatica ad ogni 'delay'
 void ringAlarm();
 
 void initData() {
-    // Associo il metodo switch al segnare alarm per l'allarme automatico dopo il delay
+    // Associo il metodo switch al segnale alarm per l'allarme automatico dopo il delay
     signal(SIGALRM, ringAlarm);
     state = SWITCH_POS_OFF_LABEL_VALUE;
     interruttore = state;
