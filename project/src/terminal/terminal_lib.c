@@ -51,6 +51,14 @@ int isControllerEnabled(int controller_pid) {
     return 0;
 }
 
+int getControllerPid() {
+    void *controller_pid = listLast(children);
+    if (controller_pid == NULL) {
+        printf(CB_RED "Error: controller not found, aborting...\n" C_WHITE);
+        exit(1);
+    }
+    return *(int *)controller_pid;
+}
 #else
 int terminal_pid;  // PID del terminale collegato
 int solved_pid;
@@ -188,12 +196,14 @@ int unlinkDevices(int id) {
         return -9;
     }
 
-    if (listContains(children, &to_pid)) {  //è già presente nella lista dei figli del terminal, quindi è già disabilitato
-        printf(CB_YELLOW "Device already disabled\n" C_WHITE);
+    if (listContains(children, &to_pid)) {  // è già presente nella lista dei figli del terminal, quindi è già disabilitato
+        printf(CB_YELLOW "Device already disconnected\n" C_WHITE);
         return -7;
     }
 
     int res = doLink(children, to_pid, base_dir, 1);
+    message_t ack;
+    receiveMessage(&ack);
     if (res <= 0) return res;
 
     //  Killo il processo disabilitato
@@ -205,6 +215,16 @@ int unlinkDevices(int id) {
     } else if (receiveMessage(&response) == -1) {
         perror("Error deleting device response");
         return -1;
+    }
+
+    // Invio il comando GENERAL per riabilitare eventuali timer bloccati dal controller disabilitato
+    request = buildSwitchRequest(solveId(id), LABEL_GENERAL_VALUE, SWITCH_POS_ON_LABEL_VALUE);
+    if (sendMessage(&request) == -1) {
+        perror("Error general request in link");
+        return -2;
+    } else if (receiveMessage(&response) == -1) {
+        perror("Error general response in link");
+        return -3;
     }
     return 1;
 }
@@ -284,11 +304,27 @@ void linkDevices(int id1, int id2) {
     request = buildDeleteRequest(src);
     if (sendMessage(&request) == -1) {
         perror("Error deleting device request");
+        return;
     } else if (receiveMessage(&response) == -1) {
         perror("Error deleting device response");
+        return;
     } else {
         printf(CB_GREEN "Device %d linked to %d\n" C_WHITE, id1, id2);
     }
+
+    /*// Se il controller è disabilitato invio il comando GENERAL per fermare eventuali timer appena collegati al controller
+    int controller_pid = getControllerPid();
+    if (!isControllerEnabled(controller_pid) && (src = getPidByIdSingle(controller_pid, id1)) != -1) {  // Se il dispostivo src è stato collegato al controller
+        message_t request = buildSwitchRequest(src, LABEL_GENERAL_VALUE, SWITCH_POS_ON_LABEL_VALUE);
+        message_t response;
+        if (sendMessage(&request) == -1) {
+            perror("Error general request in link");
+        } else if (receiveMessage(&response) == -1) {
+            perror("Error general response in link");
+        } else {
+            printf(CB_GREEN "Device %d linked to %d\n" C_WHITE, id1, id2);
+        }
+    }*/
 }
 
 /**************************************** SWITCH ********************************************/
@@ -298,18 +334,13 @@ void linkDevices(int id1, int id2) {
 
 void switchDevice(int id, char *label, char *pos) {
 #ifndef MANUAL
-    void *controller_pid = listLast(children);
-    if (controller_pid == NULL) {
-        printf(CB_RED "Error: controller not found, aborting...\n" C_WHITE);
-        exit(1);
-    }
-
-    if (id != 0 && isControllerEnabled(*(int *)controller_pid) == 0) {
+    int controller_pid = getControllerPid();
+    if (id != 0 && isControllerEnabled(controller_pid) == 0) {
         printf(CB_RED "Error: the controller is disabled. Run " CB_WHITE "switch 0 general on" CB_RED " to enable it\n" C_WHITE);
         return;
     }
 
-    int pid = getPidByIdSingle(*(int *)controller_pid, id);
+    int pid = getPidByIdSingle(controller_pid, id);
     if (pid == -1) {
         if (getPidById(children, id) != -1) {
             printf(CB_RED "Error: device with id %d not connected to the controller\n" C_WHITE, id);
@@ -391,18 +422,13 @@ void switchDevice(int id, char *label, char *pos) {
 /********************************************************************************************/
 void setDevice(int id, char *label, char *val) {
 #ifndef MANUAL
-    void *controller_pid = listLast(children);
-    if (controller_pid == NULL) {
-        printf(CB_RED "Error: controller not found, aborting...\n" C_WHITE);
-        exit(1);
-    }
-
-    if (id != 0 && isControllerEnabled(*(int *)controller_pid) == 0) {
+    int controller_pid = getControllerPid();
+    if (id != 0 && isControllerEnabled(controller_pid) == 0) {
         printf(CB_RED "Error: the controller is disabled. Run " CB_WHITE "switch 0 general on" CB_RED " to enable it\n" C_WHITE);
         return;
     }
 
-    int pid = getPidByIdSingle(*(int *)controller_pid, id);
+    int pid = getPidByIdSingle(controller_pid, id);
     if (pid == -1) {
         if (getPidById(children, id) != -1) {
             printf(CB_RED "Error: device with id %d not connected to the controller\n" C_WHITE, id);

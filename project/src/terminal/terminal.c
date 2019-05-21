@@ -142,7 +142,7 @@ int main(int sargc, char **sargv) {
             } else {
                 int res = unlinkDevices(atoi(argv[1]));
                 if (res > 0)
-                    printf(CB_GREEN "Device disabled\n" C_WHITE);
+                    printf(CB_GREEN "Device disconnected from the controller\n" C_WHITE);
             }
         }
 #endif
