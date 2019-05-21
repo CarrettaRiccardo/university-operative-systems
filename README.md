@@ -10,6 +10,8 @@ Per la comunicazione tra processi abbiamo utilizzato nella maggior parte dei cas
 
 Per la comunicazione tra shell manuale e controller abbiamo optato per l'utilizzo dei __segnali__.
 
+Quando un processo muore i dispositivi di controllo intercettano il segnale che il dispositivo morto invia al padre, così da liberare le strutture dati informative che il SO tiene in memoria.
+
 Da comando manuale non è possibile esegyire unlink, dato che è un a comando che rende disponibile al controllo un componetnte alla centralina. Quindi eseguito solo da terminal standard.
 
 Mentra il link è possibile effeturalo da manual, in quanto rappresenta l'operazione di collegare un componente ad un altro (collegare una lampadina fisicamente ad un HUB)
@@ -19,12 +21,23 @@ Usare __./terminal__ per la shell normale e __./manual__ per quella manuale.
 
 
 ##Shell per override manuali
-l'eseguibile __./manual__ deve essere lanciato passando come parametro l'id relativo alla centralina (stampato come prima linea all' avvio della stessa) così da consentire la comunicazione per risolvere id in pid.
+L'eseguibile __./manual__ deve essere lanciato passando come parametro l'id relativo alla centralina (stampato come prima linea all' avvio della stessa) così da consentire la comunicazione per risolvere id in pid.
 
 Manual può eseguire qualsiasi comando eccetto il comando di LIST, sia su dispositivi abilitati che non abilitati.
 
 
+##Peculiarità
+1. Quando la centralina si spegne i timer si sospendono (perchè sono ipoteticamente gestiti direttamente da essa), mentre i fridge e alarm funzionano normalmente (rispettivamente chiusura automatica e "rilevazione intrusi"). Cioò può essere inteso come un *mini sistema di sicurezza* per la casa, così facendo in un ipotetico impianto domotico non c'è il richio di avere alimenti avariati o un allarme non funzionante in caso di guasto della centralina (o di mancanza della corrente ecc...)
+
+2. 
 
 ##Aggiunte
-- Hub con figli eterogenei
-- Possibilità di fare link anche su dispositivi appena aggiunti o disabilitati (TODO)
+1. __HUB__ supporta dispositivi eterogenei:
+     _ Nel comando *INFO* vengono elencati tutte le label dei vari interuttori e info di ricapitolazione a seconda dei dispositivi collegati. 
+     _ Nel caso non ci siano fridge/window collegati ad un __HUB__, il comando *switch <id> open on* restituisce **Command undeined for device <id>**  (TODO: Da verificare)
+
+2. Possibilità di fare link anche su dispositivi appena aggiunti o disabilitati (TODO: Cosa intendiamo ??)
+
+3. __ALARM__:
+     _ Dispositivo che simula un allarme casalingo. Quando rileva una persona/movimento si accende (idealmente emettendo un suono, a livello implementativo viene solo segnalata l'accensione).
+       _ Per ragioni implementative l' allarme scatta con una certa probabilità *p* decisa a priori (la probabilità viene testata ogni *X* secondi)
