@@ -216,16 +216,6 @@ int unlinkDevices(int id) {
         perror("Error deleting device response");
         return -1;
     }
-
-    // Invio il comando GENERAL per riabilitare eventuali timer bloccati dal controller disabilitato
-    request = buildSwitchRequest(solveId(id), LABEL_GENERAL_VALUE, SWITCH_POS_ON_LABEL_VALUE);
-    if (sendMessage(&request) == -1) {
-        perror("Error general request in link");
-        return -2;
-    } else if (receiveMessage(&response) == -1) {
-        perror("Error general response in link");
-        return -3;
-    }
     return 1;
 }
 #endif
@@ -311,20 +301,6 @@ void linkDevices(int id1, int id2) {
     } else {
         printf(CB_GREEN "Device %d linked to %d\n" C_WHITE, id1, id2);
     }
-
-    /*// Se il controller è disabilitato invio il comando GENERAL per fermare eventuali timer appena collegati al controller
-    int controller_pid = getControllerPid();
-    if (!isControllerEnabled(controller_pid) && (src = getPidByIdSingle(controller_pid, id1)) != -1) {  // Se il dispostivo src è stato collegato al controller
-        message_t request = buildSwitchRequest(src, LABEL_GENERAL_VALUE, SWITCH_POS_ON_LABEL_VALUE);
-        message_t response;
-        if (sendMessage(&request) == -1) {
-            perror("Error general request in link");
-        } else if (receiveMessage(&response) == -1) {
-            perror("Error general response in link");
-        } else {
-            printf(CB_GREEN "Device %d linked to %d\n" C_WHITE, id1, id2);
-        }
-    }*/
 }
 
 /**************************************** SWITCH ********************************************/
