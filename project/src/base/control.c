@@ -159,24 +159,19 @@ int main(int argc, char **argv) {
 
                 } break;
 
-                case DELETE_MSG_TYPE: {  //uccido tutti i miei figli e poi me stesso
-                    if (id != 0) {
-                        signal(SIGCHLD, NULL);  // Rimuovo l'handler in modo da non interrompere l'esecuzione mentre elimino ricorsivamente i figli
-                        node_t *p = children->head;
-                        message_t kill_req, kill_resp;
-                        while (p != NULL) {
-                            kill_req = buildDeleteRequest(*(int *)p->value);
-                            sendMessage(&kill_req);
-                            receiveMessage(&kill_resp);
-                            p = p->next;
-                        }
-                        message_t m = buildDeleteResponse(msg.sender, 1);
-                        sendMessage(&m);
-                        exit(0);
-                    } else {
-                        message_t m = buildDeleteResponse(msg.sender, -1);  //invio msg errore perchè non si può uccidere la centalina
-                        sendMessage(&m);
+                case DELETE_MSG_TYPE: {     //uccido tutti i miei figli e poi me stesso
+                    signal(SIGCHLD, NULL);  // Rimuovo l'handler in modo da non interrompere l'esecuzione mentre elimino ricorsivamente i figli
+                    node_t *p = children->head;
+                    message_t kill_req, kill_resp;
+                    while (p != NULL) {
+                        kill_req = buildDeleteRequest(*(int *)p->value);
+                        sendMessage(&kill_req);
+                        receiveMessage(&kill_resp);
+                        p = p->next;
                     }
+                    message_t m = buildDeleteResponse(msg.sender, 1);
+                    sendMessage(&m);
+                    exit(0);
                 } break;
             }
         }
