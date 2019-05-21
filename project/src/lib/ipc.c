@@ -6,7 +6,7 @@ int doLink(list_t children, int to_clone_pid, const char *base_dir, short is_ter
     message_t response;
     if (sendMessage(&request) == -1) {
         printf("Error sending clone request to %d from %d: %s\n", to_clone_pid, getpid(), strerror(errno));
-        return -1;
+        return 0;
     } else if (receiveMessage(&response) == -1) {
         printf("Error receiving clone response in %d from %d: %s\n", getpid(), to_clone_pid, strerror(errno));
         return -1;
@@ -27,13 +27,13 @@ int doLink(list_t children, int to_clone_pid, const char *base_dir, short is_ter
             args[NVAL + 1] = NULL;
             if (execvp(args[0], args) == -1) {
                 printf("Error: clone failed, execvp %s: %s\n", args[0], strerror(errno));
-                return -1;
+                return -2;
             }
             for (i = 1; i < NVAL + 1; i++) free(args[i]);
         }
         // Padre
         else {
-            if (pid == -1) return -1;
+            if (pid == -1) return -3;
             if (is_terminal) {  // Se è il terminale sto eseguendo un unlink. Metto il dispositivo all'inizio della coda per lasciare il controller come ultimo elemento
                 listPushFront(children, &pid, sizeof(int));
             } else {
@@ -41,7 +41,7 @@ int doLink(list_t children, int to_clone_pid, const char *base_dir, short is_ter
             }
         }
     }
-    return 0;
+    return 1;
 }
 
 /********************************** Requests **********************************/
