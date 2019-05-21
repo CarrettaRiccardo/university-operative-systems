@@ -89,6 +89,13 @@ int main(int argc, char **argv) {
                         int success = doSwitchChildren(msg.vals[SWITCH_VAL_LABEL], msg.vals[SWITCH_VAL_POS]);
                         message_t m = buildSwitchResponse(msg.sender, success);
                         sendMessage(&m);
+                    } else if (msg.vals[SWITCH_VAL_LABEL] == LABEL_GENERAL_VALUE) {  // Il controller supporta solo l'interruttore "general"
+                        state = msg.vals[SWITCH_VAL_POS] == SWITCH_POS_ON_LABEL_VALUE ? 1 : 0;
+                        message_t m = buildSwitchResponse(msg.sender, 1);
+                        sendMessage(&m);
+                    } else {
+                        message_t m = buildSwitchResponse(msg.sender, SWITCH_ERROR_INVALID_VALUE);
+                        sendMessage(&m);
                     }
                 } break;
 
@@ -97,7 +104,7 @@ int main(int argc, char **argv) {
                         int success = handleSetControl(&msg);
                         message_t m = buildSetResponse(msg.sender, success);
                         sendMessage(&m);
-                    } else {  // Il controller ritorna sempre un messaggio di errore, in qunato non ha registri settabili
+                    } else {  // Il controller ritorna sempre un messaggio di errore, in quanto non ha registri settabili
                         message_t m = buildSetResponse(msg.sender, -1);
                         sendMessage(&m);
                     }
@@ -129,10 +136,8 @@ int main(int argc, char **argv) {
                 } break;
 
                 case CLONE_MSG_TYPE: {
-                    if (id != 0) {                                                       //il controller non può essere clonato
-                        message_t m = buildCloneResponseControl(msg.sender, id, state);  // Implementazione specifica dispositivo
-                        sendMessage(&m);
-                    }
+                    message_t m = buildCloneResponseControl(msg.sender, id, state);  // Implementazione specifica dispositivo
+                    sendMessage(&m);
                 } break;
 
                 case GET_CHILDREN_MSG_TYPE: {

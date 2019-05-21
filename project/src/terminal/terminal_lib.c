@@ -37,6 +37,20 @@ void getPidByIdSignalHandler(int sig, siginfo_t *siginfo, void *context) {
 int solveId(id) {
     return getPidById(children, id);
 }
+
+int isControllerEnabled(int controller_pid) {
+    message_t request = buildCloneRequest(controller_pid);
+    message_t response;
+    if (sendMessage(&request) == -1) {
+        perror("Error checking controller enabled request\n");
+    } else if (receiveMessage(&response) == -1) {
+        perror("Error checking controller enabled response\n");
+    } else {
+        return response.vals[3];  // Valore di stato del controller
+    }
+    return 0;
+}
+
 #else
 int terminal_pid;  // PID del terminale collegato
 int solved_pid;
@@ -242,6 +256,7 @@ void linkDevices(int id1, int id2) {
 /* Cambia lo stato dell'interruttore "label" del dispositivo "id" al valore "pos"           */
 /* Uno switch può essere fatto solo su dispostivi attivi                                    */
 /********************************************************************************************/
+
 void switchDevice(int id, char *label, char *pos) {
 #ifndef MANUAL
     void *controller_pid = listLast(children);
@@ -249,6 +264,12 @@ void switchDevice(int id, char *label, char *pos) {
         printf(CB_RED "Error: controller not found, aborting...\n" C_WHITE);
         exit(1);
     }
+
+    if (id != 0 && isControllerEnabled(*(int *)controller_pid) == 0) {
+        printf(CB_RED "Error: the controller is disabled. Run " CB_WHITE "switch 0 general on" CB_RED " to enable it\n" C_WHITE);
+        return;
+    }
+
     int pid = getPidByIdSingle(*(int *)controller_pid, id);
     if (pid == -1) {
         if (getPidById(children, id) != -1) {
@@ -258,6 +279,7 @@ void switchDevice(int id, char *label, char *pos) {
         }
         return;
     }
+
 #else
     int pid = solveId(id);
     if (pid == -1) {
@@ -278,10 +300,12 @@ void switchDevice(int id, char *label, char *pos) {
         label_val = LABEL_THERM_VALUE;
     } else if (strcmp(label, LABEL_ALL) == 0) {
         label_val = LABEL_ALL_VALUE;
+    } else if (strcmp(label, LABEL_GENERAL) == 0) {
+        label_val = LABEL_GENERAL_VALUE;
     }
 
     // Map valore pos (char*) in valori (int) per poterli inserire in un messaggio
-    if (label_val == LABEL_LIGHT_VALUE || label_val == LABEL_OPEN_VALUE || label_val == LABEL_CLOSE_VALUE || label_val == LABEL_ALL_VALUE) {
+    if (label_val == LABEL_LIGHT_VALUE || label_val == LABEL_OPEN_VALUE || label_val == LABEL_CLOSE_VALUE || label_val == LABEL_ALL_VALUE || label_val == LABEL_GENERAL_VALUE) {
         // Se è un interrutore on/off
         if (strcmp(pos, SWITCH_POS_OFF_LABEL) == 0) {
             pos_val = SWITCH_POS_OFF_LABEL_VALUE;  // 0 = spento/chiuso
