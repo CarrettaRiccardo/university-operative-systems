@@ -169,6 +169,25 @@ int addDevice(char *device) {
         return next_id - 1;
     }
 }
+
+/**************************************** UNLINK ********************************************/
+/* Disabilita un componente, rendendolo non più interagibile dal controller                 */
+/* Operazione ammessa solamente da terminal e non comando manuale (il quale può al          */
+/* più fare un DELETE)                                                                      */
+/********************************************************************************************/
+void unlinkDevice(int id) {
+    if (id <= 0)
+        printf(CB_RED "Error: <id> must be a positive number\n" C_WHITE);
+    int pid = solveId(id);
+    if (pid == -1) {
+        printf(CB_RED "Error: device with id %d not found\n" C_WHITE, id);
+        return;
+    }
+    /*message_t request = buildUnlinkRequest(to_pid);
+    message_t response;*/
+
+    doLink(children, pid, base_dir, 1);
+}
 #endif
 
 /**************************************** DEL ********************************************/

@@ -34,7 +34,7 @@ void terminalDestroy();
 #ifndef MANUAL
 void listDevices();
 int addDevice(char *device);
-int unlinkDevice(int id);
+void unlinkDevice(int id);
 #endif
 void delDevice(int id);
 void linkDevices(int id1, int id2);
@@ -87,6 +87,7 @@ int main(int sargc, char **sargv) {
 #ifndef MANUAL  // I comandi LIST e ADD sono supportati solo dalla shell principale e non da quella manuale
             printHelp("list", "List the installed devices.");
             printHelp("add <device>", "Add <device> to the system.");
+            printHelp("unlink <id>", "Disconnect a device from the controller.");
 #endif
             printHelp("del <id>", "Remove device <id>. If the device is a control device, remove also the linked devices.");
             printHelp("link <id> to <id>", "Link two devices.");

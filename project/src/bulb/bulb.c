@@ -32,8 +32,7 @@ int handleSwitchDevice(message_t *msg) {
                 state = interruttore;
             }
             success = 1;
-        }
-        if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_ON_LABEL_VALUE) {  // Accendo
+        } else if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_ON_LABEL_VALUE) {  // Accendo
             // Se è spenta, accendo e salvo il tempo di accensione
             if (interruttore == SWITCH_POS_OFF_LABEL_VALUE) {
                 last_on_time = time(NULL);

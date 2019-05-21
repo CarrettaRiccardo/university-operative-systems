@@ -16,7 +16,7 @@ time_t session;
 int mqid;
 
 /********************************** Workers **********************************/
-void doLink(list_t children, int to_clone_pid, const char* base_dir);
+int doLink(list_t children, int to_clone_pid, const char* base_dir, short is_terminal);
 
 /********************************** Requests **********************************/
 message_t buildRequest(int to_pid, short msg_type);
