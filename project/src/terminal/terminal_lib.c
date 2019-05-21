@@ -97,13 +97,9 @@ void terminalInit(char *file) {
 
     //  Uso il percorso relativo al workspace, preso da argv[0] per trovare gli altri eseguibili per i device.
     //  Rimuovo il nome del file dal percorso
-    base_dir = malloc(sizeof(file) + MAX_DEVICE_NAME_LENGTH);
-    strcpy(base_dir, file);
-    char *last_slash = strrchr(base_dir, '/');
-    if (last_slash) *(last_slash + 1) = '\0';
-
+    base_dir = extractBaseDir(file);
     if (addDevice(CONTROLLER)) {
-        printf(CB_RED "Error: cannot create controller, aborting...\n" C_WHITE);
+        printf(CB_RED "Error: cannot create the controller, aborting...\n" C_WHITE);
         exit(1);
     }
 #else
@@ -272,7 +268,6 @@ void linkDevices(int id1, int id2) {
         printf(CB_GREEN "Device %d linked to %d\n" C_WHITE, id1, id2);
     }
 }
-
 
 
 /**************************************** SWITCH ********************************************/
