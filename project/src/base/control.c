@@ -87,14 +87,13 @@ int main(int argc, char **argv) {
                 case SWITCH_MSG_TYPE: {
                     if (id != 0) {  // Il controller (id = 0) non esegue il mirroring degli interruttori dei figli
                         int success = doSwitchChildren(msg.vals[SWITCH_VAL_LABEL], msg.vals[SWITCH_VAL_POS]);
-                        if (success) {
-                            if (msg.vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_LABEL_VALUE || msg.vals[SWITCH_VAL_POS] == SWITCH_POS_ON_LABEL_VALUE) {
-                                state = msg.vals[SWITCH_VAL_POS];
-                            }
+                        if (success && msg.vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_LABEL_VALUE || msg.vals[SWITCH_VAL_POS] == SWITCH_POS_ON_LABEL_VALUE) {
+                            state = msg.vals[SWITCH_VAL_POS];
                         }
                         message_t m = buildSwitchResponse(msg.sender, success);
                         sendMessage(&m);
                     } else if (msg.vals[SWITCH_VAL_LABEL] == LABEL_GENERAL_VALUE) {  // Il controller supporta solo l'interruttore "general"
+                        int success = doSwitchChildren(msg.vals[SWITCH_VAL_LABEL], msg.vals[SWITCH_VAL_POS]);
                         state = msg.vals[SWITCH_VAL_POS] == SWITCH_POS_ON_LABEL_VALUE ? 1 : 0;
                         message_t m = buildSwitchResponse(msg.sender, 1);
                         sendMessage(&m);
