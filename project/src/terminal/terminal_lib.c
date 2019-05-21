@@ -97,13 +97,9 @@ void terminalInit(char *file) {
 
     //  Uso il percorso relativo al workspace, preso da argv[0] per trovare gli altri eseguibili per i device.
     //  Rimuovo il nome del file dal percorso
-    base_dir = malloc(sizeof(file) + MAX_DEVICE_NAME_LENGTH);
-    strcpy(base_dir, file);
-    char *last_slash = strrchr(base_dir, '/');
-    if (last_slash) *(last_slash + 1) = '\0';
-
+    base_dir = extractBaseDir(file);
     if (addDevice(CONTROLLER)) {
-        printf(CB_RED "Error: cannot create controller, aborting...\n" C_WHITE);
+        printf(CB_RED "Error: cannot create the controller, aborting...\n" C_WHITE);
         exit(1);
     }
 #else
@@ -271,15 +267,14 @@ void linkDevices(int id1, int id2) {
     }
 }
 
-
 #ifndef MANUAL
 /**************************************** UNLINK ********************************************/
 /* Disabilita un componente, rendendolo non più interagibile dal controller                 */
 /* Operazione ammessa solamente da terminal e non comando manuale (il quale può al          */
 /* più fare un DELETE)                                                                      */
 /********************************************************************************************/
-int unlinkDevices(int id){
-    if(id <= 0)
+int unlinkDevices(int id) {
+    if (id <= 0)
         printf(CB_RED "Error: <id> must be a positive number\n" C_WHITE);
     int to_pid = solveId(id);
     if (to_pid == -1) {
@@ -288,11 +283,10 @@ int unlinkDevices(int id){
     }
     /*message_t request = buildUnlinkRequest(to_pid);
     message_t response;*/
-    
-    doLink(children, to_pid, base_dir); //TODO: do a pushFront and not a pushBack
+
+    doLink(children, to_pid, base_dir, 1);  //TODO: do a pushFront and not a pushBack
 }
 #endif
-
 
 /**************************************** SWITCH ********************************************/
 /* Cambia lo stato dell'interruttore "label" del dispositivo "id" al valore "pos"           */
