@@ -87,6 +87,11 @@ int main(int argc, char **argv) {
                 case SWITCH_MSG_TYPE: {
                     if (id != 0) {  // Il controller (id = 0) non esegue il mirroring degli interruttori dei figli
                         int success = doSwitchChildren(msg.vals[SWITCH_VAL_LABEL], msg.vals[SWITCH_VAL_POS]);
+                        if (success) {
+                            if (msg.vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_LABEL_VALUE || msg.vals[SWITCH_VAL_POS] == SWITCH_POS_ON_LABEL_VALUE) {
+                                state = msg.vals[SWITCH_VAL_POS];
+                            }
+                        }
                         message_t m = buildSwitchResponse(msg.sender, success);
                         sendMessage(&m);
                     } else if (msg.vals[SWITCH_VAL_LABEL] == LABEL_GENERAL_VALUE) {  // Il controller supporta solo l'interruttore "general"
@@ -205,7 +210,7 @@ int doSwitchChildren(int label, int pos) {
 
 void doInfoList(message_t *msg, short type) {
     list_t msg_list = listMsgInit();  // Salvo tutti i messaggi ricevuti dai figli per reinviarli dopo
-    int count_on = 0, count_off = 0;
+    int count = 0;
     short override = 0;
     int label_values = 0;
     int registers_values[NVAL] = {0};   // Mantiene la somma dei valori dei registri dei figli
@@ -244,40 +249,24 @@ void doInfoList(message_t *msg, short type) {
             }
 
             listPushBack(msg_list, &response, sizeof(message_t));  // Salvo il messaggio per inviarlo dopo aver calcolato lo stato dell'HUB da quello dei figli
-            switch (response.vals[INFO_VAL_STATE]) {
-                case 0: count_off++; break;  // off
-                case 1: count_on++; break;   // on
-                case 2:                      // off (override)
-                    count_off++;
-                    override = 1;
-                    break;
-                case 3:  // on (override)
-                    count_on++;
-                    override = 1;
-                    break;
+            if (response.vals[INFO_VAL_STATE] != -1) {
+                count++;
+                if (response.vals[INFO_VAL_STATE] != state) override = 1;
             }
+
         } while (stop != 1);  // Se stop = 1 non ho risposte da altri sottofigli da salvare, posso quindi passare al prossimo figlio
         p = p->next;
     }
 
-    short children_state;
-    if (count_on == 0 && count_off == 0)
-        children_state = -1;  // Nessun figlio
-    else if (override == 0 && count_on == 0)
-        children_state = 0;  // off
-    else if (override == 0 && count_off == 0)
-        children_state = 1;  // on
-    else
-        children_state = (count_off >= count_on) ? 2 : 3;  // off (override) / on (override)
-
     // Lo stato dell'hub è dato dal valore di maggioranza dello stato dei figli
-    char *children_str;
-    switch (children_state) {
-        case -1: children_str = CB_YELLOW "(no connected devices)"; break;
-        case 0: children_str = CB_RED "off"; break;
-        case 1: children_str = CB_GREEN "on"; break;
-        case 2: children_str = CB_RED "off (override)"; break;
-        case 3: children_str = CB_GREEN "on (override)"; break;
+    char children_str[64] = "";
+    if (count == 0) {
+        strcpy(children_str, CB_YELLOW "(no connected devices)");
+    } else {
+        strcpy(children_str, state ? CB_GREEN "on" : CB_RED "off");
+        if (override) {
+            strcat(children_str, " (override)");
+        }
     }
 
     // Costruisco la stringa delle label disponibili nel dispositivo di controllo
@@ -312,7 +301,7 @@ void doInfoList(message_t *msg, short type) {
     } else {
         m = buildListResponseControl(msg->sender, id, children_str, msg->vals[INFO_VAL_LEVEL], listEmpty(msg_list));  // Implementazione specifica dispositivo
     }
-    m.vals[INFO_VAL_STATE] = children_state;
+    m.vals[INFO_VAL_STATE] = count > 0 ? state : -1;
     m.vals[INFO_VAL_LABELS] = label_values;
     for (i = INFO_VAL_REG_TIME; i <= INFO_VAL_REG_TEMP; i++) m.vals[i] = registers_count[i] > 0 ? registers_values[i] : INVALID_VALUE;
     sendMessage(&m);
