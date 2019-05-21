@@ -352,14 +352,33 @@ void switchDevice(int id, char *label, char *pos) {
 /********************************************************************************************/
 void setDevice(int id, char *label, char *val) {
 #ifndef MANUAL
-    int pid = solveId(id);
+    void *controller_pid = listLast(children);
+    if (controller_pid == NULL) {
+        printf(CB_RED "Error: controller not found, aborting...\n" C_WHITE);
+        exit(1);
+    }
+
+    if (id != 0 && isControllerEnabled(*(int *)controller_pid) == 0) {
+        printf(CB_RED "Error: the controller is disabled. Run " CB_WHITE "switch 0 general on" CB_RED " to enable it\n" C_WHITE);
+        return;
+    }
+
+    int pid = getPidByIdSingle(*(int *)controller_pid, id);
+    if (pid == -1) {
+        if (getPidById(children, id) != -1) {
+            printf(CB_RED "Error: device with id %d not connected to the controller\n" C_WHITE, id);
+        } else {
+            printf(CB_RED "Error: device with id %d not found\n" C_WHITE, id);
+        }
+        return;
+    }
 #else
     int pid = solveId(id);
-#endif
     if (pid == -1) {
         printf(CB_RED "Error: device with id %d not found\n" C_WHITE, id);
         return;
     }
+#endif
     int label_val = INVALID_VALUE;  // 0 = interruttore (generico), 1 = termostato
     int pos_val = INVALID_VALUE;    // 0 = spento, 1 = acceso; x = valore termostato (°C)
     // Map delle label (char*) in valori (int) per poterli inserire in un messaggio
