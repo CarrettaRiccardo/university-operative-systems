@@ -265,21 +265,23 @@ void switchDevice(int id, char *label, char *pos) {
         return;
     }
 #endif
-    int label_val = INVALID_VALUE;  // 0 = interruttore (generico), 1 = termostato
-    int pos_val = INVALID_VALUE;    // 0 = spento, 1 = acceso; x = valore termostato (°C)
+    int label_val = INVALID_VALUE;
+    int pos_val = INVALID_VALUE;  // 0 = spento, 1 = acceso; x = valore termostato (°C)
     // Map delle label (char*) in valori (int) per poterli inserire in un messaggio
     if (strcmp(label, LABEL_LIGHT) == 0) {
-        label_val = LABEL_LIGHT_VALUE;  // 1 = interruttore (luce)
+        label_val = LABEL_LIGHT_VALUE;
     } else if (strcmp(label, LABEL_OPEN) == 0) {
-        label_val = LABEL_OPEN_VALUE;  // 2 = interruttore (apri/chiudi)
+        label_val = LABEL_OPEN_VALUE;
+    } else if (strcmp(label, LABEL_CLOSE) == 0) {
+        label_val = LABEL_CLOSE_VALUE;
     } else if (strcmp(label, LABEL_THERM) == 0) {
-        label_val = LABEL_THERM_VALUE;  // 4 = termostato
+        label_val = LABEL_THERM_VALUE;
     } else if (strcmp(label, LABEL_ALL) == 0) {
-        label_val = LABEL_ALL_VALUE;  // 8 = all (generico)
+        label_val = LABEL_ALL_VALUE;
     }
 
     // Map valore pos (char*) in valori (int) per poterli inserire in un messaggio
-    if (label_val == LABEL_LIGHT_VALUE || label_val == LABEL_OPEN_VALUE || label_val == LABEL_ALL_VALUE) {
+    if (label_val == LABEL_LIGHT_VALUE || label_val == LABEL_OPEN_VALUE || label_val == LABEL_CLOSE_VALUE || label_val == LABEL_ALL_VALUE) {
         // Se è un interrutore on/off
         if (strcmp(pos, SWITCH_POS_OFF_LABEL) == 0) {
             pos_val = SWITCH_POS_OFF_LABEL_VALUE;  // 0 = spento/chiuso

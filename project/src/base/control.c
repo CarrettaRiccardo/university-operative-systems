@@ -281,6 +281,7 @@ void doInfoList(message_t *msg, short type) {
     if (label_values & LABEL_ALL_VALUE) strcat(labels_str, " " LABEL_ALL);
     if (label_values & LABEL_LIGHT_VALUE) strcat(labels_str, " " LABEL_LIGHT);
     if (label_values & LABEL_OPEN_VALUE) strcat(labels_str, " " LABEL_OPEN);
+    if (label_values & LABEL_CLOSE_VALUE) strcat(labels_str, " " LABEL_CLOSE);
     if (label_values & LABEL_THERM_VALUE) strcat(labels_str, " " LABEL_THERM);
     if (strlen(labels_str) == 0) strcat(labels_str, " (empty)");  // Nel caso non avessi nessun interruttore
 

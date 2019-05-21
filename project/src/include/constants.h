@@ -79,6 +79,7 @@
 
 #define LABEL_LIGHT "light"
 #define LABEL_OPEN "open"
+#define LABEL_CLOSE "close"
 #define LABEL_THERM "therm"
 #define LABEL_ALL "all"
 #define LABEL_GENERAL "general"
@@ -86,9 +87,10 @@
 // In binario per inviare tutto con operazioni AND e OR
 #define LABEL_LIGHT_VALUE 1
 #define LABEL_OPEN_VALUE 2
-#define LABEL_THERM_VALUE 4
-#define LABEL_ALL_VALUE 8
-#define LABEL_GENERAL_VALUE 16
+#define LABEL_CLOSE_VALUE 4
+#define LABEL_THERM_VALUE 8
+#define LABEL_ALL_VALUE 16
+#define LABEL_GENERAL_VALUE 32
 
 #define SWITCH_POS_OFF_LABEL "off"
 #define SWITCH_POS_ON_LABEL "on"

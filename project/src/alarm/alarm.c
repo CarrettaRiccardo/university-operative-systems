@@ -15,7 +15,7 @@ void initData() {
     interruttore = state;
     delay = 10;
     perc = 15;
-    alarm(delay);// lancio l'allarme
+    alarm(delay);  // lancio l'allarme
 }
 
 void cloneData(char **vals) {
@@ -25,7 +25,7 @@ void cloneData(char **vals) {
     interruttore = state;
     delay = atoi(vals[1]);
     perc = atoi(vals[2]);
-    alarm(delay);// lancio l'allarme
+    alarm(delay);  // lancio l'allarme
 }
 
 int handleSwitchDevice(message_t *msg) {
@@ -37,7 +37,7 @@ int handleSwitchDevice(message_t *msg) {
             if (interruttore == SWITCH_POS_ON_LABEL_VALUE) {
                 interruttore = SWITCH_POS_OFF_LABEL_VALUE;
                 state = interruttore;
-                alarm(delay);// lancio l'allarme
+                alarm(delay);  // lancio l'allarme
             }
             success = 1;
         }
@@ -72,8 +72,8 @@ message_t buildInfoResponseDevice(int to_pid, int id, int lv) {
     ret.vals[INFO_VAL_STATE] = state;
     ret.vals[INFO_VAL_LABELS] = INVALID_VALUE;
     ret.vals[INFO_VAL_REG_TIME] = INVALID_VALUE;
-    ret.vals[INFO_VAL_REG_DELAY] = INVALID_VALUE;
-    ret.vals[INFO_VAL_REG_PERC] = INVALID_VALUE;
+    ret.vals[INFO_VAL_REG_DELAY] = delay;
+    ret.vals[INFO_VAL_REG_PERC] = perc;
     ret.vals[INFO_VAL_REG_TEMP] = INVALID_VALUE;
     return ret;
 }
@@ -91,20 +91,18 @@ message_t buildCloneResponseDevice(int to_pid, int id) {
 }
 
 void ringAlarm() {
-    // con una probabilità 'perc' si accende
+    // Con una probabilità 'perc' si accende
     srand(time(NULL));
-    int r = rand()%100 + 1;// 1 - 100
-    if (r <= perc){
-        // Accendo l'allarme
+    int r = rand() % 100 + 1;  // 1 - 100
+    if (r <= perc) {
+        // Se è spento accendo l'allarme
         if (state == SWITCH_POS_OFF_LABEL_VALUE) {
-            // ...e chiudo la porta
             state = SWITCH_POS_ON_LABEL_VALUE;
             interruttore = SWITCH_POS_ON_LABEL_VALUE;
         }
         // Altrimenti è gia su "on"
-    }
-    else{
-        // faccio un altro ciclo
+    } else {
+        // Faccio un altro ciclo
         alarm(delay);
     }
 }
