@@ -13,6 +13,7 @@
 #define ARGC_ADD 2
 #define ARGC_DEL 2
 #define ARGC_LINK 4
+#define ARGC_UNLINK 2
 #define ARGC_SWITCH 4
 #define ARGC_SET 4
 #define ARGC_INFO 2
@@ -33,6 +34,7 @@ void terminalDestroy();
 #ifndef MANUAL
 void listDevices();
 int addDevice(char *device);
+int unlinkDevice(int id);
 #endif
 void delDevice(int id);
 void linkDevices(int id1, int id2);
@@ -125,6 +127,16 @@ int main(int sargc, char **sargv) {
                     perror(CB_RED "Error while adding device" C_WHITE);
                 else if (result != 0)  //  Se ho aggiunto un device supportato
                     printf(CB_GREEN "Device added with id %d" C_WHITE "\nNow it's disconnected from the system. To connect the device run " CB_WHITE "link %d to 0\n" C_WHITE, result, result);
+            }
+        }
+        /**************************************** UNLINK ********************************************/
+        else if (strcmp(argv[0], "unlink") == 0) {
+            if (argc != ARGC_UNLINK != 0) {
+                printf(CB_RED "Unknown parameters, usage: unlink <id>\n" C_WHITE);
+            } else if (!isInt(argv[1])) {
+                printf(CB_RED "Error: <id> must be a positive number\n" C_WHITE);
+            } else {
+                unlinkDevices(atoi(argv[1]));
             }
         }
 #endif

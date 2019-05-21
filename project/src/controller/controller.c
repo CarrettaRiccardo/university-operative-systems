@@ -30,7 +30,8 @@ message_t buildListResponseControl(int to_pid, int id, char *children_state, int
 
 /*
   Il controller non può essere clonato, quindi non esegue operazioni.
-  L'implemetazione non chiamerà mai questo metodo, che però deve
+  L'implemetazione non chiamerà mai questo metodo, che però deve eesere efinito per non dare errore
+  in compilazione
 */
 message_t buildCloneResponseControl(int to_pid, int id) {
     int vals[] = {};
