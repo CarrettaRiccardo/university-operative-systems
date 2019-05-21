@@ -136,7 +136,7 @@ int main(int sargc, char **sargv) {
         else if (strcmp(argv[0], "unlink") == 0) {
             if (argc != ARGC_UNLINK != 0) {
                 printf(CB_RED "Unknown parameters, usage: unlink <id>\n" C_WHITE);
-            } else if (!isInt(argv[1])) {
+            } else if (!isInt(argv[1]) || atoi(argv[1]) < 0) {
                 printf(CB_RED "Error: <id> must be a positive number\n" C_WHITE);
             } else {
                 unlinkDevice(atoi(argv[1]));
@@ -147,7 +147,7 @@ int main(int sargc, char **sargv) {
         else if (strcmp(argv[0], "del") == 0) {
             if (argc != ARGC_DEL) {
                 printf(CB_RED "Unknown parameters, usage: del <id>\n" C_WHITE);
-            } else if (!isInt(argv[1])) {
+            } else if (!isInt(argv[1]) || atoi(argv[1]) < 0) {
                 printf(CB_RED "Error: <id> must be a positive number\n" C_WHITE);
             } else {
                 delDevice(atoi(argv[1]));
@@ -157,7 +157,7 @@ int main(int sargc, char **sargv) {
         else if (strcmp(argv[0], "link") == 0) {
             if (argc != ARGC_LINK || strcmp(argv[2], "to") != 0) {
                 printf(CB_RED "Unknown parameters, usage: link <id> to <id>\n" C_WHITE);
-            } else if (!isInt(argv[1]) || !isInt(argv[3])) {
+            } else if (!isInt(argv[1]) || !isInt(argv[3]) || atoi(argv[1]) < 0 || atoi(argv[3]) < 0) {
                 printf(CB_RED "Error: <id> must be a positive number\n" C_WHITE);
             } else if (strcmp(argv[1], argv[3]) == 0) {
                 printf(CB_RED "Error: cannot link a device to itself\n" C_WHITE);
@@ -169,7 +169,7 @@ int main(int sargc, char **sargv) {
         else if (strcmp(argv[0], "switch") == 0) {
             if (argc != ARGC_SWITCH) {
                 printf(CB_RED "Unknown parameters, usage: switch <id> <label> <pos>\n" C_WHITE);
-            } else if (!isInt(argv[1])) {
+            } else if (!isInt(argv[1]) || atoi(argv[1]) < 0) {
                 printf(CB_RED "Error: <id> must be a positive number\n" C_WHITE);
             } else {
                 switchDevice(atoi(argv[1]), argv[2], argv[3]);
@@ -179,7 +179,7 @@ int main(int sargc, char **sargv) {
         else if (strcmp(argv[0], "set") == 0) {
             if (argc != ARGC_SET) {
                 printf(CB_RED "Unknown parameters, usage: set <id> <register> <value>\n" C_WHITE);
-            } else if (!isInt(argv[1])) {
+            } else if (!isInt(argv[1]) || atoi(argv[1]) < 0) {
                 printf(CB_RED "Error: <id> must be a positive number\n" C_WHITE);
             } else {
                 setDevice(atoi(argv[1]), argv[2], argv[3]);
@@ -189,7 +189,7 @@ int main(int sargc, char **sargv) {
         else if (strcmp(argv[0], "info") == 0) {
             if (argc != ARGC_INFO) {
                 printf(CB_RED "Unknown parameters, usage: info <id>\n" C_WHITE);
-            } else if (!isInt(argv[1])) {
+            } else if (!isInt(argv[1]) || atoi(argv[1]) < 0) {
                 printf(CB_RED "Error: <id> must be a positive number\n" C_WHITE);
             } else {
                 infoDevice(atoi(argv[1]));
