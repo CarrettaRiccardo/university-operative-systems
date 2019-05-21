@@ -178,13 +178,24 @@ int unlinkDevices(int id){
     int to_pid = solveId(id);
     if (to_pid == -1) {
         printf(CB_RED "Error: device with id %d not found\n" C_WHITE, id);
-        return;
+        return -9;
     }
+    int res = doLink(children, to_pid, base_dir, 1);
 
-    if(doLink(children, to_pid, base_dir, 1) > 0)
-        printf(CB_GREEN "Device disabled\n" C_WHITE);
-    else
-        printf(CB_RED "Error disabling component\n" C_WHITE);
+    if(res <= 0)
+        return res;
+
+    //  Killo il processo disabilitato
+    message_t request, response;
+    request = buildDeleteRequest(to_pid);
+    if (sendMessage(&request) == -1) {
+        perror("Error deleting device request");
+        return 0;
+    } else if (receiveMessage(&response) == -1) {
+        perror("Error deleting device response");
+        return -1;
+    } 
+    return 1;
 }
 #endif
 

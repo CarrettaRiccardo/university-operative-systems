@@ -14,7 +14,16 @@ Da comando manuale non è possibile esegyire unlink, dato che è un a comando ch
 
 Mentra il link è possibile effeturalo da manual, in quanto rappresenta l'operazione di collegare un componente ad un altro (collegare una lampadina fisicamente ad un HUB)
 
-Usare __./terminal__ per la shell normale e __./manual__ per quella manuale
+Usare __./terminal__ per la shell normale e __./manual__ per quella manuale.
+
+
+
+##Shell per override manuali
+l'eseguibile __./manual__ deve essere lanciato passando come parametro l'id relativo alla centralina (stampato come prima linea all' avvio della stessa) così da consentire la comunicazione per risolvere id in pid.
+
+Manual può eseguire qualsiasi comando eccetto il comando di LIST, sia su dispositivi abilitati che non abilitati.
+
+
 
 ##Aggiunte
 - Hub con figli eterogenei
