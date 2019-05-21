@@ -149,7 +149,7 @@ void listDevices() {
             do {
                 if (receiveMessage(&response) == -1) {
                     perror("Error list response");
-                } else {
+                } else if(response.type == LIST_MSG_TYPE){ //controllo che non sia stato un mix di messaggi, in tal caso ignoro il messaggio
                     int i;
                     for (i = 0; i < response.vals[INFO_VAL_LEVEL] - 1; i++) printf("    ");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
                     if (response.vals[INFO_VAL_LEVEL] > 0) printf(C_CYAN " └──" C_WHITE);
