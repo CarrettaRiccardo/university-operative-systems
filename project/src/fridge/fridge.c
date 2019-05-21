@@ -8,7 +8,7 @@ int temp;                   // Temperatura interna
 int perc;                   // Percentuale riempimento (0-100%)
 int open_time;              // Tempo apertura porta
 int last_open_time;         // Tempo ultima apertura
-unsigned int missing_time;  // Tempo mancante alla chiusura della porta per poter riprendere correttamente se il sistema è fermato
+int last_general_stop;      // Ultimo tempo di stop, per calcolare il tempo di apertura in caso sia stoppato mentre la porta è aperta
 
 void closeDoor();
 void generalStart();
@@ -24,7 +24,7 @@ void initData() {
     perc = 0;
     open_time = 0;
     last_open_time = 0;
-    missing_time = 0;
+    last_general_stop = 0;
 }
 
 void cloneData(char **vals) {
@@ -37,7 +37,7 @@ void cloneData(char **vals) {
     perc = atoi(vals[4]);
     open_time = atoi(vals[5]);
     last_open_time = atoi(vals[6]);
-    missing_time = atoi(vals[7]);
+    last_general_stop = atoi(vals[7]);
     // riaccendo il timer di chiusura automatica se era aperto
     if (state == SWITCH_POS_ON_LABEL_VALUE && delay > 0){
         alarm((time(NULL) - last_open_time) < delay ? delay - (time(NULL) - last_open_time) : delay);
@@ -46,8 +46,18 @@ void cloneData(char **vals) {
 
 int handleSwitchDevice(message_t *msg) {
     int success = SWITCH_ERROR_INVALID_VALUE;
-    if (msg->vals[SWITCH_VAL_LABEL] == LABEL_OPEN_VALUE || msg->vals[SWITCH_VAL_LABEL] == LABEL_ALL_VALUE) {
-        if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_LABEL_VALUE) {  // Chiudo
+    
+    if (msg->vals[SWITCH_VAL_LABEL] == LABEL_GENERAL_VALUE) {  // general
+        if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_LABEL_VALUE) {  // spengo
+            generalStop();
+            success = 1;
+        } else if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_ON_LABEL_VALUE) {  // accendo
+            generalStart();
+            success = 1;
+        }
+    } else {
+        if (msg->vals[SWITCH_VAL_LABEL] == LABEL_OPEN_VALUE || msg->vals[SWITCH_VAL_LABEL] == LABEL_ALL_VALUE) {
+            if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_LABEL_VALUE) {  // Chiudo
             // Controllo se il tempo di chiusura automatica NON è superato
             if (state == SWITCH_POS_ON_LABEL_VALUE && last_open_time + delay > time(NULL)) {
                 // Se non lo è (quindi deve ancora chiudersi automaticamente), sommo la differenza di tempo attuale al tempo di apertura...
@@ -60,23 +70,24 @@ int handleSwitchDevice(message_t *msg) {
             }
             // Altrimenti è gia su "off"
             success = 1;
-        } else if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_ON_LABEL_VALUE) {  // Apro
-            // Se è chiuso
-            if (state == SWITCH_POS_OFF_LABEL_VALUE) {
-                // Apro la porta e salvo il tempo di apertura
-                last_open_time = time(NULL);
-                // setto il timer di chiusura automatica
-                if (delay > 0)
-                    alarm(delay);
-                state = SWITCH_POS_ON_LABEL_VALUE;
-                interruttore = SWITCH_POS_OFF_LABEL_VALUE;
+            } else if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_ON_LABEL_VALUE) {  // Apro
+                // Se è chiuso
+                if (state == SWITCH_POS_OFF_LABEL_VALUE) {
+                    // Apro la porta e salvo il tempo di apertura
+                    last_open_time = time(NULL);
+                    // setto il timer di chiusura automatica
+                    if (delay > 0)
+                        alarm(delay);
+                    state = SWITCH_POS_ON_LABEL_VALUE;
+                    interruttore = SWITCH_POS_OFF_LABEL_VALUE;
+                }
+                // Altrimenti è gia su "on"
+                success = 1;
+            } else if (msg->vals[SWITCH_VAL_LABEL] == LABEL_THERM_VALUE) {  // Valore Termostato
+                temp = msg->vals[SWITCH_VAL_POS];
+                success = 1;
             }
-            // Altrimenti è gia su "on"
-            success = 1;
         }
-    } else if (msg->vals[SWITCH_VAL_LABEL] == LABEL_THERM_VALUE) {  // Valore Termostato
-        temp = msg->vals[SWITCH_VAL_POS];
-        success = 1;
     }
     return success;
 }
@@ -96,8 +107,8 @@ int handleSetDevice(message_t *msg) {
 message_t buildInfoResponseDevice(int to_pid, int id, int lv) {
     message_t ret = buildInfoResponse(to_pid, id, lv, 1);
     time_t now = time(NULL);
-    int tot_time = open_time + (now - ((state == 0) ? now : last_open_time));  //se è chiusa ritorno solo "tempo", altrimenti tempo+differenza da quanto accesa
-    sprintf(ret.text, CB_CYAN "%s" C_WHITE ", " CB_WHITE "state: %s " C_WHITE ", " CB_WHITE "labels: " C_WHITE "%s %s, " CB_WHITE "registers:" C_WHITE " time=%ds delay=%ds perc=%d%% temp=%d°C", FRIDGE, state == 1 ? CB_GREEN "open" : CB_RED "closed", LABEL_OPEN, LABEL_THERM, tot_time, delay, perc, temp);
+    int tot_time = open_time + (now - ((state == 0) ? now : (last_general_stop == 0 ? last_open_time : now)));  //se è chiusa ritorno solo "tempo", altrimenti tempo+differenza da quanto accesa
+    sprintf(ret.text, CB_CYAN "%s" C_WHITE ", " CB_WHITE "state: %s " C_WHITE ", " CB_WHITE "labels: b" C_WHITE "%s %s, " CB_WHITE "registers:" C_WHITE " time=%ds delay=%ds perc=%d%% temp=%d°C", FRIDGE, state == 1 ? CB_GREEN "open" : CB_RED "closed", LABEL_OPEN, LABEL_THERM, tot_time, delay, perc, temp);
     ret.vals[INFO_VAL_STATE] = state;
     ret.vals[INFO_VAL_LABELS] = LABEL_OPEN_VALUE | LABEL_THERM_VALUE;
     ret.vals[INFO_VAL_REG_TIME] = tot_time;
@@ -115,7 +126,7 @@ message_t buildListResponseDevice(int to_pid, int id, int lv) {
 }
 
 message_t buildCloneResponseDevice(int to_pid, int id) {
-    int vals[] = {state, interruttore, delay, temp, perc, open_time, last_open_time, missing_time};
+    int vals[] = {state, interruttore, delay, temp, perc, open_time, last_open_time, last_general_stop};
     return buildCloneResponse(to_pid, FRIDGE, id, vals, 0);
 }
 
@@ -132,15 +143,20 @@ void closeDoor() {
 }
 
 void generalStart(){
-    if (missing_time > 0){
+    if (last_general_stop > 0){
         // riaccendo il timer di chiusura automatica se era aperta la porta
         if (state == SWITCH_POS_ON_LABEL_VALUE && delay > 0){
-            alarm(missing_time);
+            alarm(delay - (last_general_stop - last_open_time));
+            last_open_time = time(NULL);
         }
     }
+    last_general_stop = 0;
 }
 
 void generalStop(){
-    // spengo il timer di chiusura automatica e salvo quanto tempo mancava
-    missing_time = alarm(0);
+    if (last_general_stop == 0){
+        // spengo il timer di chiusura automatica e salvo quanto tempo mancava
+        open_time += alarm(0);
+        last_general_stop = time(NULL);
+    }
 }
