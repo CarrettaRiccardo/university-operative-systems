@@ -202,7 +202,7 @@ int unlinkDevices(int id) {
     }
 
     int res = doLink(children, to_pid, base_dir, 1);
-    message_t ack;
+    message_t ack;  // Aspetto la conferma di avvenuta link dal dispositivo
     receiveMessage(&ack);
     if (res <= 0) return res;
 
