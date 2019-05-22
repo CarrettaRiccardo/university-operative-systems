@@ -370,7 +370,11 @@ void switchDevice(int id, char *label, char *pos) {
 
     // Se i parametri creano dei valori validi
     if (label_val == INVALID_VALUE) {
-        printf(CB_RED "Error: invalid label \"%s\"\n" C_WHITE, label);
+        if (label_val == LABEL_GENERAL_VALUE && id != 0) {  // L'interrruttore GENERAL è utilizzabile solo nel controller
+            printf(CB_RED "Error: the label \"%s\" is not supported by the device %d\n" C_WHITE, label, id);
+        } else {
+            printf(CB_RED "Error: invalid label \"%s\"\n" C_WHITE, label);
+        }
         return;
     } else if (pos_val == INVALID_VALUE) {
         if (label_val == LABEL_FRIDGE_THERM_VALUE) {
