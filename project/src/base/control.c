@@ -10,6 +10,7 @@
 void initData();
 void cloneData(char **vals);
 int handleSetControl(message_t *msg);
+void doSwitchControl(int label, int pos);
 message_t buildInfoResponseControl(int to_pid, int id, char *children_state, char *available_labels, char *registers_vals, int lv, short stop);
 message_t buildListResponseControl(int to_pid, int id, char *children_state, int lv, short stop);
 message_t buildCloneResponseControl(int to_pid, int id, int state);
@@ -189,6 +190,8 @@ void sigchldHandler(int signum) {
 
 int doSwitchChildren(int label, int pos) {
     int success = -1;
+    // fa uno switch del dispositivo di controllo stesso (solo perchè se è un timer stoppa il timer)
+    doSwitchControl(label, pos);
     // Fa lo switch di tutti i figli
     node_t *p = children->head;
     while (p != NULL) {

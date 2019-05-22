@@ -107,3 +107,28 @@ void setAlarm() {
         }
     }
 }
+
+void doSwitchControl(int label, int pos){
+    // stoppa o fa ripartire il 
+    if (label == LABEL_GENERAL_VALUE) {  // general
+        if (pos == SWITCH_POS_OFF_LABEL_VALUE) {  // spengo
+            alarm(0);
+        } else if (pos == SWITCH_POS_ON_LABEL_VALUE) {  // accendo
+            int t_begin = mktime(&begin);
+            int t_end = mktime(&end);
+            // Setto il timer di spegnimento (end) se è il prossimo evento
+            if (time(NULL) < t_end && (t_end < t_begin || t_begin < time(NULL))) {
+                alarm(t_end - time(NULL));  // attendo la differenza da ORA
+                waitForBegin = 1;
+            } else {
+                // Setto il timer di accensione (begin) se è il prossimo evento
+                if (time(NULL) < t_begin && (t_end > t_begin || t_end < time(NULL))) {
+                    alarm(t_begin - time(NULL));  // attendo la differenza da ORA
+                    waitForBegin = 0;
+                } else {  // Altrimenti termino gli alarm automatici
+                    alarm(0);
+                }
+            }
+        }
+    }
+}

@@ -31,3 +31,7 @@ message_t buildCloneResponseControl(int to_pid, int id, int state) {
     int vals[] = {state};
     return buildCloneResponse(to_pid, CONTROLLER, id, vals, 1);
 }
+
+void doSwitchControl(int pos, int val){
+    // non fa nulla per il controller
+}
