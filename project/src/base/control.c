@@ -92,22 +92,23 @@ int main(int argc, char **argv) {
                         if (success && msg.vals[SWITCH_VAL_LABEL] != LABEL_FRIDGE_THERM_VALUE) {  // Ho almeno 1 figlio con qull'interruttore, aggiorno lo stato corrispondente. Il valore del therm non viene mostrato nell'hub. quindi posso ignorarlo
                             int pos = msg.vals[SWITCH_VAL_POS];
                             if (msg.vals[SWITCH_VAL_LABEL] == LABEL_WINDOW_OPEN_VALUE || msg.vals[SWITCH_VAL_LABEL] == LABEL_WINDOW_CLOSE_VALUE) {
-                                if (msg.vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_LABEL_VALUE) pos = -1;    // Solo se ho eseguito ON su OPEN o CLOSE modifico lo stato
                                 if (msg.vals[SWITCH_VAL_LABEL] == LABEL_WINDOW_CLOSE_VALUE) pos = !pos;  // Se ho usato l'interruttore CLOSE devo chiudere la finestra e non aprirla
+                                if (msg.vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_LABEL_VALUE) pos = -1;    // Solo se ho eseguito ON su OPEN o CLOSE modifico lo stato
                             }
-                            int device_state = 0;
+                            int state_type = 0;
                             switch (msg.vals[SWITCH_VAL_LABEL]) {
-                                case LABEL_BULB_LIGHT_VALUE: device_state = BULB_STATE; break;
-                                case LABEL_WINDOW_OPEN_VALUE: device_state = WINDOW_STATE; break;
-                                case LABEL_WINDOW_CLOSE_VALUE: device_state = WINDOW_STATE; break;
-                                case LABEL_FRIDGE_DOOR_VALUE: device_state = FRIDGE_STATE; break;
-                                case LABEL_ALARM_ENABLE_VALUE: device_state = ALARM_STATE; break;
-                                case LABEL_ALL_VALUE: device_state = BULB_STATE | WINDOW_STATE | FRIDGE_STATE | ALARM_STATE; break;
+                                case LABEL_BULB_LIGHT_VALUE: state_type = BULB_STATE; break;
+                                case LABEL_WINDOW_OPEN_VALUE: state_type = WINDOW_STATE; break;
+                                case LABEL_WINDOW_CLOSE_VALUE: state_type = WINDOW_STATE; break;
+                                case LABEL_FRIDGE_DOOR_VALUE: state_type = FRIDGE_STATE; break;
+                                case LABEL_ALARM_ENABLE_VALUE: state_type = ALARM_STATE; break;
+                                // Nel caso dell'interruttore all setta tutti gli stati. Lo stato delle WINDOW viene settato solo se si esegue un on (stesso compotamento dell'interruttore "open")
+                                case LABEL_ALL_VALUE: state_type = BULB_STATE | FRIDGE_STATE | ALARM_STATE | (pos == SWITCH_POS_ON_LABEL_VALUE ? WINDOW_STATE : 0); break;
                             }
                             if (pos == SWITCH_POS_ON_LABEL_VALUE) {
-                                state |= device_state;  // Aggiunto il dispositivo allo stato dell'HUB
+                                state |= state_type;  // Aggiunto il dispositivo allo stato dell'HUB
                             } else if (pos == SWITCH_POS_OFF_LABEL_VALUE) {
-                                state &= ~device_state;  // Tolgo il dispositivo dallo stato dell'HUB
+                                state &= ~state_type;  // Tolgo il dispositivo dallo stato dell'HUB
                             }
                         }
                         message_t m = buildSwitchResponse(msg.sender, success);
@@ -264,14 +265,15 @@ void doInfoList(message_t *msg, short type) {
                 }
             }
 
-            listPushBack(msg_list, &response, sizeof(message_t));  // Salvo il messaggio per inviarlo dopo aver calcolato lo stato dell'HUB da quello dei figli
-
             // Analizzo le risposte dei figli per capire se l'hub è in uno stato di override
             int state_type = 0;  // Ottengo il tipo di dispositivo che sto analizzando. Ignoro i dispositivi di controllo
-            if (response.vals[INFO_VAL_LABELS] == LABEL_BULB_LIGHT_VALUE) state_type = BULB_STATE;
-            if (response.vals[INFO_VAL_LABELS] == LABEL_WINDOW_OPEN_VALUE | LABEL_WINDOW_CLOSE_VALUE) state_type = WINDOW_STATE;
-            if (response.vals[INFO_VAL_LABELS] == LABEL_FRIDGE_DOOR_VALUE | LABEL_FRIDGE_THERM_VALUE) state_type = FRIDGE_STATE;
-            if (response.vals[INFO_VAL_LABELS] == LABEL_ALARM_ENABLE_VALUE) state_type = ALARM_STATE;
+            switch (response.vals[INFO_VAL_LABELS]) {
+                case LABEL_BULB_LIGHT_VALUE: state_type = BULB_STATE; break;
+                case (LABEL_FRIDGE_DOOR_VALUE | LABEL_FRIDGE_THERM_VALUE): state_type = FRIDGE_STATE; break;
+                case (LABEL_WINDOW_OPEN_VALUE | LABEL_WINDOW_CLOSE_VALUE): state_type = WINDOW_STATE; break;
+                case LABEL_ALARM_ENABLE_VALUE: state_type = ALARM_STATE; break;
+            }
+
             if (state_type != 0) {
                 // Se lo stato memorizzato nell'hub è diverso dallo stato ricevuto dal dispositivo ,sono in una situazione di override
                 if (((state & state_type) && !response.vals[INFO_VAL_STATE]) ||
@@ -280,7 +282,8 @@ void doInfoList(message_t *msg, short type) {
                 }
             }
 
-        } while (stop != 1);  // Se stop = 1 non ho risposte da altri sottofigli da salvare, posso quindi passare al prossimo figlio
+            listPushBack(msg_list, &response, sizeof(message_t));  // Salvo il messaggio per inviarlo dopo aver calcolato lo stato dell'HUB da quello dei figli
+        } while (stop != 1);                                       // Se stop = 1 non ho risposte da altri sottofigli da salvare, posso quindi passare al prossimo figlio
         p = p->next;
     }
 
