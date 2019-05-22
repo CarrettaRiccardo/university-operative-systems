@@ -23,7 +23,7 @@ void cloneData(char **vals) {
 int handleSwitchDevice(message_t *msg) {
     int success = SWITCH_ERROR_INVALID_VALUE;
     // Interruttore (light) o generico (da dispositivi di controllo)
-    if (msg->vals[SWITCH_VAL_LABEL] == LABEL_LIGHT_VALUE || msg->vals[SWITCH_VAL_LABEL] == LABEL_ALL_VALUE) {
+    if (msg->vals[SWITCH_VAL_LABEL] == LABEL_BULB_LIGHT_VALUE || msg->vals[SWITCH_VAL_LABEL] == LABEL_ALL_VALUE) {
         if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_LABEL_VALUE) {  // Spengo
             // Se è accesa, sommo il tempo di accensione e spengo
             if (interruttore == SWITCH_POS_ON_LABEL_VALUE) {
@@ -54,9 +54,9 @@ message_t buildInfoResponseDevice(int to_pid, int id, int lv) {
     message_t ret = buildInfoResponse(to_pid, id, lv, 1);
     time_t now = time(NULL);
     int tot_time = on_time + (now - ((state == SWITCH_POS_OFF_LABEL_VALUE) ? now : last_on_time));  // Se è spenta ritorno solo "on_time", altrimenti on_time+differenza da quanto accesa
-    sprintf(ret.text, CB_CYAN "%s" C_WHITE ", " CB_WHITE "state: %s" C_WHITE ", " CB_WHITE "labels:" C_WHITE " %s, " CB_WHITE "registers:" C_WHITE " time=%ds", BULB, state ? CB_GREEN "on" : CB_RED "off", LABEL_LIGHT, tot_time);
+    sprintf(ret.text, CB_CYAN "%s" C_WHITE ", " CB_WHITE "state: %s" C_WHITE ", " CB_WHITE "labels:" C_WHITE " %s, " CB_WHITE "registers:" C_WHITE " time=%ds", BULB, state ? CB_GREEN "on" : CB_RED "off", LABEL_BULB_LIGHT, tot_time);
     ret.vals[INFO_VAL_STATE] = state;
-    ret.vals[INFO_VAL_LABELS] = LABEL_LIGHT_VALUE;
+    ret.vals[INFO_VAL_LABELS] = LABEL_BULB_LIGHT_VALUE;
     ret.vals[INFO_VAL_REG_TIME] = tot_time;
     ret.vals[INFO_VAL_REG_DELAY] = INVALID_VALUE;
     ret.vals[INFO_VAL_REG_PERC] = INVALID_VALUE;

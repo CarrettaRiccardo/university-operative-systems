@@ -149,7 +149,7 @@ void listDevices() {
             do {
                 if (receiveMessage(&response) == -1) {
                     perror("Error list response");
-                } else if(response.type == LIST_MSG_TYPE){ //controllo che non sia stato un mix di messaggi, in tal caso ignoro il messaggio
+                } else if (response.type == LIST_MSG_TYPE) {  //controllo che non sia stato un mix di messaggi, in tal caso ignoro il messaggio
                     int i;
                     for (i = 0; i < response.vals[INFO_VAL_LEVEL] - 1; i++) printf("    ");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
                     if (response.vals[INFO_VAL_LEVEL] > 0) printf(C_CYAN " └──" C_WHITE);
@@ -336,14 +336,18 @@ void switchDevice(int id, char *label, char *pos) {
     int label_val = INVALID_VALUE;
     int pos_val = INVALID_VALUE;  // 0 = spento, 1 = acceso; x = valore termostato (°C)
     // Map delle label (char*) in valori (int) per poterli inserire in un messaggio
-    if (strcmp(label, LABEL_LIGHT) == 0) {
-        label_val = LABEL_LIGHT_VALUE;
-    } else if (strcmp(label, LABEL_OPEN) == 0) {
-        label_val = LABEL_OPEN_VALUE;
-    } else if (strcmp(label, LABEL_CLOSE) == 0) {
-        label_val = LABEL_CLOSE_VALUE;
-    } else if (strcmp(label, LABEL_THERM) == 0) {
-        label_val = LABEL_THERM_VALUE;
+    if (strcmp(label, LABEL_BULB_LIGHT) == 0) {
+        label_val = LABEL_BULB_LIGHT_VALUE;
+    } else if (strcmp(label, LABEL_WINDOW_OPEN) == 0) {
+        label_val = LABEL_WINDOW_OPEN_VALUE;
+    } else if (strcmp(label, LABEL_WINDOW_CLOSE) == 0) {
+        label_val = LABEL_WINDOW_CLOSE_VALUE;
+    } else if (strcmp(label, LABEL_FRIDGE_DOOR) == 0) {
+        label_val = LABEL_FRIDGE_DOOR_VALUE;
+    } else if (strcmp(label, LABEL_FRIDGE_THERM) == 0) {
+        label_val = LABEL_FRIDGE_THERM_VALUE;
+    } else if (strcmp(label, LABEL_ALARM_ENABLE) == 0) {
+        label_val = LABEL_ALARM_ENABLE_VALUE;
     } else if (strcmp(label, LABEL_ALL) == 0) {
         label_val = LABEL_ALL_VALUE;
     } else if (strcmp(label, LABEL_GENERAL) == 0) {
@@ -351,14 +355,14 @@ void switchDevice(int id, char *label, char *pos) {
     }
 
     // Map valore pos (char*) in valori (int) per poterli inserire in un messaggio
-    if (label_val == LABEL_LIGHT_VALUE || label_val == LABEL_OPEN_VALUE || label_val == LABEL_CLOSE_VALUE || label_val == LABEL_ALL_VALUE || label_val == LABEL_GENERAL_VALUE) {
+    if (label_val == LABEL_BULB_LIGHT_VALUE || label_val == LABEL_WINDOW_OPEN_VALUE || label_val == LABEL_WINDOW_CLOSE_VALUE || label_val == LABEL_FRIDGE_DOOR_VALUE || label_val == LABEL_ALARM_ENABLE_VALUE || label_val == LABEL_ALL_VALUE || label_val == LABEL_GENERAL_VALUE) {
         // Se è un interrutore on/off
         if (strcmp(pos, SWITCH_POS_OFF_LABEL) == 0) {
             pos_val = SWITCH_POS_OFF_LABEL_VALUE;  // 0 = spento/chiuso
         } else if (strcmp(pos, SWITCH_POS_ON_LABEL) == 0) {
             pos_val = SWITCH_POS_ON_LABEL_VALUE;  // 1 = acceso/aperto
         }
-    } else if (label_val == LABEL_THERM_VALUE) {
+    } else if (label_val == LABEL_FRIDGE_THERM_VALUE) {
         if (isInt(pos) && atoi(pos) >= -20 && atoi(pos) <= 15) {
             pos_val = atoi(pos);
         }
@@ -369,7 +373,7 @@ void switchDevice(int id, char *label, char *pos) {
         printf(CB_RED "Error: invalid label \"%s\"\n" C_WHITE, label);
         return;
     } else if (pos_val == INVALID_VALUE) {
-        if (label_val == LABEL_THERM_VALUE) {
+        if (label_val == LABEL_FRIDGE_THERM_VALUE) {
             printf(CB_RED "Error: invalid pos value %s°C for label \"%s\". It must be a number between -20°C and 15°C \n" C_WHITE, pos, label);
         } else {
             printf(CB_RED "Error: invalid pos value \"%s\" for label \"%s\"\n" C_WHITE, pos, label);

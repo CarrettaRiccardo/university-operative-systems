@@ -93,7 +93,6 @@ message_t buildSwitchRequest(int to_pid, int label_val, int pos_val) {
     to_pid: pid del componente al qual il comando è destinato
     label_val: valore della label da modificare
     pos_val: valore da modificare per la posizione dell' interuttore
-    TODO: Destro le descrizion sono corrette ?
 */
 message_t buildTerminalSwitchRequest(int home_pid, int to_pid, int label_val, int pos_val) {
     message_t ret = buildSwitchRequest(home_pid, label_val, pos_val);

@@ -14,7 +14,7 @@ void initData() {
     state = SWITCH_POS_OFF_LABEL_VALUE;
     interruttore = state;
     delay = 10;
-    perc = 15;
+    perc = 15;     // Probabilità che l'allarme parti
     alarm(delay);  // lancio l'allarme
 }
 
@@ -31,7 +31,7 @@ void cloneData(char **vals) {
 int handleSwitchDevice(message_t *msg) {
     int success = SWITCH_ERROR_INVALID_VALUE;
     // Interruttore generico (da dispositivi di controllo)
-    if (msg->vals[SWITCH_VAL_LABEL] == LABEL_ALL_VALUE) {
+    if (msg->vals[SWITCH_VAL_LABEL] == LABEL_ALARM_ENABLE_VALUE || msg->vals[SWITCH_VAL_LABEL] == LABEL_ALL_VALUE) {
         if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_LABEL_VALUE) {  // Spengo
             // Se è acceso, spengo
             if (interruttore == SWITCH_POS_ON_LABEL_VALUE) {
@@ -68,9 +68,9 @@ int handleSetDevice(message_t *msg) {
 
 message_t buildInfoResponseDevice(int to_pid, int id, int lv) {
     message_t ret = buildInfoResponse(to_pid, id, lv, 1);
-    sprintf(ret.text, CB_CYAN "%s" C_WHITE ", " CB_WHITE "state: %s " C_WHITE ", " CB_WHITE "registers:" C_WHITE " delay=%ds perc=%d%%", ALARM, state == 1 ? CB_GREEN "ringing" : CB_RED "off", delay, perc);
+    sprintf(ret.text, CB_CYAN "%s" C_WHITE ", " CB_WHITE "state: %s" C_WHITE ", " CB_WHITE "labels:" C_WHITE " %s, " CB_WHITE "registers:" C_WHITE " delay=%ds perc=%d%%", ALARM, state ? CB_GREEN "ringing" : CB_RED "off", LABEL_ALARM_ENABLE, delay, perc);
     ret.vals[INFO_VAL_STATE] = state;
-    ret.vals[INFO_VAL_LABELS] = INVALID_VALUE;
+    ret.vals[INFO_VAL_LABELS] = LABEL_ALARM_ENABLE_VALUE;
     ret.vals[INFO_VAL_REG_TIME] = INVALID_VALUE;
     ret.vals[INFO_VAL_REG_DELAY] = delay;
     ret.vals[INFO_VAL_REG_PERC] = perc;

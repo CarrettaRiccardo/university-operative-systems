@@ -77,20 +77,24 @@
 /*************************  Tipi interruttori SWITCH  *************************/
 #define INVALID_VALUE __INT_MAX__
 
-#define LABEL_LIGHT "light"
-#define LABEL_OPEN "open"
-#define LABEL_CLOSE "close"
-#define LABEL_THERM "therm"
+#define LABEL_BULB_LIGHT "light"
+#define LABEL_WINDOW_OPEN "open"
+#define LABEL_WINDOW_CLOSE "close"
+#define LABEL_FRIDGE_THERM "therm"
+#define LABEL_FRIDGE_DOOR "door"
+#define LABEL_ALARM_ENABLE "enable"
 #define LABEL_ALL "all"
 #define LABEL_GENERAL "general"
 
 // In binario per inviare tutto con operazioni AND e OR
-#define LABEL_LIGHT_VALUE 1
-#define LABEL_OPEN_VALUE 2
-#define LABEL_CLOSE_VALUE 4
-#define LABEL_THERM_VALUE 8
-#define LABEL_ALL_VALUE 16
-#define LABEL_GENERAL_VALUE 32
+#define LABEL_BULB_LIGHT_VALUE 1
+#define LABEL_WINDOW_OPEN_VALUE 2
+#define LABEL_WINDOW_CLOSE_VALUE 4
+#define LABEL_FRIDGE_DOOR_VALUE 8
+#define LABEL_FRIDGE_THERM_VALUE 16
+#define LABEL_ALARM_ENABLE_VALUE 32
+#define LABEL_ALL_VALUE 64
+#define LABEL_GENERAL_VALUE 128
 
 #define SWITCH_POS_OFF_LABEL "off"
 #define SWITCH_POS_ON_LABEL "on"

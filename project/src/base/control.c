@@ -267,10 +267,12 @@ void doInfoList(message_t *msg, short type) {
     char labels_str[64] = "";
     if (label_values != 0) label_values |= LABEL_ALL_VALUE;  // Se ho dei figli mostro anche l'interruttore all
     if (label_values & LABEL_ALL_VALUE) strcat(labels_str, " " LABEL_ALL);
-    if (label_values & LABEL_LIGHT_VALUE) strcat(labels_str, " " LABEL_LIGHT);
-    if (label_values & LABEL_OPEN_VALUE) strcat(labels_str, " " LABEL_OPEN);
-    if (label_values & LABEL_CLOSE_VALUE) strcat(labels_str, " " LABEL_CLOSE);
-    if (label_values & LABEL_THERM_VALUE) strcat(labels_str, " " LABEL_THERM);
+    if (label_values & LABEL_BULB_LIGHT_VALUE) strcat(labels_str, " " LABEL_BULB_LIGHT);
+    if (label_values & LABEL_WINDOW_OPEN_VALUE) strcat(labels_str, " " LABEL_WINDOW_OPEN);
+    if (label_values & LABEL_WINDOW_CLOSE_VALUE) strcat(labels_str, " " LABEL_WINDOW_CLOSE);
+    if (label_values & LABEL_FRIDGE_DOOR_VALUE) strcat(labels_str, " " LABEL_FRIDGE_DOOR);
+    if (label_values & LABEL_FRIDGE_THERM_VALUE) strcat(labels_str, " " LABEL_FRIDGE_THERM);
+    if (label_values & LABEL_ALARM_ENABLE_VALUE) strcat(labels_str, " " LABEL_ALARM_ENABLE);
     if (strlen(labels_str) == 0) strcat(labels_str, " (empty)");  // Nel caso non avessi nessun interruttore
 
     // Calcolo i valori dei registri disponibili e lo setto
