@@ -64,20 +64,20 @@ int handleSetControl(message_t *msg) {
     return success;
 }
 
-message_t buildInfoResponseControl(int to_pid, int id, char *children_state, char *available_labels, char *registers_values, int lv, short stop) {
+message_t buildInfoResponseControl(int to_pid, int id, char *state_str, char *available_labels, char *registers_values, int lv, short stop) {
     message_t ret = buildInfoResponse(to_pid, id, lv, stop);
     char begin_str[12] = "";
     char end_str[12] = "";
     // genero la stringa di testo personalizzata
     strftime(begin_str, sizeof(begin_str), "%H:%M:%S", &begin);
     strftime(end_str, sizeof(end_str), "%H:%M:%S", &end);
-    sprintf(ret.text, CB_CYAN "%s" C_WHITE ", " CB_WHITE "state: %s" C_WHITE ", " CB_WHITE "labels:" C_WHITE "%s, " CB_WHITE "registers (max values):" C_WHITE " begin=%s end=%s%s", TIMER, children_state, available_labels, begin_str, end_str, registers_values);
+    sprintf(ret.text, CB_CYAN "%s" C_WHITE ", " CB_WHITE "state:%s" C_WHITE ", " CB_WHITE "labels:" C_WHITE "%s, " CB_WHITE "registers (max values):" C_WHITE " begin=%s end=%s%s", TIMER, state_str, available_labels, begin_str, end_str, registers_values);
     return ret;
 }
 
-message_t buildListResponseControl(int to_pid, int id, char *children_state, int lv, short stop) {
+message_t buildListResponseControl(int to_pid, int id, char *state_str, int lv, short stop) {
     message_t ret = buildListResponse(to_pid, id, lv, stop);
-    sprintf(ret.text, CB_WHITE "%s %s" C_WHITE, TIMER, children_state);
+    sprintf(ret.text, CB_CYAN "%s" C_WHITE "%s" C_WHITE, TIMER, state_str);
     return ret;
 }
 

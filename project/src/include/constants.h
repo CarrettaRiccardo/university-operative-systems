@@ -120,24 +120,30 @@
 #define BULB "bulb"
 #define FRIDGE "fridge"
 #define WINDOW "window"
+#define ALARM "alarm"
 #define HUB "hub"
 #define TIMER "timer"
 #define CONTROLLER "controller"
-#define ALARM "alarm"
+
+// Valori usati nei dispositivi di controllo per mostrare i vari stati dei dispositivi collegati
+#define BULB_STATE 1
+#define FRIDGE_STATE 2
+#define WINDOW_STATE 4
+#define ALARM_STATE 8
 
 /*************************  Colori per printf  *************************/
 #define C_RESET "\x1b[0m"
 #define C_WHITE C_RESET
-#define CB_WHITE C_RESET "\x1b[1;37m"
-#define C_RED C_RESET "\x1b[31m"     // Normale
-#define CB_RED C_RESET "\x1b[1;31m"  // Bold
-#define C_GREEN C_RESET "\x1b[32m"
-#define CB_GREEN C_RESET "\x1b[1;32m"
-#define C_YELLOW C_RESET "\x1b[33m"
-#define CB_YELLOW C_RESET "\x1b[1;33m"
-#define C_BLUE C_RESET "\x1b[34m"
-#define CB_BLUE C_RESET "\x1b[1;34m"
-#define C_MAGENTA C_RESET "\x1b[35m"
-#define CB_MAGENTA C_RESET "\x1b[1;35m"
-#define C_CYAN C_RESET "\x1b[36m"
-#define CB_CYAN C_RESET "\x1b[1;36m"
+#define CB_WHITE "\x1b[1;37m"
+#define C_RED "\x1b[31m"     // Normale
+#define CB_RED "\x1b[1;31m"  // Bold
+#define C_GREEN "\x1b[32m"
+#define CB_GREEN "\x1b[1;32m"
+#define C_YELLOW "\x1b[33m"
+#define CB_YELLOW "\x1b[1;33m"
+#define C_BLUE "\x1b[34m"
+#define CB_BLUE "\x1b[1;34m"
+#define C_MAGENTA "\x1b[35m"
+#define CB_MAGENTA "\x1b[1;35m"
+#define C_CYAN "\x1b[36m"
+#define CB_CYAN "\x1b[1;36m"

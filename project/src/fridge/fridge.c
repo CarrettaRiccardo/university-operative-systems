@@ -108,7 +108,7 @@ message_t buildInfoResponseDevice(int to_pid, int id, int lv) {
     message_t ret = buildInfoResponse(to_pid, id, lv, 1);
     time_t now = time(NULL);
     int tot_time = open_time + (now - ((state == 0) ? now : (last_general_stop == 0 ? last_open_time : now)));  //se è chiusa ritorno solo "tempo", altrimenti tempo+differenza da quanto accesa
-    sprintf(ret.text, CB_CYAN "%s" C_WHITE ", " CB_WHITE "state: %s " C_WHITE ", " CB_WHITE "labels: " C_WHITE "%s %s, " CB_WHITE "registers:" C_WHITE " time=%ds delay=%ds perc=%d%% temp=%d°C", FRIDGE, state == 1 ? CB_GREEN "open" : CB_RED "closed", LABEL_FRIDGE_DOOR, LABEL_FRIDGE_THERM, tot_time, delay, perc, temp);
+    sprintf(ret.text, CB_CYAN "%s" C_WHITE ", " CB_WHITE "state: %s " C_WHITE ", " CB_WHITE "labels: " C_WHITE "%s %s, " CB_WHITE "registers:" C_WHITE " time=%ds delay=%ds perc=%d%% temp=%d°C", FRIDGE, state ? CB_GREEN "open" : CB_RED "closed", LABEL_FRIDGE_DOOR, LABEL_FRIDGE_THERM, tot_time, delay, perc, temp);
     ret.vals[INFO_VAL_STATE] = state;
     ret.vals[INFO_VAL_LABELS] = LABEL_FRIDGE_DOOR_VALUE | LABEL_FRIDGE_THERM_VALUE;
     ret.vals[INFO_VAL_REG_TIME] = tot_time;
@@ -120,8 +120,9 @@ message_t buildInfoResponseDevice(int to_pid, int id, int lv) {
 
 message_t buildListResponseDevice(int to_pid, int id, int lv) {
     message_t ret = buildListResponse(to_pid, id, lv, 1);
-    sprintf(ret.text, CB_WHITE "%s %s" C_WHITE, FRIDGE, state == 1 ? CB_GREEN "open" : CB_RED "closed");
+    sprintf(ret.text, CB_CYAN "%s %s" C_WHITE, FRIDGE, state ? CB_GREEN "open" : CB_RED "closed");
     ret.vals[INFO_VAL_STATE] = state;
+    ret.vals[INFO_VAL_LABELS] = LABEL_FRIDGE_DOOR_VALUE | LABEL_FRIDGE_THERM_VALUE;
     return ret;
 }
 

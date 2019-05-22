@@ -68,7 +68,6 @@ int main(int sargc, char **sargv) {
 #endif
 
     printf("Type \"help\" for more information.\n\n");
-
     while (run) {
         if (print_sign)
             printf("> ");

@@ -22,7 +22,7 @@ message_t buildInfoResponseControl(int to_pid, int id, char *children_state, cha
 /* Genero le info per il comando LIST del componente corrente */
 message_t buildListResponseControl(int to_pid, int id, char *children_state, int lv, short stop) {
     message_t ret = buildListResponse(to_pid, id, lv, stop);
-    sprintf(ret.text, CB_WHITE "%s %s" C_WHITE, CONTROLLER, state ? CB_GREEN "on" : CB_RED "off");
+    sprintf(ret.text, CB_CYAN "%s %s" C_WHITE, CONTROLLER, state ? CB_GREEN "on" : CB_RED "off");
     return ret;
 }
 

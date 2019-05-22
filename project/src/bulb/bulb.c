@@ -66,8 +66,9 @@ message_t buildInfoResponseDevice(int to_pid, int id, int lv) {
 
 message_t buildListResponseDevice(int to_pid, int id, int lv) {
     message_t ret = buildListResponse(to_pid, id, lv, 1);
-    sprintf(ret.text, CB_WHITE "%s %s" C_WHITE, BULB, state ? CB_GREEN "on" : CB_RED "off");
+    sprintf(ret.text, CB_CYAN "%s %s" C_WHITE, BULB, state ? CB_GREEN "on" : CB_RED "off");
     ret.vals[INFO_VAL_STATE] = state;
+    ret.vals[INFO_VAL_LABELS] = LABEL_BULB_LIGHT_VALUE;
     return ret;
 }
 

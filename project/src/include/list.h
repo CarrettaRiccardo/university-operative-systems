@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include "../include/constants.h"
 
-#define MAXTEXT 255
+#define MAXTEXT 512
 #define NVAL 10
 
 typedef struct msg {

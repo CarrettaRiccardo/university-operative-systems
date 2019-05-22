@@ -61,7 +61,7 @@ message_t buildInfoResponseDevice(int to_pid, int id, int lv) {
     message_t ret = buildInfoResponse(to_pid, id, lv, 1);
     time_t now = time(NULL);
     int tot_time = open_time + (now - ((state == SWITCH_POS_OFF_LABEL_VALUE) ? now : last_open_time));  // Se è spenta ritorno solo "on_time", altrimenti on_time+differenza da quanto accesa
-    sprintf(ret.text, CB_CYAN "%s" C_WHITE ", " CB_WHITE "state: %s" C_WHITE ", " CB_WHITE "labels:" C_WHITE " %s, " CB_WHITE "registers:" C_WHITE " time=%ds", WINDOW, state == 1 ? CB_GREEN "open" : CB_RED "closed", LABEL_WINDOW_OPEN " " LABEL_WINDOW_CLOSE, tot_time);
+    sprintf(ret.text, CB_CYAN "%s" C_WHITE ", " CB_WHITE "state: %s" C_WHITE ", " CB_WHITE "labels:" C_WHITE " %s, " CB_WHITE "registers:" C_WHITE " time=%ds", WINDOW, state ? CB_GREEN "open" : CB_RED "closed", LABEL_WINDOW_OPEN " " LABEL_WINDOW_CLOSE, tot_time);
     ret.vals[INFO_VAL_STATE] = state;
     ret.vals[INFO_VAL_LABELS] = LABEL_WINDOW_OPEN_VALUE | LABEL_WINDOW_CLOSE_VALUE;
     ret.vals[INFO_VAL_REG_TIME] = tot_time;
@@ -73,12 +73,13 @@ message_t buildInfoResponseDevice(int to_pid, int id, int lv) {
 
 message_t buildListResponseDevice(int to_pid, int id, int lv) {
     message_t ret = buildListResponse(to_pid, id, lv, 1);
-    sprintf(ret.text, CB_WHITE "%s %s" C_WHITE, WINDOW, state == 1 ? CB_GREEN "open" : CB_RED "closed");
+    sprintf(ret.text, CB_CYAN "%s %s" C_WHITE, WINDOW, state ? CB_GREEN "open" : CB_RED "closed");
     ret.vals[INFO_VAL_STATE] = state;
+    ret.vals[INFO_VAL_LABELS] = LABEL_WINDOW_OPEN_VALUE | LABEL_WINDOW_CLOSE_VALUE;
     return ret;
 }
 
 message_t buildCloneResponseDevice(int to_pid, int id) {
-    int vals[NVAL] = {state, open_time, last_open_time};
+    int vals[] = {state, open_time, last_open_time};
     return buildCloneResponse(to_pid, WINDOW, id, vals, 0);
 }
