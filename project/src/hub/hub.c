@@ -37,3 +37,7 @@ message_t buildCloneResponseControl(int to_pid, int id, int state) {
     int vals[] = {state};
     return buildCloneResponse(to_pid, HUB, id, vals, 1);
 }
+
+void doSwitchControl(int pos, int val){
+    // non fa nulla per l'hub
+}
