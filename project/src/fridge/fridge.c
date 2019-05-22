@@ -47,11 +47,11 @@ void cloneData(char **vals) {
 int handleSwitchDevice(message_t *msg) {
     int success = SWITCH_ERROR_INVALID_VALUE;
 
-    if (msg->vals[SWITCH_VAL_LABEL] == LABEL_GENERAL_VALUE) {           // general
-        if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_LABEL_VALUE) {  // spengo
+    if (msg->vals[SWITCH_VAL_LABEL] == LABEL_GENERAL_VALUE) {           // General (da controller)
+        if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_LABEL_VALUE) {  // Spengo controller
             generalStop();
             success = 1;
-        } else if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_ON_LABEL_VALUE) {  // accendo
+        } else if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_ON_LABEL_VALUE) {  // Accendo controller
             generalStart();
             success = 1;
         }
@@ -83,10 +83,10 @@ int handleSwitchDevice(message_t *msg) {
                 }
                 // Altrimenti è gia su "on"
                 success = 1;
-            } else if (msg->vals[SWITCH_VAL_LABEL] == LABEL_FRIDGE_THERM_VALUE) {  // Valore Termostato
-                temp = msg->vals[SWITCH_VAL_POS];
-                success = 1;
             }
+        } else if (msg->vals[SWITCH_VAL_LABEL] == LABEL_FRIDGE_THERM_VALUE) {  // Valore Termostato
+            temp = msg->vals[SWITCH_VAL_POS];
+            success = 1;
         }
     }
     return success;

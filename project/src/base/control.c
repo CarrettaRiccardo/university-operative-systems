@@ -86,7 +86,7 @@ int main(int argc, char **argv) {
                 } break;
 
                 case SWITCH_MSG_TYPE: {
-                    if (id != 0) {  // Il controller (id = 0) non esegue il mirroring degli interruttori dei figli
+                    if (id != 0 && msg.vals[SWITCH_VAL_LABEL] != LABEL_GENERAL_VALUE) {  // Il controller (id = 0) non esegue il mirroring degli interruttori dei figli. L'interrrutttore geenral e disponibile solo nel controller
                         int success = doSwitchChildren(msg.vals[SWITCH_VAL_LABEL], msg.vals[SWITCH_VAL_POS]);
                         // Effettuo lo switch dello stato dell'hub per poter mostrare i valori di override
                         if (success && msg.vals[SWITCH_VAL_LABEL] != LABEL_FRIDGE_THERM_VALUE) {  // Ho almeno 1 figlio con qull'interruttore, aggiorno lo stato corrispondente. Il valore del therm non viene mostrato nell'hub. quindi posso ignorarlo
@@ -110,9 +110,6 @@ int main(int argc, char **argv) {
                                 state &= ~device_state;  // Tolgo il dispositivo dallo stato dell'HUB
                             }
                         }
-                        /*if (success && msg.vals[SWITCH_VAL_LABEL] != LABEL_GENERAL_VALUE && (msg.vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_LABEL_VALUE || msg.vals[SWITCH_VAL_POS] == SWITCH_POS_ON_LABEL_VALUE)) {
-                            state = msg.vals[SWITCH_VAL_POS];
-                        }*/
                         message_t m = buildSwitchResponse(msg.sender, success);
                         sendMessage(&m);
                     } else if (msg.vals[SWITCH_VAL_LABEL] == LABEL_GENERAL_VALUE) {  // Il controller supporta solo l'interruttore "general"
