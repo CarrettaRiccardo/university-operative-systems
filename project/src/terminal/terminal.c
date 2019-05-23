@@ -72,6 +72,13 @@ int main(int sargc, char **sargv) {
     char *argv[MAX_ARGC];
 
 #ifndef MANUAL
+    printf(CB_BLUE ",------------------------------------------------------------------,\n" C_WHITE);
+    printf(CB_BLUE "|" CB_YELLOW "  Fridge       Window         Bulb    Timer       Hub      Alarm  " CB_BLUE "|\n" C_WHITE);
+    printf(CB_BLUE "|" CB_WHITE "  ______     ___________      ___      ___       ____        _    " CB_BLUE "|\n" C_WHITE);
+    printf(CB_BLUE "|" CB_WHITE "  |4°  |     |    |    |     / _ \\    / L \\     |    =      / \\   " CB_BLUE "|\n" C_WHITE);
+    printf(CB_BLUE "|" CB_WHITE "  |   -|     |----|----|     \\ v /    \\___/     |    =     / ! \\  " CB_BLUE "|\n" C_WHITE);
+    printf(CB_BLUE "|" CB_WHITE "  |____|     |____|____|      | |               |____=    /_____\\ " CB_BLUE "|\n" C_WHITE);
+    printf(CB_BLUE "'------------------------------------------------------------------'\n" C_WHITE);
     printf(CB_WHITE "Domotic System 1.0" C_WHITE ", identifier (use this for manual commands): " CB_WHITE "%d\n" C_WHITE, getpid());
 #else
     printf(CB_WHITE "Manual shell" C_WHITE " connected to the controller: " CB_WHITE "%d\n" C_WHITE, terminal_pid);
