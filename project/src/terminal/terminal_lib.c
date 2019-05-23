@@ -442,6 +442,8 @@ void setDevice(int id, char *label, char *val) {
         label_val = REGISTER_END_VALUE;  // 4 = end (timer)
     } else if (strcmp(label, REGISTER_PERC) == 0) {
         label_val = REGISTER_PERC_VALUE;  // 8 = perc (fridge)
+    } else if (strcmp(label, REGISTER_PROB) == 0) {
+        label_val = REGISTER_PROB_VALUE;  // 16 = prob (alarm)
     }
 
     // valore del delay, di inizio o fine timer
@@ -460,7 +462,7 @@ void setDevice(int id, char *label, char *val) {
             sec -= now.tm_sec;
             pos_val = time(NULL) + (hr * 3600) + (min * 60) + sec;
         }
-    } else if (label_val == REGISTER_PERC_VALUE && isInt(val) && atoi(val) >= 0 && atoi(val) <= 100) {
+    } else if ((label_val == REGISTER_PERC_VALUE || label_val == REGISTER_PROB_VALUE) && isInt(val) && atoi(val) >= 0 && atoi(val) <= 100) {
         pos_val = atoi(val);
     }
 
@@ -523,4 +525,28 @@ void infoDevice(int id) {
             }
         } while (response.vals[INFO_VAL_STOP] != 1);
     }
+}
+
+
+/**************************************** EXPORT ************************************************/
+/* Esporta la strutture del sistema corrente per ripristinarlo successivamente                  */
+/************************************************************************************************/
+
+short doExport(FILE* fp, char* file_name, char* file_tmp){
+  FILE *new, *old;
+  char c;
+  new = fopen (file_name,"w");
+  old = fopen (file_tmp,"r");
+  if(new == NULL || old == NULL)
+    return -1;
+
+  // copio il conetnuti del primo file nel secondo
+  c = fgetc(old);
+  while (c != EOF){
+    fputc(c, new);
+    c = fgetc(old);
+  }
+  fclose (new);
+  fclose (old);
+  return 1;
 }

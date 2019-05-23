@@ -320,6 +320,7 @@ void doInfoList(message_t *msg, short type) {
             if (i == INFO_VAL_REG_DELAY) snprintf(reg_str, 16, " " REGISTER_DELAY "=%ds", value);
             if (i == INFO_VAL_REG_PERC) snprintf(reg_str, 16, " " REGISTER_PERC "=%d%%", value);
             if (i == INFO_VAL_REG_TEMP) snprintf(reg_str, 16, " " REGISTER_TEMP "=%d°C", value);
+            if (i == INFO_VAL_REG_PROB) snprintf(reg_str, 16, " " REGISTER_PROB "=%d%%", value);
             strcat(registers_str, reg_str);
         }
     }

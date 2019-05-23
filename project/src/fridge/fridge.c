@@ -11,6 +11,7 @@ int last_open_time;     // Tempo ultima apertura
 int last_general_stop;  // Ultimo tempo di stop, per calcolare il tempo di apertura in caso sia stoppato mentre la porta è aperta
 
 void closeDoor();
+// metodi richiamati quando si riceve un segnale di "switch <id> general <val>"
 void generalStart();
 void generalStop();
 
@@ -115,6 +116,7 @@ message_t buildInfoResponseDevice(int to_pid, int id, int lv) {
     ret.vals[INFO_VAL_REG_DELAY] = delay;
     ret.vals[INFO_VAL_REG_PERC] = perc;
     ret.vals[INFO_VAL_REG_TEMP] = temp;
+    ret.vals[INFO_VAL_REG_PROB] = INVALID_VALUE;
     return ret;
 }
 
