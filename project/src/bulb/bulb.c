@@ -61,6 +61,7 @@ message_t buildInfoResponseDevice(int to_pid, int id, int lv) {
     ret.vals[INFO_VAL_REG_DELAY] = INVALID_VALUE;
     ret.vals[INFO_VAL_REG_PERC] = INVALID_VALUE;
     ret.vals[INFO_VAL_REG_TEMP] = INVALID_VALUE;
+    ret.vals[INFO_VAL_REG_PROB] = INVALID_VALUE;
     return ret;
 }
 

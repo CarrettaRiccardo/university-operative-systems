@@ -439,6 +439,8 @@ void setDevice(int id, char *label, char *val) {
         label_val = REGISTER_END_VALUE;  // 4 = end (timer)
     } else if (strcmp(label, REGISTER_PERC) == 0) {
         label_val = REGISTER_PERC_VALUE;  // 8 = perc (fridge)
+    } else if (strcmp(label, REGISTER_PROB) == 0) {
+        label_val = REGISTER_PROB_VALUE;  // 16 = prob (alarm)
     }
 
     // valore del delay, di inizio o fine timer
@@ -457,7 +459,7 @@ void setDevice(int id, char *label, char *val) {
             sec -= now.tm_sec;
             pos_val = time(NULL) + (hr * 3600) + (min * 60) + sec;
         }
-    } else if (label_val == REGISTER_PERC_VALUE && isInt(val) && atoi(val) >= 0 && atoi(val) <= 100) {
+    } else if ((label_val == REGISTER_PERC_VALUE || label_val == REGISTER_PROB_VALUE) && isInt(val) && atoi(val) >= 0 && atoi(val) <= 100) {
         pos_val = atoi(val);
     }
 

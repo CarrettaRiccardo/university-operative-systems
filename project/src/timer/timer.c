@@ -6,11 +6,11 @@ struct tm begin;     //momento temporale di attivazione
 struct tm end;       //momento temporale di disattivazione
 short waitForBegin;  // 0 = prossimo evento è begin ([end] < NOW < begin < [end]), 1 = prossimo evento è end ([begin] < NOW < end < [begin])
 
-void setAlarm();
+void eventAlarm();
 
 void initData() {
     // Associo il metodo switch al segnare alarm per il begin/end automatico (se TIMER)
-    signal(SIGALRM, setAlarm);
+    signal(SIGALRM, eventAlarm);
     max_children_count = 1;
     state = SWITCH_POS_OFF_LABEL_VALUE;
     begin = *localtime(&(time_t){0});  // inizializzo a 0 il tempo
@@ -20,7 +20,7 @@ void initData() {
 
 void cloneData(char **vals) {
     // Associo il metodo switch al segnare alarm per il begin/end automatico (se TIMER)
-    signal(SIGALRM, setAlarm);
+    signal(SIGALRM, eventAlarm);
     max_children_count = 1;
     state = atoi(vals[0]);
     begin = *localtime(&(time_t){atoi(vals[1])});
@@ -86,7 +86,7 @@ message_t buildCloneResponseControl(int to_pid, int id, int state) {
     return buildCloneResponse(to_pid, TIMER, id, vals, 1);
 }
 
-void setAlarm() {
+void eventAlarm() {
     if (waitForBegin == 0) {  // Accensione figli
         doSwitchChildren(LABEL_ALL_VALUE, SWITCH_POS_ON_LABEL_VALUE);
         // Setto il timer di spegnimento (end) se è maggiore dell'accensione (begin)
