@@ -6,28 +6,29 @@
 - Steve Azzolin __195365__
 
 ## Caratteristiche implementazione:
-Per la comunicazione tra processi abbiamo utilizzato nella maggior parte dei casi le __message queue__.
+Per la comunicazione tra processi abbiamo utilizzato __message queue__.
 
 Per la comunicazione tra shell manuale e controller abbiamo optato per l'utilizzo dei __segnali__.
 
 Quando un processo muore i dispositivi di controllo intercettano il segnale che il dispositivo morto invia al padre, così da liberare le strutture dati informative che il SO tiene in memoria.
 
-Da comando manuale non è possibile esegyire unlink, dato che è un a comando che rende disponibile al controllo un componetnte alla centralina. Quindi eseguito solo da terminal standard.
+Da comando manuale non è possibile eseguire __unlink__, dato che è un comando che rende disponibile al controllo un componente da parte della centralina. Quindi eseguito solo da terminal standard.
 
-Mentra il link è possibile effeturalo da manual, in quanto rappresenta l'operazione di collegare un componente ad un altro (collegare una lampadina fisicamente ad un HUB)
+Il comando __link__ è possibile effetuarlo anche da __shell manuale__, in quanto rappresenta l'operazione di collegare un componente ad un altro (collegare una lampadina fisicamente ad un HUB).
 
 Usare __./terminal__ per la shell normale e __./manual__ per quella manuale.
 
 
 
 ##Shell per override manuali
-L'eseguibile __./manual__ deve essere lanciato passando come parametro l'id relativo alla centralina (stampato come prima linea all' avvio della stessa) così da consentire la comunicazione per risolvere id in pid.
+L'eseguibile __./manual__ deve essere lanciato passando come parametro l'id relativo alla centralina (stampato come prima linea all' avvio della stessa) così da consentire una comunicazione diretta per risolvere id in pid.
+Una volta risolto la comunicazione tra __manual__ e device finale avviene con le stesse metodologie usate per la normale comunicazione tra processi.
 
 Manual può eseguire qualsiasi comando eccetto il comando di LIST, sia su dispositivi abilitati che non abilitati.
 
 
 ##Peculiarità
-1. Quando la centralina si spegne i timer si sospendono (perchè sono ipoteticamente gestiti direttamente da essa), mentre i fridge e alarm funzionano normalmente (rispettivamente chiusura automatica e "rilevazione intrusi"). Cioò può essere inteso come un *mini sistema di sicurezza* per la casa, così facendo in un ipotetico impianto domotico non c'è il richio di avere alimenti avariati o un allarme non funzionante in caso di guasto della centralina (o di mancanza della corrente ecc...)
+1. Quando la centralina si spegne i timer si sospendono (perchè sono ipoteticamente gestiti direttamente da essa), mentre i fridge e alarm funzionano normalmente (rispettivamente chiusura automatica e "rilevazione intrusi"). Ciò può essere inteso come un *mini sistema di sicurezza* per la casa, così facendo in un ipotetico impianto domotico non c'è il richio di avere alimenti avariati o un allarme non funzionante in caso di guasto della centralina (o di mancanza della corrente ecc...)
 
 2. 
 
