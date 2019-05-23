@@ -46,7 +46,7 @@ int doLink(list_t children, int to_clone_pid, const char *base_dir, short is_ter
 
 /********************************** Requests **********************************/
 message_t buildRequest(int to_pid, short msg_type) {
-    message_t ret = {.to = to_pid, .sender = getpid(), .session = session, .type = msg_type};
+    message_t ret = {.to = to_pid, .sender = getpid(), .type = msg_type};
     return ret;
 }
 
@@ -109,7 +109,7 @@ message_t buildSetRequest(int to_pid, int label_val, int val_val) {
 
 /********************************** Responses **********************************/
 message_t buildResponse(int to_pid, short msg_type) {
-    message_t ret = {.to = to_pid, .sender = getpid(), .session = session, .type = msg_type};
+    message_t ret = {.to = to_pid, .sender = getpid(), .type = msg_type};
     return ret;
 }
 
@@ -206,7 +206,6 @@ int sendGetPidByIdSignal(int to_pid, int id) {
 /********************************** Init **********************************/
 // Inizializza i componenti per comunicare
 void ipcInit(int _mqid) {
-    session = time(NULL);
     mqid = _mqid;
 }
 
@@ -252,29 +251,4 @@ int getPidByIdSingle(int to_pid, int id) {
         return response.vals[TRANSLATE_VAL_ID];  // Id trovato
     }
     return -1;
-}
-
-// stampa nel file con nome della session il messaggio
-int printLog(const message_t *msg) {
-    char f_name[30];
-    int ret = -1;
-    /*// copio in f_name la msg.session come stringa
-    if (snprintf(f_name, sizeof(msg.session), "../log/%s", msg.session) != -1) {
-        strcat(f_name, ".txt");
-        FILE *log = fopen(f_name, "a");  // crea se non esiste
-        if (log != NULL) {
-            fprintf(log, "TYPE:%s | FROM:%d | TO:%d | VALUES:%d, %d, %d, %d, %d, %d\n", msg.text, msg.sender, msg.to, msg.vals[0], msg.vals[1], msg.vals[2], msg.vals[3], msg.vals[4], msg.vals[5]);
-            // chiudo subito per evitare conflitti di apertura
-            fclose(log);
-            ret = 0;
-        } else {
-            // error opening file
-            printf("Errore nell'apertura del log");
-        }
-    }*/
-    return ret;
-}
-
-void printMsg(const message_t *msg) {
-    printf("to: %ld, sender: %d, type: %d, text: %s, v0: %d, v1: %d, v2: %d, v3: %d, v4: %d, v5: %d, session: %ld\n", msg->to, msg->sender, msg->type, msg->text, msg->vals[0], msg->vals[1], msg->vals[2], msg->vals[3], msg->vals[4], msg->vals[5], msg->session);
 }

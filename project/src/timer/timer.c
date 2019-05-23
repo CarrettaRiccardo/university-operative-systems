@@ -89,6 +89,7 @@ message_t buildCloneResponseControl(int to_pid, int id, int state) {
 void setAlarm() {
     if (waitForBegin == 0) {  // Accensione figli
         doSwitchChildren(LABEL_ALL_VALUE, SWITCH_POS_ON_LABEL_VALUE);
+        state = BULB_STATE | FRIDGE_STATE | ALARM_STATE | WINDOW_STATE;  // Setto loo stato del timer ad attivo
         // Setto il timer di spegnimento (end) se è maggiore dell'accensione (begin)
         if (time(NULL) < mktime(&end)) {
             alarm(mktime(&end) - time(NULL));
@@ -96,8 +97,9 @@ void setAlarm() {
         } else {  // Altrimenti termino gli alarm automatici
             alarm(0);
         }
-    } else if (waitForBegin == 1) {  // Spegnimentom figli
+    } else if (waitForBegin == 1) {  // Spegnimento figli
         doSwitchChildren(LABEL_ALL_VALUE, SWITCH_POS_OFF_LABEL_VALUE);
+        state &= ~(BULB_STATE | FRIDGE_STATE | ALARM_STATE);  // Disattivo lo stato dei dispositivi corrispondenti. WINDOW non esegue niente nel caso si setti a off l'interrutttore OPEN
         // Setto il timer di accensione (begin) se è maggiore dello spegnimento (end)
         if (time(NULL) < mktime(&begin)) {
             alarm(mktime(&begin) - time(NULL));
@@ -108,9 +110,9 @@ void setAlarm() {
     }
 }
 
-void doSwitchControl(int label, int pos){
-    // stoppa o fa ripartire il 
-    if (label == LABEL_GENERAL_VALUE) {  // general
+void doSwitchControl(int label, int pos) {
+    // stoppa o fa ripartire il
+    if (label == LABEL_GENERAL_VALUE) {           // general
         if (pos == SWITCH_POS_OFF_LABEL_VALUE) {  // spengo
             alarm(0);
         } else if (pos == SWITCH_POS_ON_LABEL_VALUE) {  // accendo
