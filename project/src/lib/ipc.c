@@ -81,29 +81,17 @@ message_t buildLinkRequest(int to_pid, int to_clone_pid) {
     return ret;
 }
 
-message_t buildSwitchRequest(int to_pid, int label_val, int pos_val) {
+message_t buildSwitchRequest(int to_pid, int label, int pos) {
     message_t ret = buildRequest(to_pid, SWITCH_MSG_TYPE);
-    ret.vals[SWITCH_VAL_LABEL] = label_val;
-    ret.vals[SWITCH_VAL_POS] = pos_val;
+    ret.vals[SWITCH_VAL_LABEL] = label;
+    ret.vals[SWITCH_VAL_POS] = pos;
     return ret;
 }
 
-/*
-    home_pid: pid del componente home
-    to_pid: pid del componente al qual il comando è destinato
-    label_val: valore della label da modificare
-    pos_val: valore da modificare per la posizione dell' interuttore
-*/
-message_t buildTerminalSwitchRequest(int home_pid, int to_pid, int label_val, int pos_val) {
-    message_t ret = buildSwitchRequest(home_pid, label_val, pos_val);
-    ret.vals[SWITCH_VAL_DEST] = to_pid;
-    return ret;
-}
-
-message_t buildSetRequest(int to_pid, int label_val, int val_val) {
+message_t buildSetRequest(int to_pid, int reg, int value) {
     message_t ret = buildRequest(to_pid, SET_MSG_TYPE);
-    ret.vals[SET_VAL_LABEL] = label_val;
-    ret.vals[SET_VAL_VALUE] = val_val;
+    ret.vals[SET_VAL_REGISTER] = reg;
+    ret.vals[SET_VAL_VALUE] = value;
     return ret;
 }
 
@@ -133,16 +121,14 @@ message_t buildSetResponse(int to_pid, int success) {
     return ret;
 }
 
-// pid_found = PID processo trovato, <=0 se non trovato
+/* pid_found = PID processo trovato, <=0 se non trovato */
 message_t buildTranslateResponse(int to_pid, int pid_found) {
     message_t ret = buildResponse(to_pid, TRANSLATE_MSG_TYPE);
     ret.vals[TRANSLATE_VAL_ID] = pid_found;
     return ret;
 }
 
-/*
-    Conferma al mittente l' avvenuta ricezione di un comando di tipo DELETE
-*/
+/* Conferma al mittente l' avvenuta ricezione di un comando di tipo DELETE */
 message_t buildDeleteResponse(int to_pid, int response) {
     message_t ret = buildResponse(to_pid, DELETE_MSG_TYPE);
     ret.vals[DELETE_VAL_RESPONSE] = response;
@@ -178,11 +164,6 @@ message_t buildGetChildResponse(int to_pid, int child_pid) {
 message_t buildLinkResponse(int to_pid, int success) {
     message_t ret = buildResponse(to_pid, LINK_MSG_TYPE);
     ret.vals[LINK_VAL_SUCCESS] = success;
-    return ret;
-}
-
-message_t buildBusyResponse(const int to) {
-    message_t ret = buildResponse(to, BUSY_MSG_TYPE);
     return ret;
 }
 

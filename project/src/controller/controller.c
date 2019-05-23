@@ -7,7 +7,11 @@ void initData() {
 
 void cloneData(char **vals) {}
 
-int handleSetControl(message_t *msg) {
+void handleSwitchControl(int pos, int val) {
+    // non fa nulla per il controller
+}
+
+int handleSetControl(int reg, int value) {
     // Il controler non ha registri da modificare
     return -1;
 }
@@ -30,8 +34,4 @@ message_t buildListResponseControl(int to_pid, int id, char *children_state, int
 message_t buildCloneResponseControl(int to_pid, int id, int state) {
     int vals[] = {state};
     return buildCloneResponse(to_pid, CONTROLLER, id, vals, 1);
-}
-
-void doSwitchControl(int pos, int val){
-    // non fa nulla per il controller
 }

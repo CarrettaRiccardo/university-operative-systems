@@ -9,8 +9,8 @@
 /* Metodi da implemantare nei dispositivi di controllo */
 void initData();
 void cloneData(char **vals);
-int handleSetControl(message_t *msg);
-void doSwitchControl(int label, int pos);
+void handleSwitchControl(int label, int pos);
+int handleSetControl(int register, int value);
 message_t buildInfoResponseControl(int to_pid, int id, char *children_state, char *available_labels, char *registers_vals, int lv, short stop);
 message_t buildListResponseControl(int to_pid, int id, char *children_state, int lv, short stop);
 message_t buildCloneResponseControl(int to_pid, int id, int state);
@@ -20,6 +20,8 @@ void sigchldHandler(int signum);
 
 /* Esegue il comando INFO e LIST */
 void doInfoList(message_t *msg, short type);
+int doSwitchChildren(int label, int pos);
+int doSetChildren(int register, int value);
 
 char *base_dir;
 int id;
@@ -126,7 +128,7 @@ int main(int argc, char **argv) {
 
                 case SET_MSG_TYPE: {
                     if (id != 0) {  // Il controller (id = 0) non esegue il mirroring dei registri dei figli
-                        int success = handleSetControl(&msg);
+                        int success = doSetChildren(msg.vals[SET_VAL_REGISTER], msg.vals[SET_VAL_VALUE]);
                         message_t m = buildSetResponse(msg.sender, success);
                         sendMessage(&m);
                     } else {  // Il controller ritorna sempre un messaggio di errore, in quanto non ha registri settabili
@@ -211,7 +213,7 @@ void sigchldHandler(int signum) {
 int doSwitchChildren(int label, int pos) {
     int success = -1;
     // fa uno switch del dispositivo di controllo stesso (solo perchè se è un timer stoppa il timer)
-    doSwitchControl(label, pos);
+    handleSwitchControl(label, pos);
     // Fa lo switch di tutti i figli
     node_t *p = children->head;
     while (p != NULL) {
@@ -220,6 +222,23 @@ int doSwitchChildren(int label, int pos) {
         message_t resp;
         receiveMessage(&resp);
         if (resp.vals[SWITCH_VAL_SUCCESS] != -1) success = 1;  // Un figlio ha modificato il proprio stato con successo
+        p = p->next;
+    }
+    return success;
+}
+
+int doSetChildren(int reg, int value) {
+    int success = -1;
+    // fa uno set del dispositivo di controllo stesso per settare i propri valori
+    if (handleSetControl(reg, value) != -1) success = 1;
+    // Fa il set di tutti i figli
+    node_t *p = children->head;
+    while (p != NULL) {
+        message_t m = buildSetRequest(*(int *)p->value, reg, value);
+        sendMessage(&m);
+        message_t resp;
+        receiveMessage(&resp);
+        if (resp.vals[SET_VAL_SUCCESS] != -1) success = 1;  // Un figlio ha modificato il proprio stato con successo
         p = p->next;
     }
     return success;

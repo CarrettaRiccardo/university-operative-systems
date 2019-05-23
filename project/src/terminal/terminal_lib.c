@@ -474,7 +474,7 @@ int setDevice(int id, char *label, char *val) {
         int hr = 0;
         int min = 0;
         int sec = 0;
-        if (sscanf(val, "%d:%d:%d", &hr, &min, &sec) == 0)// 0 = nessun parametro è stato salvato (quindi hr passato non era un intero)
+        if (sscanf(val, "%d:%d:%d", &hr, &min, &sec) == 0)  // 0 = nessun parametro è stato salvato (quindi hr passato non era un intero)
             pos_val = INVALID_VALUE;
         else {
             if (hr >= 0 && hr < 24 && min >= 0 && min < 60 && sec >= 0 && sec < 60) {
@@ -506,10 +506,13 @@ int setDevice(int id, char *label, char *val) {
     message_t response;
     if (sendMessage(&request) == -1) {
         perror("Error set request");
+        return -1;
     } else if (receiveMessage(&response) == -1) {
         perror("Error set response");
+        return -1;
     } else if (response.vals[SET_VAL_SUCCESS] == SET_ERROR_INVALID_VALUE) {
-        printf(CB_RED "Error: the register \"%s\" is not supported by the device %d\n" C_WHITE, label, id);
+        printf(CB_RED "Error: the register \"%s\" is not supported by the device %d. \n" C_WHITE, label, id);
+        return -1;
     }
 
     if (response.vals[SET_VAL_SUCCESS] == SET_TIMER_STARTED_SUCCESS)

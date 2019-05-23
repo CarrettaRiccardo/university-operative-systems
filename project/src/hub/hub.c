@@ -9,7 +9,11 @@ void cloneData(char **vals) {
     state = atoi(vals[0]);
 }
 
-int handleSetControl(message_t *msg) {
+void handleSwitchControl(int pos, int val) {
+    // Non fa nulla per l'hub
+}
+
+int handleSetControl(int reg, int value) {
     // l'hub non ha registri modificabili
     return -1;
 }
@@ -36,8 +40,4 @@ message_t buildListResponseControl(int to_pid, int id, char *state_str, int lv, 
 message_t buildCloneResponseControl(int to_pid, int id, int state) {
     int vals[] = {state};
     return buildCloneResponse(to_pid, HUB, id, vals, 1);
-}
-
-void doSwitchControl(int pos, int val) {
-    // Non fa nulla per l'hub
 }

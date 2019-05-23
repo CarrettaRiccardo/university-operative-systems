@@ -79,7 +79,7 @@ int main(int sargc, char **sargv) {
     printf(CB_BLUE "|" CB_WHITE "  |   -|     |----|----|     \\ v /    \\___/     |    =     / " CB_RED "!" CB_WHITE " \\  " CB_BLUE "|\n" C_WHITE);
     printf(CB_BLUE "|" CB_WHITE "  |____|     |____|____|      | |               |____=    /_____\\ " CB_BLUE "|\n" C_WHITE);
     printf(CB_BLUE "'------------------------------------------------------------------'\n" C_WHITE);
-    printf(CB_WHITE "Domotic System 1.0" C_WHITE ", identifier (use this for manual commands): " CB_WHITE "%d\n" C_WHITE, getpid());
+    printf(CB_WHITE "Domotic System 1.0" C_WHITE ", ID (use this for manual commands): " CB_WHITE "%d\n" C_WHITE, getpid());
 #else
     printf(CB_WHITE "Manual shell" C_WHITE " connected to the controller: " CB_WHITE "%d\n" C_WHITE, terminal_pid);
 #endif
@@ -103,6 +103,7 @@ int main(int sargc, char **sargv) {
         /**************************************** HELP ********************************************/
         if (strcmp(argv[0], "help") == 0) {
 #ifndef MANUAL
+            printf(CB_WHITE "Domotic System 1.0" C_WHITE ", ID (use this for manual commands): " CB_WHITE "%d\n" C_WHITE, getpid());
             printf(CB_CYAN "To import an existing configuration, run \"terminal <file_name>\"\n\n" C_WHITE);
 #endif
             printf("Available commands:\n");

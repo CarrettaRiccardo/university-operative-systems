@@ -60,7 +60,7 @@
 
 // SET
 #define SET_MSG_TYPE 9
-#define SET_VAL_LABEL 0
+#define SET_VAL_REGISTER 0
 #define SET_VAL_VALUE 1
 #define SET_VAL_SUCCESS 2
 #define SET_TIMER_STARTED_SUCCESS 2

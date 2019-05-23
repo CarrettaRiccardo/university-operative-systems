@@ -91,11 +91,11 @@ int handleSwitchDevice(message_t *msg) {
 
 int handleSetDevice(message_t *msg) {
     int success = -1;
-    if (msg->vals[SET_VAL_LABEL] == REGISTER_DELAY_VALUE) {  // Tempo in cui si ricalcola una probabilità di accendersi (il cambio sarà effettivo dal prossimo ciclo)
+    if (msg->vals[SET_VAL_REGISTER] == REGISTER_DELAY_VALUE) {  // Tempo in cui si ricalcola una probabilità di accendersi (il cambio sarà effettivo dal prossimo ciclo)
         delay = msg->vals[SET_VAL_VALUE];
         // se è già dentro il timer di spegniento automatico, lascio che si spenga e questo cambio sarà effettivo al prossimo ciclo di accensione
         success = 1;
-    } else if (msg->vals[SET_VAL_LABEL] == REGISTER_PROB_VALUE) {  // Probabilità accensione
+    } else if (msg->vals[SET_VAL_REGISTER] == REGISTER_PROB_VALUE) {  // Probabilità accensione
         prob = msg->vals[SET_VAL_VALUE];
         success = 1;
     }

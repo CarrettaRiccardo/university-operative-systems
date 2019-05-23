@@ -23,17 +23,11 @@ message_t buildInfoRequest(int to_pid);
 message_t buildTranslateRequest(int to_pid, int search_id);
 message_t buildDeleteRequest(int to_pid);
 message_t buildListRequest(int to_pid);
-message_t buildSwitchRequest(int to_pid, int label_val, int pos_val);
-message_t buildSetRequest(int to_pid, int label_val, int val_val);
+message_t buildSwitchRequest(int to_pid, int label, int pos);
+message_t buildSetRequest(int to_pid, int reg, int value);
 message_t buildCloneRequest(int to_pid);
 message_t buildGetChildRequest(int to_pid);
 message_t buildLinkRequest(int to_pid, int to_clone_pid);
-message_t buildAddRequest(int to_pid, char* device);
-message_t buildTerminalLinkRequest(int to_pid, int src, int dest);
-message_t buildTerminalDeleteRequest(int home_pid, int dest);
-message_t buildTerminalSwitchRequest(int home_pid, int to_pid, int label_val, int pos_val);
-message_t buildTerminalInfoRequest(int to_pid, int dest);
-message_t buildTerminalSetRequest(int home_pid, int id, int label, int val);
 
 /********************************** Responses **********************************/
 message_t buildResponse(int to_pid, short msg_type);
@@ -46,8 +40,6 @@ message_t buildListResponse(int to_pid, int id, int lv, short stop);
 message_t buildCloneResponse(int to_pid, const char* component_type, int id, const int vals[], short is_control_device);
 message_t buildGetChildResponse(int to_pid, int child_pid);
 message_t buildLinkResponse(int to_pid, int success);
-message_t buildBusyResponse(int to_pid);
-message_t buildAddResponse(int to_pid, int result);
 
 /********************************** Send/Receive **********************************/
 int sendMessage(const message_t* request);
@@ -61,9 +53,6 @@ int sendGetPidByIdSignal(int to_pid, int id);
 /* Inizializza i componenti per comunicare */
 void ipcInit(int _mqid);
 
-/* Get key to create Message queue */
-key_t getKey();
-
 /* Get message queue */
 int getMq();
 
@@ -75,7 +64,4 @@ int getPidById(list_t figli, int id);
 
 /* Funzione appoggio per implementare getPidById */
 int getPidByIdSingle(int to_pid, int id);
-
-/* Controlla se il processo child_pid è tra i figli, percorrendo tutto l'albero */
-int containsChild(list_t figli, int child_pid);
 #endif
