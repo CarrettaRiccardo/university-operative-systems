@@ -15,6 +15,22 @@
 int next_id;
 list_t children;  // Lista che contiene i pid del controller e di tutti i componenti aggiunti ma non attivi
 char *base_dir;
+FILE * fp;  //messa come variabile globale per facilitare la gestione tra MANUAL e TERMINAL, in modo da evitare #ifndef ogni volta che eseguirò il comando saveCommand() {funzione che salva su file il comando appena eseguito }
+char file_tmp [32];  //dichiarazione comune a a tutti, ma usato solo da TERMINAL per evitare controlli verbosi sul resto del codice, ma solo nei punti fondamentali
+
+
+
+/*
+  Gestore del segnale per eliminare i file temporanei. Solo per TERMINAL
+*/
+#ifndef MANUAL
+void sighandle_int(int sig) {
+  if (remove(file_tmp) < 0)
+    perror("Error while deleting tmp command file");
+  exit(0);
+}
+#endif
+
 
 /* Handler segnale eliminazione figli */
 void sigchldHandler(int signum) {
@@ -98,6 +114,10 @@ void terminalInit(char *file) {
     }
 
 #ifndef MANUAL
+    snprintf(file_tmp, 32, "tmp_file%d.txt", getpid());
+    fp = fopen ( file_tmp ,"w");  //apro il file in cui andrò a salvare i comandi che verranno eseguiti (per implementare comando export)
+    signal(SIGINT, sighandle_int);  //gestisco il segnle SIGINT per cancellare il file temporaneo dei comandi anche se si chiude in modo anomalo da tastiera il processo (e non dal normale quit)
+
     // Registrazione handler per signal terminazione figli
     signal(SIGCHLD, sigchldHandler);
     children = listIntInit();
@@ -132,6 +152,10 @@ void terminalDestroy() {
     }
     listDestroy(children);
     free(base_dir);
+    
+    fclose(fp);
+    if (remove(file_tmp) < 0)
+      perror("Error while deleting tmp command file");
     closeMq();  // Chiudo la message queue
 #endif
 }
@@ -530,21 +554,36 @@ void infoDevice(int id) {
 /* Esporta la strutture del sistema corrente per ripristinarlo successivamente                  */
 /************************************************************************************************/
 
-short doExport(FILE *fp, char *file_name, char *file_tmp) {
-    FILE *new, *old;
-    char c;
-    new = fopen(file_name, "w");
-    old = fopen(file_tmp, "r");
-    if (new == NULL || old == NULL)
-        return -1;
 
-    // copio il conetnuti del primo file nel secondo
-    c = fgetc(old);
-    while (c != EOF) {
-        fputc(c, new);
-        c = fgetc(old);
+void saveCommand(char* command, int argc, char **argv){
+  #ifndef MANUAL
+  if(fp != NULL){
+    int i;
+    for(i=0; i < argc; i++){
+        fprintf (fp,"%s ", argv[i]);  //salvo su un file temporaneo tutti i comandi eseguiti, così per fare il comando export copio semplicemente tutti i comandi eseguti in sequenza
     }
-    fclose(new);
-    fclose(old);
-    return 1;
+    fprintf(fp, "\n");
+  }
+  #endif
 }
+
+#ifndef MANUAL
+short doExport(char* file_name){
+  FILE *new, *old;
+  char c;
+  new = fopen (file_name,"w");
+  old = fopen (file_tmp,"r");
+  if(new == NULL || old == NULL)
+    printf(CB_RED "Error while saving %s\n" C_WHITE, file_name);
+
+  // copio il conetnuti del primo file nel secondo
+  c = fgetc(old);
+  while (c != EOF){
+    fputc(c, new);
+    c = fgetc(old);
+  }
+  fclose (new);
+  fclose (old);
+  printf(CB_GREEN "%s saved in %s\n" C_WHITE, file_name, base_dir);
+}
+#endif
