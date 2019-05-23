@@ -121,7 +121,6 @@ void terminalDestroy() {
 #ifndef MANUAL
     // Eliminazione di tutti i figli per evitare processi zombie
     node_t *p = children->head;
-    printf("OK\n");
     while (p != NULL) {
         message_t request = buildDeleteRequest(*(int *)p->value);
         message_t response;
@@ -527,26 +526,25 @@ void infoDevice(int id) {
     }
 }
 
-
 /**************************************** EXPORT ************************************************/
 /* Esporta la strutture del sistema corrente per ripristinarlo successivamente                  */
 /************************************************************************************************/
 
-short doExport(FILE* fp, char* file_name, char* file_tmp){
-  FILE *new, *old;
-  char c;
-  new = fopen (file_name,"w");
-  old = fopen (file_tmp,"r");
-  if(new == NULL || old == NULL)
-    return -1;
+short doExport(FILE *fp, char *file_name, char *file_tmp) {
+    FILE *new, *old;
+    char c;
+    new = fopen(file_name, "w");
+    old = fopen(file_tmp, "r");
+    if (new == NULL || old == NULL)
+        return -1;
 
-  // copio il conetnuti del primo file nel secondo
-  c = fgetc(old);
-  while (c != EOF){
-    fputc(c, new);
+    // copio il conetnuti del primo file nel secondo
     c = fgetc(old);
-  }
-  fclose (new);
-  fclose (old);
-  return 1;
+    while (c != EOF) {
+        fputc(c, new);
+        c = fgetc(old);
+    }
+    fclose(new);
+    fclose(old);
+    return 1;
 }
