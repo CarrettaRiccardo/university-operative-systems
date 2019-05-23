@@ -35,9 +35,8 @@ Manual può eseguire qualsiasi comando eccetto il comando di LIST, sia su dispos
 1. __HUB__ supporta dispositivi eterogenei:
      _ Nel comando *INFO* vengono elencati tutte le label dei vari interuttori e info di ricapitolazione a seconda dei dispositivi collegati. 
      _ Nel caso non ci siano fridge/window collegati ad un __HUB__, il comando *switch <id> open on* restituisce **Command undeined for device <id>**  (TODO: Da verificare)
+     _ E' in grado di modificare lo stato di qualsiasi tipo di device collegato (che possono essere eterogenei). Inoltre con la label *all* è possibile modificare lo stato di **tutti ** i device ad esso collegati, indipendenetemente dal tipo dello stesso.
 
-2. Possibilità di fare link anche su dispositivi appena aggiunti o disabilitati (TODO: Cosa intendiamo ??)
-
-3. __ALARM__:
+2. __ALARM__:
      _ Dispositivo che simula un allarme casalingo. Quando rileva una persona/movimento si accende (idealmente emettendo un suono, a livello implementativo viene solo segnalata l'accensione).
        _ Per ragioni implementative l' allarme scatta con una certa probabilità *p* decisa a priori (la probabilità viene testata ogni *X* secondi)
