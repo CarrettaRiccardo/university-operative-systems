@@ -79,7 +79,7 @@ int solved_pid;    // Ultimo PID risolto.
 /* Chiede al terminale con id "terminal_id" il pid collegato al device con l'id passato come parametro */
 int solveId(int id) {
     if (sendGetPidByIdSignal(terminal_pid, id) < 0) {
-        printf(CB_RED "Error: cannot contact the controller. Check the controller id and retry. Closing...\n" C_WHITE);
+        printf(CB_RED "Error: cannot contact the terminal. Check the terminal id and retry.\nClosing...\n" C_WHITE);
         exit(0);
         return -1;
     } else {

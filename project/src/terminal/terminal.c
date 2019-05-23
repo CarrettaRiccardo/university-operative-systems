@@ -75,8 +75,8 @@ int main(int sargc, char **sargv) {
     printf(CB_BLUE ",------------------------------------------------------------------,\n" C_WHITE);
     printf(CB_BLUE "|" CB_YELLOW "  Fridge       Window         Bulb    Timer       Hub      Alarm  " CB_BLUE "|\n" C_WHITE);
     printf(CB_BLUE "|" CB_WHITE "  ______     ___________      ___      ___       ____        _    " CB_BLUE "|\n" C_WHITE);
-    printf(CB_BLUE "|" CB_WHITE "  |"CB_CYAN"4°"CB_WHITE"  |     |    |    |     /"CB_YELLOW" _"CB_WHITE" \\    / L \\     |    =      / \\   " CB_BLUE "|\n" C_WHITE);
-    printf(CB_BLUE "|" CB_WHITE "  |   -|     |----|----|     \\ v /    \\___/     |    =     / "CB_RED"!"CB_WHITE" \\  " CB_BLUE "|\n" C_WHITE);
+    printf(CB_BLUE "|" CB_WHITE "  |" CB_CYAN "4°" CB_WHITE "  |     |    |    |     /" CB_YELLOW " _" CB_WHITE " \\    / L \\     |    =      / \\   " CB_BLUE "|\n" C_WHITE);
+    printf(CB_BLUE "|" CB_WHITE "  |   -|     |----|----|     \\ v /    \\___/     |    =     / " CB_RED "!" CB_WHITE " \\  " CB_BLUE "|\n" C_WHITE);
     printf(CB_BLUE "|" CB_WHITE "  |____|     |____|____|      | |               |____=    /_____\\ " CB_BLUE "|\n" C_WHITE);
     printf(CB_BLUE "'------------------------------------------------------------------'\n" C_WHITE);
     printf(CB_WHITE "Domotic System 1.0" C_WHITE ", identifier (use this for manual commands): " CB_WHITE "%d\n" C_WHITE, getpid());
@@ -93,14 +93,18 @@ int main(int sargc, char **sargv) {
 
         if (getArgs(line, &argc, argv, (import == NULL) ? stdin : import) == -1) {
             print_sign = 0;
-            fclose(import);
-            import = NULL;
+            if (import != NULL) {
+                fclose(import);
+                import = NULL;
+            }
             continue;
         }
 
         /**************************************** HELP ********************************************/
         if (strcmp(argv[0], "help") == 0) {
+#ifndef MANUAL
             printf(CB_CYAN "To import an existing configuration, run \"terminal <file_name>\"\n\n" C_WHITE);
+#endif
             printf("Available commands:\n");
             printHelp("help", "Print this page.");
 #ifndef MANUAL  // I comandi LIST e ADD sono supportati solo dalla shell principale e non da quella manuale

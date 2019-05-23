@@ -1,0 +1,39 @@
+add hub 
+add fridge 
+add fridge 
+add bulb 
+add bulb 
+add bulb 
+add window 
+add hub 
+add hub 
+add timer 
+add hub 
+add hub 
+add fridge 
+add window 
+link 9 to 10 
+link 1 to 0 
+link 9 to 1 
+link 8 to 9 
+link 12 to 8 
+link 10 to 0 
+link 3 to 1 
+link 9 to 10 
+link 11 to 9 
+link 4 to 11 
+link 6 to 11 
+link 5 to 11 
+link 7 to 12 
+link 7 to 11 
+link 7 to 12 
+link 14 to 12 
+link 13 to 12 
+link 2 to 8 
+add alarm 
+add alarm 
+add alarm 
+link 15 to 8 
+link 16 to 8 
+link 16 to 1 
+link 17 to 12 
