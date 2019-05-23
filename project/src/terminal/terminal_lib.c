@@ -121,6 +121,7 @@ void terminalDestroy() {
 #ifndef MANUAL
     // Eliminazione di tutti i figli per evitare processi zombie
     node_t *p = children->head;
+    printf("OK\n");
     while (p != NULL) {
         message_t request = buildDeleteRequest(*(int *)p->value);
         message_t response;
@@ -132,6 +133,7 @@ void terminalDestroy() {
     }
     listDestroy(children);
     free(base_dir);
+    closeMq();  // Chiudo la message queue
 #endif
 }
 

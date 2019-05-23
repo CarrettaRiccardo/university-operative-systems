@@ -219,8 +219,8 @@ int getMq(int pid) {
     return ret;
 }
 
-void closeMq(int id) {
-    if (msgctl(id, IPC_RMID, NULL) == -1) {
+void closeMq() {
+    if (msgctl(mqid, IPC_RMID, NULL) == -1) {
         perror("Errore chiusura mq");
         exit(1);
     }
