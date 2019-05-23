@@ -10,7 +10,7 @@ void cloneData(char **vals) {
 }
 
 int handleSetControl(message_t *msg) {
-    // l'hub non ha registri da modificare
+    // l'hub non ha registri modificabili
     return -1;
 }
 
@@ -30,7 +30,7 @@ message_t buildListResponseControl(int to_pid, int id, char *state_str, int lv, 
 
 /**
  * Genero il messaggio di risposta per finalizzare la clonazione di componenti.
- * Copia i valori dei registri per essere ripristinati.
+ * Copia i valori dei registri e lo stato per essere ripristinati.
  * HUB non ha registri.
  **/
 message_t buildCloneResponseControl(int to_pid, int id, int state) {
@@ -38,6 +38,6 @@ message_t buildCloneResponseControl(int to_pid, int id, int state) {
     return buildCloneResponse(to_pid, HUB, id, vals, 1);
 }
 
-void doSwitchControl(int pos, int val){
-    // non fa nulla per l'hub
+void doSwitchControl(int pos, int val) {
+    // Non fa nulla per l'hub
 }

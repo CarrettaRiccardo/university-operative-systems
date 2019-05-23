@@ -119,6 +119,7 @@ void terminalInit(char *file) {
 /*  Dealloca il terminal  */
 void terminalDestroy() {
 #ifndef MANUAL
+    // Eliminazione di tutti i figli per evitare processi zombie
     node_t *p = children->head;
     while (p != NULL) {
         message_t request = buildDeleteRequest(*(int *)p->value);

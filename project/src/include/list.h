@@ -9,8 +9,7 @@
 typedef struct msg {
     long to;
     int sender;
-    short type;
-    time_t session;
+    short type;  // Tipo messaggio
     char text[MAXTEXT];
     int vals[NVAL];
 } message_t;

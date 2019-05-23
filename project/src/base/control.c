@@ -115,7 +115,7 @@ int main(int argc, char **argv) {
                         sendMessage(&m);
                     } else if (msg.vals[SWITCH_VAL_LABEL] == LABEL_GENERAL_VALUE) {  // Il controller supporta solo l'interruttore "general"
                         int success = doSwitchChildren(msg.vals[SWITCH_VAL_LABEL], msg.vals[SWITCH_VAL_POS]);
-                        state = msg.vals[SWITCH_VAL_POS] == SWITCH_POS_ON_LABEL_VALUE ? 1 : 0;
+                        if (id == 0) state = msg.vals[SWITCH_VAL_POS] == SWITCH_POS_ON_LABEL_VALUE ? 1 : 0;  // Se sono il controller imposto anche lo stato
                         message_t m = buildSwitchResponse(msg.sender, 1);
                         sendMessage(&m);
                     } else {
