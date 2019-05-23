@@ -96,7 +96,7 @@ message_t buildInfoResponseControl(int to_pid, int id, char *state_str, char *av
     // genero la stringa di testo personalizzata
     strftime(begin_str, sizeof(begin_str), "%H:%M:%S", &begin);
     strftime(end_str, sizeof(end_str), "%H:%M:%S", &end);
-    sprintf(ret.text, CB_CYAN "%s" C_WHITE ", " CB_WHITE "state:%s" C_WHITE ", " CB_WHITE "labels:" C_WHITE "%s, " CB_WHITE "registers (max values):" C_WHITE " begin=%s end=%s%s", TIMER, state_str, available_labels, begin_str, end_str, registers_values);
+    sprintf(ret.text, CB_CYAN "%s" C_WHITE ", " CB_WHITE "state:%s" C_WHITE ", " CB_WHITE "labels:" C_WHITE "%s, " CB_WHITE "registers:" C_WHITE " begin=%s end=%s%s", TIMER, state_str, available_labels, begin_str, end_str, registers_values);
     return ret;
 }
 
