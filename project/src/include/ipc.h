@@ -12,7 +12,6 @@
 #include "../include/constants.h"
 #include "../include/list.h"
 
-time_t session;
 int mqid;
 
 /********************************** Workers **********************************/
@@ -79,11 +78,4 @@ int getPidByIdSingle(int to_pid, int id);
 
 /* Controlla se il processo child_pid è tra i figli, percorrendo tutto l'albero */
 int containsChild(list_t figli, int child_pid);
-
-//////////////////////////////// DEBUG /////////////////////////////////////
-/*  Print struct (per debug) */
-void printMsg(const message_t* msg);
-
-/* Salva nel file con nome di sessione la tipologia del messaggio */
-int printLog(const message_t* msg);
 #endif

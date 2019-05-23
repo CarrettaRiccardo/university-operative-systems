@@ -3,6 +3,7 @@
 #define SET_TIME_END "set_end"
 #define SET_TEMPERATURE "set_temperature"
 #define SET_PERC_FILLED "set_filled"
+#define SET_PROBABILITY "set_probability"
 
 /*************************  Tipi messaggi e parametri *************************/
 //BUSY: per segnalare che un dispositivo non può eseguire il comando che riceve
@@ -26,6 +27,7 @@
 #define INFO_VAL_REG_DELAY 6
 #define INFO_VAL_REG_PERC 7
 #define INFO_VAL_REG_TEMP 8
+#define INFO_VAL_REG_PROB 9
 
 // DELETE
 #define DELETE_MSG_TYPE 2
@@ -106,6 +108,7 @@
 #define REGISTER_BEGIN "begin"
 #define REGISTER_END "end"
 #define REGISTER_PERC "perc"
+#define REGISTER_PROB "prob"
 #define REGISTER_TEMP "temp"
 #define REGISTER_TIME "time"
 
@@ -113,6 +116,7 @@
 #define REGISTER_BEGIN_VALUE 2
 #define REGISTER_END_VALUE 4
 #define REGISTER_PERC_VALUE 8
+#define REGISTER_PROB_VALUE 16
 
 /*************************  Tipi dispositivi  *************************/
 #define MAX_DEVICE_NAME_LENGTH 20
