@@ -132,6 +132,7 @@ void terminalDestroy() {
     }
     listDestroy(children);
     free(base_dir);
+    closeMq();  // Chiudo la message queue
 #endif
 }
 
@@ -523,4 +524,27 @@ void infoDevice(int id) {
             }
         } while (response.vals[INFO_VAL_STOP] != 1);
     }
+}
+
+/**************************************** EXPORT ************************************************/
+/* Esporta la strutture del sistema corrente per ripristinarlo successivamente                  */
+/************************************************************************************************/
+
+short doExport(FILE *fp, char *file_name, char *file_tmp) {
+    FILE *new, *old;
+    char c;
+    new = fopen(file_name, "w");
+    old = fopen(file_tmp, "r");
+    if (new == NULL || old == NULL)
+        return -1;
+
+    // copio il conetnuti del primo file nel secondo
+    c = fgetc(old);
+    while (c != EOF) {
+        fputc(c, new);
+        c = fgetc(old);
+    }
+    fclose(new);
+    fclose(old);
+    return 1;
 }

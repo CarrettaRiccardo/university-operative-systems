@@ -41,11 +41,21 @@ void linkDevices(int id1, int id2);
 void switchDevice(int id, char *label, char *pos);
 void setDevice(int id, char *label, char *val);
 void infoDevice(int id);
+short doExport(FILE *fp, char *file_name, char *file_tmp);
+void saveCommand(char *command, int argc, char **argv);
+void sighandle_int(int sig);
+
+FILE *fp;           //messa come variabile globale per facilitare la gestione tra MANUAL e TERMINAL, in modo da evitare #ifndef ogni volta che eseguirò il comando saveCommand() {funzione che salva su file il comando appena eseguito }
+char file_tmp[32];  //dichiarazione comune a a tutti, ma usato solo da TERMINAL per evitare controlli verbosi sul resto del codice, ma solo nei punti fondamentali
 
 /* Main */
 int main(int sargc, char **sargv) {
+    snprintf(file_tmp, 32, "tmp_file%d.txt", getpid());
+
 #ifndef MANUAL
-    ipcInit(getMq(getpid()));  // Inizializzo componenti comunicazione
+    ipcInit(getMq(getpid()));       // Inizializzo componenti comunicazione
+    fp = fopen(file_tmp, "w");      //apro il file in cui andrò a salvare i comandi che verranno eseguiti (per implementare comando export)
+    signal(SIGINT, sighandle_int);  //gestisco il segnle SIGINT per cancellare il file temporaneo dei comandi anche se si chiude in modo anomalo da tastiera il processo (e non dal normale quit)
 #else
     if (sargc <= 1 || !isInt(sargv[1])) {
         printf("Usage: manual <terminal id>\n");
@@ -94,6 +104,7 @@ int main(int sargc, char **sargv) {
             printHelp("switch <id> <label> <pos>", "Change the value of the switch <label> of the device <id> to <pos>.");
             printHelp("set <id> <register> <value>", "Change the value of the register <register> of the device <id> to <value>.");
             printHelp("info <id>", "Print device <id> info.");
+            printHelp("export <file_name>", "Save the current structure to file <file_name>.");
             printHelp("quit", "Close the terminal and kill all processes.");
         }
 /**************************************** LIST ********************************************/
@@ -128,8 +139,10 @@ int main(int sargc, char **sargv) {
 
                 if (result == -1)
                     perror(CB_RED "Error while adding device" C_WHITE);
-                else if (result != 0)  //  Se ho aggiunto un device supportato
+                else if (result != 0) {  //  Se ho aggiunto un device supportato
                     printf(CB_GREEN "Device added with id %d" C_WHITE "\nNow it's disconnected from the system. To connect the device run " CB_WHITE "link %d to 0\n" C_WHITE, result, result);
+                    saveCommand(line, argc, argv);
+                }
             }
         }
         /**************************************** UNLINK ********************************************/
@@ -142,7 +155,17 @@ int main(int sargc, char **sargv) {
                 int res = unlinkDevices(atoi(argv[1]));
                 if (res > 0)
                     printf(CB_GREEN "Device %d disconnected from the controller\n" C_WHITE, atoi(argv[1]));
+                saveCommand(line, argc, argv);
             }
+        }
+        /**************************************** EXPORT ********************************************/
+        else if (strcmp(argv[0], "export") == 0) {
+            fclose(fp);
+            if (doExport(fp, argv[1], file_tmp) > 0)
+                printf(CB_GREEN "%s saved\n" C_WHITE, argv[1]);
+            else
+                printf(CB_RED "Error while saving %s\n" C_WHITE, argv[1]);
+            fp = fopen(file_tmp, "a");  //riapro in append per non sovrascrivere i comandi di questa stessa sessione
         }
 #endif
         /**************************************** DEL ********************************************/
@@ -153,6 +176,7 @@ int main(int sargc, char **sargv) {
                 printf(CB_RED "Error: <id> must be a positive number\n" C_WHITE);
             } else {
                 delDevice(atoi(argv[1]));
+                saveCommand(line, argc, argv);
             }
         }
         /**************************************** LINK ********************************************/
@@ -165,6 +189,7 @@ int main(int sargc, char **sargv) {
                 printf(CB_RED "Error: cannot link a device to itself\n" C_WHITE);
             } else {
                 linkDevices(atoi(argv[1]), atoi(argv[3]));
+                saveCommand(line, argc, argv);
             }
         }
         /**************************************** SWITCH ********************************************/
@@ -175,6 +200,7 @@ int main(int sargc, char **sargv) {
                 printf(CB_RED "Error: <id> must be a positive number\n" C_WHITE);
             } else {
                 switchDevice(atoi(argv[1]), argv[2], argv[3]);
+                saveCommand(line, argc, argv);
             }
         }
         /**************************************** SET ********************************************/
@@ -185,6 +211,7 @@ int main(int sargc, char **sargv) {
                 printf(CB_RED "Error: <id> must be a positive number\n" C_WHITE);
             } else {
                 setDevice(atoi(argv[1]), argv[2], argv[3]);
+                saveCommand(line, argc, argv);
             }
         }
         /**************************************** INFO ********************************************/
@@ -199,11 +226,16 @@ int main(int sargc, char **sargv) {
         }
         /**************************************** QUIT ********************************************/
         else if (strcmp(argv[0], "quit") == 0) {
-            run = 0;
+            run = 0;  //termino l'esecuzione
         } else if (argc > 0) {
             printf(CB_RED "Unknown command, type \"help\" to list all the supported commands\n" C_WHITE);
         }
     }
+    fclose(fp);
+
+    if (remove(file_tmp) < 0)
+        perror("Error while deleting tmp command file");
+
     terminalDestroy();
     return 0;
 }
@@ -226,3 +258,28 @@ int getArgs(char *line, int *argc, char **argv) {
 void printHelp(char *cmd, char *desc) {
     printf("    %-28s%s\n", cmd, desc);
 }
+
+void saveCommand(char *command, int argc, char **argv) {
+#ifndef MANUAL
+    if (fp != NULL) {
+        int i;
+        for (i = 0; i < argc; i++) {
+            fprintf(fp, "%s ", argv[i]);  //salvo su un file temporaneo tutti i comandi eseguiti, così per fare il comando export copio semplicemente tutti i comandi eseguti in sequenza
+        }
+        fprintf(fp, "\n");
+    }
+
+#endif
+}
+
+/*
+  Gestore del segnale per eliminare i file temporanei. Solo per TERMINAL
+*/
+#ifndef MANUAL
+void sighandle_int(int sig) {
+    if (remove(file_tmp) < 0)
+        perror("Error while deleting tmp command file");
+    terminalDestroy();
+    exit(0);
+}
+#endif

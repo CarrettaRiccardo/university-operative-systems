@@ -189,11 +189,11 @@ message_t buildBusyResponse(const int to) {
 /********************************** Send/Receive **********************************/
 int sendMessage(const message_t *msg) {
     if (msg->to <= 0) return -1;
-    return msgsnd(mqid, msg, sizeof(message_t) - sizeof(int), 0);
+    return msgsnd(mqid, msg, sizeof(message_t) - sizeof(long), 0);
 }
 
 int receiveMessage(message_t *msg) {
-    return msgrcv(mqid, msg, sizeof(message_t) - sizeof(int), getpid(), 0);
+    return msgrcv(mqid, msg, sizeof(message_t) - sizeof(long), getpid(), 0);
 }
 
 /********************************** Signals **********************************/
@@ -219,8 +219,8 @@ int getMq(int pid) {
     return ret;
 }
 
-void closeMq(int id) {
-    if (msgctl(id, IPC_RMID, NULL) == -1) {
+void closeMq() {
+    if (msgctl(mqid, IPC_RMID, NULL) == -1) {
         perror("Errore chiusura mq");
         exit(1);
     }
