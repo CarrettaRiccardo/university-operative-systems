@@ -14,16 +14,17 @@
 #ifndef MANUAL
 int next_id;
 list_t children;  // Lista che contiene i pid del controller e di tutti i componenti aggiunti ma non attivi
-char *base_dir;
-FILE * fp;  //messa come variabile globale per facilitare la gestione tra MANUAL e TERMINAL, in modo da evitare #ifndef ogni volta che eseguirò il comando saveCommand() {funzione che salva su file il comando appena eseguito }
-char file_tmp [32];  //dichiarazione comune a a tutti, ma usato solo da TERMINAL per evitare controlli verbosi sul resto del codice, ma solo nei punti fondamentali
 
-/* Gestore del segnale per eliminare i file temporanei. Solo per TERMINAL */
+char *base_dir;
+FILE *fp;           // Variabile globale per facilitare la gestione tra MANUAL e TERMINAL, in modo da evitare #ifndef ogni volta che eseguirò il comando saveCommand() {funzione che salva su file il comando appena eseguito }
+char file_tmp[32];  // Dichiarazione comune a a tutti, ma usato solo da TERMINAL per evitare controlli verbosi sul resto del codice, ma solo nei punti fondamentali
+
+/* Gestore del segnale per eliminare i file temporanei. Usato solo per TERMINAL */
 void sighandleInt(int sig) {
-  if (remove(file_tmp) < 0)
-    perror("Error while deleting tmp command file");
-  printf(CB_WHITE "System disconnected\n" C_WHITE);
-  exit(0);
+    if (remove(file_tmp) < 0)
+        perror("Error while deleting tmp command file");
+    printf(CB_WHITE "System disconnected\n" C_WHITE);
+    exit(0);
 }
 
 /* Handler segnale eliminazione figli */
@@ -48,6 +49,7 @@ int solveId(id) {
     return getPidById(children, id);
 }
 
+/* Ritorna 0 se il controller è disabilitato, 1 altrimenti */
 int isControllerEnabled(int controller_pid) {
     message_t request = buildCloneRequest(controller_pid);
     message_t response;
@@ -61,6 +63,7 @@ int isControllerEnabled(int controller_pid) {
     return 0;
 }
 
+/* Funzione di supporto per ottenre il PID del controller, che è sempre l'ultimo valore della lista dei figli */
 int getControllerPid() {
     void *controller_pid = listLast(children);
     if (controller_pid == NULL) {
@@ -71,8 +74,9 @@ int getControllerPid() {
 }
 #else
 int terminal_pid;  // PID del terminale collegato
-int solved_pid;
-/* Chiede al controller il pid collegato al device id */
+int solved_pid;    // Ultimo PID risolto.
+
+/* Chiede al terminale con id "terminal_id" il pid collegato al device con l'id passato come parametro */
 int solveId(int id) {
     if (sendGetPidByIdSignal(terminal_pid, id) < 0) {
         printf(CB_RED "Error: cannot contact the controller. Check the controller id and retry. Closing...\n" C_WHITE);
@@ -93,10 +97,7 @@ static void getPidByIdSignalHandler(int sig, siginfo_t *siginfo, void *context) 
 /**************************************** INIT ********************************************/
 /* Inizializzazione valori terminal                                                     */
 /******************************************************************************************/
-
-/*
-  file: percorso dell' eseguibile corrente, usato per estrarre la cartella di origine
-*/
+/* file: percorso dell' eseguibile corrente, usato per estrarre la cartella di origine da cui si è eseguito il programma */
 void terminalInit(char *file) {
     // Registrazione handler per risposta getPidById dal terminal. Se MANUAL è settato registra come handler il metodo apposito
     struct sigaction sig;
@@ -123,7 +124,7 @@ void terminalInit(char *file) {
     }
 
     snprintf(file_tmp, 32, "%stmp_file%d.txt", base_dir, getpid());  // genero la stringa che rappresenta il file temporaneo dei comandi nel path di ./bin
-    fp = fopen ( file_tmp ,"w");  // apro il file in cui andrò a salvare i comandi che verranno eseguiti (per implementare comando export)
+    fp = fopen(file_tmp, "w");                                       // apro il file in cui andrò a salvare i comandi che verranno eseguiti (per implementare comando export)
 #else
     // Nella shell manuale non devo aggiungere il controller come figlio o settare l'handler per i segnali di kill dei figli
     solved_pid = -1;
@@ -147,13 +148,13 @@ void terminalDestroy() {
     listDestroy(children);
     free(base_dir);
 
-    fclose(fp);
+    fclose(fp);  // Chiudo il file temporaneo usato per salvare la cronologia dei messaggi e lo elimino
     if (remove(file_tmp) < 0) perror("Error while deleting tmp command file");
     closeMq();  // Chiudo la message queue
 #endif
 }
 
-#ifndef MANUAL // I seguenti comandi non sono supportati dalla shell manuale
+#ifndef MANUAL  // I seguenti comandi non sono supportati dalla shell manuale
 /**************************************** LIST ********************************************/
 /* Stampa l'albero dei dispositivi con l'id e lo stato                                     */
 /******************************************************************************************/
@@ -208,77 +209,79 @@ int addDevice(char *device) {
 /* Operazione ammessa solamente da terminal e non comando manuale (il quale può al          */
 /* più fare un DELETE)                                                                      */
 /********************************************************************************************/
-void unlinkDevice(int id) {
+int unlinkDevice(int id) {
     int to_pid = solveId(id);
     if (to_pid == -1) {
         printf(CB_RED "Error: device with id %d not found\n" C_WHITE, id);
-        return;
+        return -1;
     }
 
     if (listContains(children, &to_pid)) {  // è già presente nella lista dei figli del terminal, quindi è già disabilitato
         printf(CB_YELLOW "Device already disconnected\n" C_WHITE);
-        return;
+        return -1;
     }
 
     int res = doLink(children, to_pid, base_dir, 1);
     message_t ack;  // Aspetto la conferma di avvenuta link dal dispositivo
     receiveMessage(&ack);
-    if (res <= 0) return;
+    if (res < 0) return -1;
 
     //  Killo il processo disabilitato
     message_t request, response;
     request = buildDeleteRequest(to_pid);
     if (sendMessage(&request) == -1) {
         perror("Error deleting device request");
-        return;
+        return -1;
     } else if (receiveMessage(&response) == -1) {
         perror("Error deleting device response");
-        return;
-    } else {
-        printf(CB_GREEN "Device %d disconnected\n" C_WHITE, id);
+        return -1;
     }
+    printf(CB_GREEN "Device %d disconnected\n" C_WHITE, id);
+    return 0;
 }
 #endif
 
 /**************************************** DEL ********************************************/
 /* Elimina un dispositivo in base all'id specificato                                     */
 /*****************************************************************************************/
-void delDevice(int id) {
+int delDevice(int id) {
     if (id == 0) {
         printf(CB_RED "Error: the controller cannot be deleted\n" C_WHITE);
-        return;
+        return -1;
     }
 
     int pid = solveId(id);
     if (pid == -1) {
         printf(CB_RED "Error: device with id %d not found\n" C_WHITE, id);
-        return;
+        return -1;
     }
     message_t request = buildDeleteRequest(pid);
     message_t response;
     if (sendMessage(&request) == -1) {
         perror("Error deleting device request");
+        return -1;
     } else if (receiveMessage(&response) == -1) {
         perror("Error deleting device response");
-    } else {
-        printf(CB_GREEN "Device %d deleted\n" C_WHITE, id);
+        return -1;
     }
+    printf(CB_GREEN "Device %d deleted\n" C_WHITE, id);
+    return 0;
 }
 
 /**************************************** LINK ********************************************/
 /* Effettua il link di id1 a id2                                                          */
 /******************************************************************************************/
-void linkDevices(int id1, int id2) {
+int linkDevices(int id1, int id2) {
     if (id1 == 0) {
         printf(CB_RED "Error: cannot connect the controller to other devices\n" C_WHITE);
-        return;
+        return -1;
     }
 
     // Risolvo l'id1 in un PID valido
     int src = solveId(id1);
     if (src == -1) {
         printf(CB_RED "Error: device with id %d not found\n" C_WHITE, id1);
-        return;
+        return -1;
     }
 
     message_t request, response;
@@ -286,41 +289,41 @@ void linkDevices(int id1, int id2) {
     int dest = solveId(id2);
     if (dest == -1) {
         printf(CB_RED "Error: device with id %d not found\n" C_WHITE, id2);
-        return;
+        return -1;
     }
 
     // Se il src contiene dest tra i sui figli, sto creando un ciclo.
     if (getPidByIdSingle(src, id2) > 0) {
         printf(CB_RED "Error: cycle identified, %d is a child of %d\n" C_WHITE, id2, id1);
-        return;
+        return -1;
     }
 
     // Invio la richiesta di link a dest con il PID di src
     request = buildLinkRequest(dest, src);
     if (sendMessage(&request) == -1) {
         perror("Error linking devices request");
-        return;
+        return -1;
     } else if (receiveMessage(&response) == -1) {
         perror("Error linking devices response");
-        return;
+        return -1;
     } else if (response.vals[LINK_VAL_SUCCESS] == LINK_ERROR_NOT_CONTROL) {
         printf(CB_RED "Error: the device with id %d is not a control device\n" C_WHITE, id2);
-        return;
+        return -1;
     } else if (response.vals[LINK_VAL_SUCCESS] == LINK_ERROR_MAX_CHILD) {
         printf(CB_RED "Error: the device with id %d already has a child\n" C_WHITE, id2);
-        return;
+        return -1;
     }
     //  Killo il processo src già clonato
     request = buildDeleteRequest(src);
     if (sendMessage(&request) == -1) {
         perror("Error deleting device request");
-        return;
+        return -1;
     } else if (receiveMessage(&response) == -1) {
         perror("Error deleting device response");
-        return;
-    } else {
-        printf(CB_GREEN "Device %d linked to %d\n" C_WHITE, id1, id2);
+        return -1;
     }
+    printf(CB_GREEN "Device %d linked to %d\n" C_WHITE, id1, id2);
+    return 0;
 }
 
 /**************************************** SWITCH ********************************************/
@@ -328,12 +331,12 @@ void linkDevices(int id1, int id2) {
 /* Uno switch può essere fatto solo su dispostivi attivi                                    */
 /********************************************************************************************/
 
-void switchDevice(int id, char *label, char *pos) {
+int switchDevice(int id, char *label, char *pos) {
 #ifndef MANUAL
     int controller_pid = getControllerPid();
     if (id != 0 && isControllerEnabled(controller_pid) == 0) {
         printf(CB_RED "Error: the controller is disabled. Run " CB_WHITE "switch 0 general on" CB_RED " to enable it\n" C_WHITE);
-        return;
+        return -1;
     }
 
     int pid = getPidByIdSingle(controller_pid, id);
@@ -343,7 +346,7 @@ void switchDevice(int id, char *label, char *pos) {
         } else {
             printf(CB_RED "Error: device with id %d not found\n" C_WHITE, id);
         }
-        return;
+        return -1;
     }
 
 #else
@@ -391,32 +394,33 @@ void switchDevice(int id, char *label, char *pos) {
     // Se i parametri creano dei valori validi
     if (label_val == INVALID_VALUE) {
         printf(CB_RED "Error: invalid label \"%s\"\n" C_WHITE, label);
-        return;
+        return -1;
     } else if (pos_val == INVALID_VALUE) {
         if (label_val == LABEL_FRIDGE_THERM_VALUE) {
             printf(CB_RED "Error: invalid pos value %s°C for label \"%s\". It must be a number between -20°C and 15°C \n" C_WHITE, pos, label);
         } else {
             printf(CB_RED "Error: invalid pos value \"%s\" for label \"%s\"\n" C_WHITE, pos, label);
         }
-        return;
+        return -1;
     } else {
         if (label_val == LABEL_GENERAL_VALUE && id != 0) {  // L'interrruttore GENERAL è utilizzabile solo nel controller
             printf(CB_RED "Error: the label \"%s\" is not supported by the device %d\n" C_WHITE, label, id);
-            return;
+            return -1;
         }
         message_t request = buildSwitchRequest(pid, label_val, pos_val);
         message_t response;
         if (sendMessage(&request) == -1) {
             perror("Error switch request");
+            return -1;
         } else if (receiveMessage(&response) == -1) {
             perror("Error switch response");
-        } else {
-            if (response.vals[SWITCH_VAL_SUCCESS] == SWITCH_ERROR_INVALID_VALUE) {
-                printf(CB_RED "Error: the label \"%s\" is not supported by the device %d\n" C_WHITE, label, id);
-            } else {
-                printf(CB_GREEN "Switch executed\n" C_WHITE);
-            }
+            return -1;
+        } else if (response.vals[SWITCH_VAL_SUCCESS] == SWITCH_ERROR_INVALID_VALUE) {
+            printf(CB_RED "Error: the label \"%s\" is not supported by the device %d\n" C_WHITE, label, id);
+            return -1;
         }
+        printf(CB_GREEN "Switch executed\n" C_WHITE);
+        return 0;
     }
 }
 
@@ -424,12 +428,12 @@ void switchDevice(int id, char *label, char *pos) {
 /* Cambia lo stato del "register" del dispositivo "id" al valore "val"                      */
 /* Il SET può essere fatto solo su dispositivi attivi                                       */
 /********************************************************************************************/
-void setDevice(int id, char *label, char *val) {
+int setDevice(int id, char *label, char *val) {
 #ifndef MANUAL
     int controller_pid = getControllerPid();
     if (id != 0 && isControllerEnabled(controller_pid) == 0) {
         printf(CB_RED "Error: the controller is disabled. Run " CB_WHITE "switch 0 general on" CB_RED " to enable it\n" C_WHITE);
-        return;
+        return -1;
     }
 
     int pid = getPidByIdSingle(controller_pid, id);
@@ -439,13 +443,13 @@ void setDevice(int id, char *label, char *val) {
         } else {
             printf(CB_RED "Error: device with id %d not found\n" C_WHITE, id);
         }
-        return;
+        return -1;
     }
 #else
     int pid = solveId(id);
     if (pid == -1) {
         printf(CB_RED "Error: device with id %d not found\n" C_WHITE, id);
-        return;
+        return -1;
     }
 #endif
     int label_val = INVALID_VALUE;  // 0 = interruttore (generico), 1 = termostato
@@ -486,31 +490,30 @@ void setDevice(int id, char *label, char *val) {
     // Se i parametri creano dei valori validi
     if (label_val == INVALID_VALUE) {
         printf(CB_RED "Error: invalid register \"%s\"\n" C_WHITE, label);
-        return;
+        return -1;
     } else if (pos_val == INVALID_VALUE) {
         if (label_val == REGISTER_PERC_VALUE) {
             printf(CB_RED "Error: invalid value %s%% for register \"%s\". It must be a number between 0 and 100\n" C_WHITE, val, label);
         } else {
             printf(CB_RED "Error: invalid value \"%s\" for register \"%s\"\n" C_WHITE, val, label);
         }
-        return;
-        return;
-    } else {
-        message_t request = buildSetRequest(pid, label_val, pos_val);
-        message_t response;
-        if (sendMessage(&request) == -1) {
-            perror("Error set request");
-        } else if (receiveMessage(&response) == -1) {
-            perror("Error set response");
-        } else {
-            if (response.vals[SET_VAL_SUCCESS] == SET_ERROR_INVALID_VALUE)
-                printf(CB_RED "Error: the register \"%s\" is not supported by the device %d\n" C_WHITE, label, id);
-            else if (response.vals[SET_VAL_SUCCESS] == SET_TIMER_STARTED_SUCCESS)
-                printf(CB_GREEN "Set executed (timer started)\n" C_WHITE);
-            else
-                printf(CB_GREEN "Set executed\n" C_WHITE);
-        }
+        return -1;
     }
+    message_t request = buildSetRequest(pid, label_val, pos_val);
+    message_t response;
+    if (sendMessage(&request) == -1) {
+        perror("Error set request");
+    } else if (receiveMessage(&response) == -1) {
+        perror("Error set response");
+    } else if (response.vals[SET_VAL_SUCCESS] == SET_ERROR_INVALID_VALUE) {
+        printf(CB_RED "Error: the register \"%s\" is not supported by the device %d\n" C_WHITE, label, id);
+    }
+
+    if (response.vals[SET_VAL_SUCCESS] == SET_TIMER_STARTED_SUCCESS)
+        printf(CB_GREEN "Set executed (timer started)\n" C_WHITE);
+    else
+        printf(CB_GREEN "Set executed\n" C_WHITE);
+    return 0;
 }
 
 /**************************************** INFO ************************************************/
@@ -547,37 +550,37 @@ void infoDevice(int id) {
 /**************************************** EXPORT ************************************************/
 /* Esporta la struttura del sistema corrente per ripristinarlo successivamente                  */
 /************************************************************************************************/
-void saveCommand(char* command, int argc, char **argv){
-  #ifndef MANUAL
-  if(fp != NULL){
-    int i;
-    for(i=0; i < argc; i++){
-        fprintf (fp,"%s ", argv[i]);  //salvo su un file temporaneo tutti i comandi eseguiti, così per fare il comando export copio semplicemente tutti i comandi eseguti in sequenza
+void saveCommand(char *command, int argc, char **argv) {
+#ifndef MANUAL
+    if (fp != NULL) {
+        int i;
+        for (i = 0; i < argc; i++) {
+            fprintf(fp, "%s ", argv[i]);  //salvo su un file temporaneo tutti i comandi eseguiti, così per fare il comando export copio semplicemente tutti i comandi eseguti in sequenza
+        }
+        fprintf(fp, "\n");
     }
-    fprintf(fp, "\n");
-  }
-  #endif
+#endif
 }
 
 #ifndef MANUAL
-void doExport(char* file_name){
-  FILE *new, *old;
-  char c;
-  new = fopen (file_name,"w");
-  old = fopen (file_tmp,"r");
-  if(new == NULL || old == NULL){
-    printf(CB_RED "Error while exporting configuration to \"%s\": %s\n" C_WHITE, file_name, strerror(errno));
-    return;
-  }
+void doExport(char *file_name) {
+    FILE *new, *old;
+    char c;
+    new = fopen(file_name, "w");
+    old = fopen(file_tmp, "r");
+    if (new == NULL || old == NULL) {
+        printf(CB_RED "Error while exporting configuration to \"%s\": %s\n" C_WHITE, file_name, strerror(errno));
+        return;
+    }
 
-  // copio il contenuto del primo file nel secondo
-  c = fgetc(old);
-  while (c != EOF){
-    fputc(c, new);
+    // copio il contenuto del primo file nel secondo
     c = fgetc(old);
-  }
-  fclose (new);
-  fclose (old);
-  printf(CB_GREEN "Current configuration saved in \"%s\"\n" C_WHITE, file_name);
+    while (c != EOF) {
+        fputc(c, new);
+        c = fgetc(old);
+    }
+    fclose(new);
+    fclose(old);
+    printf(CB_GREEN "Current configuration saved in \"%s\"\n" C_WHITE, file_name);
 }
 #endif

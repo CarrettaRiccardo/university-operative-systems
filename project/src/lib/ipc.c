@@ -41,7 +41,7 @@ int doLink(list_t children, int to_clone_pid, const char *base_dir, short is_ter
             }
         }
     }
-    return 1;
+    return 0;
 }
 
 /********************************** Requests **********************************/
