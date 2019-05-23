@@ -18,19 +18,13 @@ char *base_dir;
 FILE * fp;  //messa come variabile globale per facilitare la gestione tra MANUAL e TERMINAL, in modo da evitare #ifndef ogni volta che eseguirò il comando saveCommand() {funzione che salva su file il comando appena eseguito }
 char file_tmp [32];  //dichiarazione comune a a tutti, ma usato solo da TERMINAL per evitare controlli verbosi sul resto del codice, ma solo nei punti fondamentali
 
-
-
-/*
-  Gestore del segnale per eliminare i file temporanei. Solo per TERMINAL
-*/
-#ifndef MANUAL
-void sighandle_int(int sig) {
+/* Gestore del segnale per eliminare i file temporanei. Solo per TERMINAL */
+void sighandleInt(int sig) {
   if (remove(file_tmp) < 0)
     perror("Error while deleting tmp command file");
+  printf(CB_WHITE "System disconnected\n" C_WHITE);
   exit(0);
 }
-#endif
-
 
 /* Handler segnale eliminazione figli */
 void sigchldHandler(int signum) {
@@ -114,12 +108,9 @@ void terminalInit(char *file) {
     }
 
 #ifndef MANUAL
-    snprintf(file_tmp, 32, "tmp_file%d.txt", getpid());
-    fp = fopen ( file_tmp ,"w");  //apro il file in cui andrò a salvare i comandi che verranno eseguiti (per implementare comando export)
-    signal(SIGINT, sighandle_int);  //gestisco il segnle SIGINT per cancellare il file temporaneo dei comandi anche se si chiude in modo anomalo da tastiera il processo (e non dal normale quit)
-
     // Registrazione handler per signal terminazione figli
     signal(SIGCHLD, sigchldHandler);
+    signal(SIGINT, sighandleInt);  //gestisco il segnle SIGINT per cancellare il file temporaneo dei comandi anche se si chiude in modo anomalo da tastiera il processo (e non dal normale quit)
     children = listIntInit();
     next_id = 0;  //il primo componetne avrà id = 0 (ovvero il controller)
 
@@ -130,6 +121,9 @@ void terminalInit(char *file) {
         printf(CB_RED "Error: cannot create the controller, aborting...\n" C_WHITE);
         exit(1);
     }
+
+    snprintf(file_tmp, 32, "%stmp_file%d.txt", base_dir, getpid());  // genero la stringa che rappresenta il file temporaneo dei comandi nel path di ./bin
+    fp = fopen ( file_tmp ,"w");  // apro il file in cui andrò a salvare i comandi che verranno eseguiti (per implementare comando export)
 #else
     // Nella shell manuale non devo aggiungere il controller come figlio o settare l'handler per i segnali di kill dei figli
     solved_pid = -1;
@@ -152,15 +146,14 @@ void terminalDestroy() {
     }
     listDestroy(children);
     free(base_dir);
-    
+
     fclose(fp);
-    if (remove(file_tmp) < 0)
-      perror("Error while deleting tmp command file");
+    if (remove(file_tmp) < 0) perror("Error while deleting tmp command file");
     closeMq();  // Chiudo la message queue
 #endif
 }
 
-#ifndef MANUAL
+#ifndef MANUAL // I seguenti comandi non sono supportati dalla shell manuale
 /**************************************** LIST ********************************************/
 /* Stampa l'albero dei dispositivi con l'id e lo stato                                     */
 /******************************************************************************************/
@@ -215,34 +208,35 @@ int addDevice(char *device) {
 /* Operazione ammessa solamente da terminal e non comando manuale (il quale può al          */
 /* più fare un DELETE)                                                                      */
 /********************************************************************************************/
-int unlinkDevices(int id) {
+void unlinkDevice(int id) {
     int to_pid = solveId(id);
     if (to_pid == -1) {
         printf(CB_RED "Error: device with id %d not found\n" C_WHITE, id);
-        return -9;
+        return;
     }
 
     if (listContains(children, &to_pid)) {  // è già presente nella lista dei figli del terminal, quindi è già disabilitato
         printf(CB_YELLOW "Device already disconnected\n" C_WHITE);
-        return -7;
+        return;
     }
 
     int res = doLink(children, to_pid, base_dir, 1);
     message_t ack;  // Aspetto la conferma di avvenuta link dal dispositivo
     receiveMessage(&ack);
-    if (res <= 0) return res;
+    if (res <= 0) return;
 
     //  Killo il processo disabilitato
     message_t request, response;
     request = buildDeleteRequest(to_pid);
     if (sendMessage(&request) == -1) {
         perror("Error deleting device request");
-        return 0;
+        return;
     } else if (receiveMessage(&response) == -1) {
         perror("Error deleting device response");
-        return -1;
+        return;
+    } else {
+        printf(CB_GREEN "Device %d disconnected\n" C_WHITE, id);
     }
-    return 1;
 }
 #endif
 
@@ -551,10 +545,8 @@ void infoDevice(int id) {
 }
 
 /**************************************** EXPORT ************************************************/
-/* Esporta la strutture del sistema corrente per ripristinarlo successivamente                  */
+/* Esporta la struttura del sistema corrente per ripristinarlo successivamente                  */
 /************************************************************************************************/
-
-
 void saveCommand(char* command, int argc, char **argv){
   #ifndef MANUAL
   if(fp != NULL){
@@ -568,15 +560,17 @@ void saveCommand(char* command, int argc, char **argv){
 }
 
 #ifndef MANUAL
-short doExport(char* file_name){
+void doExport(char* file_name){
   FILE *new, *old;
   char c;
   new = fopen (file_name,"w");
   old = fopen (file_tmp,"r");
-  if(new == NULL || old == NULL)
-    printf(CB_RED "Error while saving %s\n" C_WHITE, file_name);
+  if(new == NULL || old == NULL){
+    printf(CB_RED "Error while exporting configuration to \"%s\": %s\n" C_WHITE, file_name, strerror(errno));
+    return;
+  }
 
-  // copio il conetnuti del primo file nel secondo
+  // copio il contenuto del primo file nel secondo
   c = fgetc(old);
   while (c != EOF){
     fputc(c, new);
@@ -584,6 +578,6 @@ short doExport(char* file_name){
   }
   fclose (new);
   fclose (old);
-  printf(CB_GREEN "%s saved in %s\n" C_WHITE, file_name, base_dir);
+  printf(CB_GREEN "Current configuration saved in \"%s\"\n" C_WHITE, file_name);
 }
 #endif

@@ -1,2 +1,0 @@
-add bulb 
-add hub 
