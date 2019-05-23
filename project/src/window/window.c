@@ -24,7 +24,8 @@ void cloneData(char **vals) {
 
 int handleSwitchDevice(message_t *msg) {
     int success = SWITCH_ERROR_INVALID_VALUE;
-    if (msg->vals[SWITCH_VAL_LABEL] == LABEL_WINDOW_OPEN_VALUE || msg->vals[SWITCH_VAL_LABEL] == LABEL_ALL_VALUE) {  // interruttore OPEN o ALL (da hub ai propri figli)
+    if (msg->vals[SWITCH_VAL_LABEL] == LABEL_WINDOW_OPEN_VALUE || (msg->vals[SWITCH_VAL_LABEL] == LABEL_ALL_VALUE && msg->vals[SWITCH_VAL_POS] == SWITCH_POS_ON_LABEL_VALUE)) {  // interruttore OPEN o ALL (da hub ai propri figli)
+        // comprende anche l'apertura da 'all on' che interpreto come 'open on'
         if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_ON_LABEL_VALUE) {
             // Se è chiuso, apro e salvo il tempo di apertura
             if (state == SWITCH_POS_OFF_LABEL_VALUE) {
@@ -36,13 +37,23 @@ int handleSwitchDevice(message_t *msg) {
         // Se è aperto, non faccio nulla
         // Se inserisce "off" non deve fare nulla in quanto l'interruttore è sempre a "off"
         success = 1;
-    } else if (msg->vals[SWITCH_VAL_LABEL] == LABEL_WINDOW_CLOSE_VALUE) {  // interruttore CLOSE (da hub ai propri figli)
+    } else if (msg->vals[SWITCH_VAL_LABEL] == LABEL_WINDOW_CLOSE_VALUE || (msg->vals[SWITCH_VAL_LABEL] == LABEL_ALL_VALUE && msg->vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_LABEL_VALUE)) {  // interruttore CLOSE (da hub ai propri figli)
         if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_ON_LABEL_VALUE) {
             // Se è aperto, sommo il tempo di apertura e chiudo
             if (state == SWITCH_POS_ON_LABEL_VALUE) {
                 open_time += time(NULL) - last_open_time;
                 state = SWITCH_POS_OFF_LABEL_VALUE;
                 interruttore_close = SWITCH_POS_OFF_LABEL_VALUE;
+            }
+        } else{
+            // chiusura da 'all off' che interpreto come 'close on'
+            if (msg->vals[SWITCH_VAL_LABEL] == LABEL_ALL_VALUE && msg->vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_LABEL_VALUE) {
+                // Se è aperto, sommo il tempo di apertura e chiudo
+                if (state == SWITCH_POS_ON_LABEL_VALUE) {
+                    open_time += time(NULL) - last_open_time;
+                    state = SWITCH_POS_OFF_LABEL_VALUE;
+                    interruttore_close = SWITCH_POS_OFF_LABEL_VALUE;
+                }
             }
         }
         // Se è chiuso, non faccio nulla
