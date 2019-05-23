@@ -30,14 +30,25 @@ Manual può eseguire qualsiasi comando eccetto il comando di LIST, sia su dispos
 ##Peculiarità
 1. Quando la centralina si spegne i timer si sospendono (perchè sono ipoteticamente gestiti direttamente da essa), mentre i fridge e alarm funzionano normalmente (rispettivamente chiusura automatica e "rilevazione intrusi"). Ciò può essere inteso come un *mini sistema di sicurezza* per la casa, così facendo in un ipotetico impianto domotico non c'è il richio di avere alimenti avariati o un allarme non funzionante in caso di guasto della centralina (o di mancanza della corrente ecc...)
 
-2. 
+2. Gestione dello stato degli __HUB__ (Vedi sezione dopo per maggiori info)
+
+3. Gestione diversi file sorgente con codice molto simile attraverso **#ifndef __MACRO__**
 
 ##Aggiunte
 1. __HUB__ supporta dispositivi eterogenei:
      _ Nel comando *INFO* vengono elencati tutte le label dei vari interuttori e info di ricapitolazione a seconda dei dispositivi collegati. 
      _ Nel caso non ci siano fridge/window collegati ad un __HUB__, il comando *switch <id> open on* restituisce **Command undeined for device <id>**  (TODO: Da verificare)
-     _ E' in grado di modificare lo stato di qualsiasi tipo di device collegato (che possono essere eterogenei). Inoltre con la label *all* è possibile modificare lo stato di **tutti ** i device ad esso collegati, indipendenetemente dal tipo dello stesso.
+     _ E' in grado di modificare lo stato di qualsiasi tipo di device collegato (che possono essere eterogenei). Inoltre con la label *all* è possibile modificare lo stato di **tutti** i device ad esso collegati, indipendenetemente dal tipo dello stesso.
 
 2. __ALARM__:
      _ Dispositivo che simula un allarme casalingo. Quando rileva una persona/movimento si accende (idealmente emettendo un suono, a livello implementativo viene solo segnalata l'accensione).
        _ Per ragioni implementative l' allarme scatta con una certa probabilità *p* decisa a priori (la probabilità viene testata ogni *X* secondi)
+
+3. __IMPORT/EXPORT__:
+     _ All' interno del __terminale__ è disponibile un comando __export__ che consente di salvare la struttura della rete costruita fin ora. Per implementare questa funzionalità ci appoggiamo ad un file temporaneo salvato nella cartella *./bin* che viene sempre cancellato alla chiusura di ogni terminale. 
+       _ Il nome di tale file temporaneo è *tmp_file<pid_creatore>* in modo da evitare conflitti con eventuali altri terminal avviati in concorrenza tra di loro.
+     _ Per importare una struttura esportata precedentemente va specificato il nome del file da importare come argomento dell' eseguibile __terminal__
+       _ Avendo notato che nella fase di importazione di una struttura si verificano dei problemi per i comandi di **del, unlink e link** abbiamo deciso di utilizzare un semplice **usleep(X)** che consente al sistema di sincronizzarsi internamente con i messaggi/segnali inviati dei figli che sibiscono tali comandi.
+
+4. __MULTI-TERMINAL__:
+     _ Il sistema supporta diversi __terminal__ indipendenti aperti in concorrenza. <(TODO: Da verificare)>
