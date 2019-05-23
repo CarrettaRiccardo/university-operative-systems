@@ -132,7 +132,7 @@ int main(int sargc, char **sargv) {
 
                 if (result == -1)
                     perror(CB_RED "Error while adding device" C_WHITE);
-                else if (result != 0){  //  Se ho aggiunto un device supportato
+                else if (result != 0) {  //  Se ho aggiunto un device supportato
                     printf(CB_GREEN "Device added with id %d" C_WHITE "\nNow it's disconnected from the system. To connect the device run " CB_WHITE "link %d to 0\n" C_WHITE, result, result);
                     saveCommand(line, argc, argv);
                 }
@@ -148,7 +148,7 @@ int main(int sargc, char **sargv) {
                 int res = unlinkDevices(atoi(argv[1]));
                 if (res > 0)
                     printf(CB_GREEN "Device %d disconnected from the controller\n" C_WHITE, atoi(argv[1]));
-                    saveCommand(line, argc, argv);
+                saveCommand(line, argc, argv);
             }
         }
         /**************************************** EXPORT ********************************************/
@@ -217,8 +217,7 @@ int main(int sargc, char **sargv) {
         /**************************************** QUIT ********************************************/
         else if (strcmp(argv[0], "quit") == 0) {
             run = 0;  //termino l'esecuzione
-        }
-        else if (argc > 0) {
+        } else if (argc > 0) {
             printf(CB_RED "Unknown command, type \"help\" to list all the supported commands\n" C_WHITE);
         }
     }

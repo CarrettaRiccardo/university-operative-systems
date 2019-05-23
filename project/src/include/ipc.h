@@ -68,7 +68,7 @@ key_t getKey();
 int getMq();
 
 /* Close message queue */
-void closeMq(int id);
+void closeMq();
 
 /* Traduzione id-pid, ritorna il pid corrispondente all'id passato o -1 se non esiste */
 int getPidById(list_t figli, int id);

@@ -102,8 +102,8 @@ int main(int argc, char **argv) {
                                 case LABEL_WINDOW_CLOSE_VALUE: state_type = WINDOW_STATE; break;
                                 case LABEL_FRIDGE_DOOR_VALUE: state_type = FRIDGE_STATE; break;
                                 case LABEL_ALARM_ENABLE_VALUE: state_type = ALARM_STATE; break;
-                                // Nel caso dell'interruttore all setta tutti gli stati. Lo stato delle WINDOW viene settato solo se si esegue un on (stesso compotamento dell'interruttore "open")
-                                case LABEL_ALL_VALUE: state_type = BULB_STATE | FRIDGE_STATE | ALARM_STATE | (pos == SWITCH_POS_ON_LABEL_VALUE ? WINDOW_STATE : 0); break;
+                                // Nel caso dell'interruttore all setta tutti gli stati.
+                                case LABEL_ALL_VALUE: state_type = BULB_STATE | FRIDGE_STATE | ALARM_STATE | WINDOW_STATE; break;
                             }
                             if (pos == SWITCH_POS_ON_LABEL_VALUE) {
                                 state |= state_type;  // Aggiunto il dispositivo allo stato dell'HUB

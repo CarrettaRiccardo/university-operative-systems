@@ -152,10 +152,11 @@ void terminalDestroy() {
     }
     listDestroy(children);
     free(base_dir);
-
+    
     fclose(fp);
     if (remove(file_tmp) < 0)
       perror("Error while deleting tmp command file");
+    closeMq();  // Chiudo la message queue
 #endif
 }
 
@@ -548,7 +549,6 @@ void infoDevice(int id) {
         } while (response.vals[INFO_VAL_STOP] != 1);
     }
 }
-
 
 /**************************************** EXPORT ************************************************/
 /* Esporta la strutture del sistema corrente per ripristinarlo successivamente                  */
