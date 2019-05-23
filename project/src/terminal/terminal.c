@@ -277,9 +277,7 @@ void saveCommand(char *command, int argc, char **argv) {
 */
 #ifndef MANUAL
 void sighandle_int(int sig) {
-    if (remove(file_tmp) < 0)
-        perror("Error while deleting tmp command file");
-    terminalDestroy();
+    if (remove(file_tmp) < 0) perror("Error while deleting tmp command file");
     exit(0);
 }
 #endif
