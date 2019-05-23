@@ -44,7 +44,7 @@ prepare:
 	@mkdir -p $(OBJ_DIR)
 
 # Compila le librerie e gli eseguibili utilizzando le macro
-build: prepare terminal_manual $(LIB) $(DEVICES)
+build: prepare $(LIB) terminal_manual $(DEVICES)
 
 
 # Rimuove i file compilati
