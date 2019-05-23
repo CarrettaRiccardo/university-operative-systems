@@ -114,7 +114,7 @@ message_t buildCloneResponseControl(int to_pid, int id, int state) {
 void eventAlarm() {
     if (waitForBegin == 0) {  // Accensione figli
         doSwitchChildren(LABEL_ALL_VALUE, SWITCH_POS_ON_LABEL_VALUE);
-        state = BULB_STATE | FRIDGE_STATE | ALARM_STATE | WINDOW_STATE;  // Setto loo stato del timer ad attivo
+        state = BULB_STATE | FRIDGE_STATE | ALARM_STATE | WINDOW_STATE;  // Setto lo stato del timer ad attivo
         // Setto il timer di spegnimento (end) se è maggiore dell'accensione (begin)
         if (time(NULL) < mktime(&end)) {
             alarm(mktime(&end) - time(NULL));
@@ -124,7 +124,7 @@ void eventAlarm() {
         }
     } else if (waitForBegin == 1) {  // Spegnimento figli
         doSwitchChildren(LABEL_ALL_VALUE, SWITCH_POS_OFF_LABEL_VALUE);
-        state &= ~(BULB_STATE | FRIDGE_STATE | ALARM_STATE);  // Disattivo lo stato dei dispositivi corrispondenti. WINDOW non esegue niente nel caso si setti a off l'interrutttore OPEN
+        state &= ~(BULB_STATE | FRIDGE_STATE | ALARM_STATE | WINDOW_STATE);  // Disattivo lo stato dei dispositivi corrispondenti.
         // Setto il timer di accensione (begin) se è maggiore dello spegnimento (end)
         if (time(NULL) < mktime(&begin)) {
             alarm(mktime(&begin) - time(NULL));
