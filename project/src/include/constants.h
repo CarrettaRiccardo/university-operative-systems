@@ -3,6 +3,7 @@
 #define SET_TIME_END "set_end"
 #define SET_TEMPERATURE "set_temperature"
 #define SET_PERC_FILLED "set_filled"
+#define SET_PROBABILITY "set_probability"
 
 /*************************  Tipi messaggi e parametri *************************/
 //BUSY: per segnalare che un dispositivo non può eseguire il comando che riceve
@@ -26,6 +27,7 @@
 #define INFO_VAL_REG_DELAY 6
 #define INFO_VAL_REG_PERC 7
 #define INFO_VAL_REG_TEMP 8
+#define INFO_VAL_REG_PROB 9
 
 // DELETE
 #define DELETE_MSG_TYPE 2
@@ -77,20 +79,24 @@
 /*************************  Tipi interruttori SWITCH  *************************/
 #define INVALID_VALUE __INT_MAX__
 
-#define LABEL_LIGHT "light"
-#define LABEL_OPEN "open"
-#define LABEL_CLOSE "close"
-#define LABEL_THERM "therm"
+#define LABEL_BULB_LIGHT "light"
+#define LABEL_WINDOW_OPEN "open"
+#define LABEL_WINDOW_CLOSE "close"
+#define LABEL_FRIDGE_THERM "therm"
+#define LABEL_FRIDGE_DOOR "door"
+#define LABEL_ALARM_ENABLE "enable"
 #define LABEL_ALL "all"
 #define LABEL_GENERAL "general"
 
 // In binario per inviare tutto con operazioni AND e OR
-#define LABEL_LIGHT_VALUE 1
-#define LABEL_OPEN_VALUE 2
-#define LABEL_CLOSE_VALUE 4
-#define LABEL_THERM_VALUE 8
-#define LABEL_ALL_VALUE 16
-#define LABEL_GENERAL_VALUE 32
+#define LABEL_BULB_LIGHT_VALUE 1
+#define LABEL_WINDOW_OPEN_VALUE 2
+#define LABEL_WINDOW_CLOSE_VALUE 4
+#define LABEL_FRIDGE_DOOR_VALUE 8
+#define LABEL_FRIDGE_THERM_VALUE 16
+#define LABEL_ALARM_ENABLE_VALUE 32
+#define LABEL_ALL_VALUE 64
+#define LABEL_GENERAL_VALUE 128
 
 #define SWITCH_POS_OFF_LABEL "off"
 #define SWITCH_POS_ON_LABEL "on"
@@ -102,6 +108,7 @@
 #define REGISTER_BEGIN "begin"
 #define REGISTER_END "end"
 #define REGISTER_PERC "perc"
+#define REGISTER_PROB "prob"
 #define REGISTER_TEMP "temp"
 #define REGISTER_TIME "time"
 
@@ -109,6 +116,7 @@
 #define REGISTER_BEGIN_VALUE 2
 #define REGISTER_END_VALUE 4
 #define REGISTER_PERC_VALUE 8
+#define REGISTER_PROB_VALUE 16
 
 /*************************  Tipi dispositivi  *************************/
 #define MAX_DEVICE_NAME_LENGTH 20
@@ -116,24 +124,30 @@
 #define BULB "bulb"
 #define FRIDGE "fridge"
 #define WINDOW "window"
+#define ALARM "alarm"
 #define HUB "hub"
 #define TIMER "timer"
 #define CONTROLLER "controller"
-#define ALARM "alarm"
+
+// Valori usati nei dispositivi di controllo per mostrare i vari stati dei dispositivi collegati
+#define BULB_STATE 1
+#define FRIDGE_STATE 2
+#define WINDOW_STATE 4
+#define ALARM_STATE 8
 
 /*************************  Colori per printf  *************************/
 #define C_RESET "\x1b[0m"
 #define C_WHITE C_RESET
-#define CB_WHITE C_RESET "\x1b[1;37m"
-#define C_RED C_RESET "\x1b[31m"     // Normale
-#define CB_RED C_RESET "\x1b[1;31m"  // Bold
-#define C_GREEN C_RESET "\x1b[32m"
-#define CB_GREEN C_RESET "\x1b[1;32m"
-#define C_YELLOW C_RESET "\x1b[33m"
-#define CB_YELLOW C_RESET "\x1b[1;33m"
-#define C_BLUE C_RESET "\x1b[34m"
-#define CB_BLUE C_RESET "\x1b[1;34m"
-#define C_MAGENTA C_RESET "\x1b[35m"
-#define CB_MAGENTA C_RESET "\x1b[1;35m"
-#define C_CYAN C_RESET "\x1b[36m"
-#define CB_CYAN C_RESET "\x1b[1;36m"
+#define CB_WHITE "\x1b[1;37m"
+#define C_RED "\x1b[31m"     // Normale
+#define CB_RED "\x1b[1;31m"  // Bold
+#define C_GREEN "\x1b[32m"
+#define CB_GREEN "\x1b[1;32m"
+#define C_YELLOW "\x1b[33m"
+#define CB_YELLOW "\x1b[1;33m"
+#define C_BLUE "\x1b[34m"
+#define CB_BLUE "\x1b[1;34m"
+#define C_MAGENTA "\x1b[35m"
+#define CB_MAGENTA "\x1b[1;35m"
+#define C_CYAN "\x1b[36m"
+#define CB_CYAN "\x1b[1;36m"

@@ -3,14 +3,13 @@
 #include <stdlib.h>
 #include "../include/constants.h"
 
-#define MAXTEXT 255
+#define MAXTEXT 512
 #define NVAL 10
 
 typedef struct msg {
     long to;
-    int sender;
-    short type;
-    time_t session;
+    long sender;
+    short type;  // Tipo messaggio
     char text[MAXTEXT];
     int vals[NVAL];
 } message_t;

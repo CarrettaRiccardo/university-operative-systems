@@ -12,7 +12,6 @@
 #include "../include/constants.h"
 #include "../include/list.h"
 
-time_t session;
 int mqid;
 
 /********************************** Workers **********************************/
@@ -69,7 +68,7 @@ key_t getKey();
 int getMq();
 
 /* Close message queue */
-void closeMq(int id);
+void closeMq();
 
 /* Traduzione id-pid, ritorna il pid corrispondente all'id passato o -1 se non esiste */
 int getPidById(list_t figli, int id);
@@ -79,11 +78,4 @@ int getPidByIdSingle(int to_pid, int id);
 
 /* Controlla se il processo child_pid è tra i figli, percorrendo tutto l'albero */
 int containsChild(list_t figli, int child_pid);
-
-//////////////////////////////// DEBUG /////////////////////////////////////
-/*  Print struct (per debug) */
-void printMsg(const message_t* msg);
-
-/* Salva nel file con nome di sessione la tipologia del messaggio */
-int printLog(const message_t* msg);
 #endif

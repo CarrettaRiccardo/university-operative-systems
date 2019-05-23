@@ -6,7 +6,7 @@ int doLink(list_t children, int to_clone_pid, const char *base_dir, short is_ter
     message_t response;
     if (sendMessage(&request) == -1) {
         printf("Error sending clone request to %d from %d: %s\n", to_clone_pid, getpid(), strerror(errno));
-        return 0;
+        return -1;
     } else if (receiveMessage(&response) == -1) {
         printf("Error receiving clone response in %d from %d: %s\n", getpid(), to_clone_pid, strerror(errno));
         return -1;
@@ -27,14 +27,14 @@ int doLink(list_t children, int to_clone_pid, const char *base_dir, short is_ter
             args[NVAL + 1] = NULL;
             if (execvp(args[0], args) == -1) {
                 printf("Error: clone failed, execvp %s: %s\n", args[0], strerror(errno));
-                return -2;
+                return -1;
             }
             for (i = 1; i < NVAL + 1; i++) free(args[i]);
         }
         // Padre
         else {
-            if (pid == -1) return -3;
-            if (is_terminal) {  // Se è il terminale sto eseguendo un unlink. Metto il dispositivo all'inizio della coda per lasciare il controller come ultimo elemento
+            if (pid == -1) return -1;
+            if (is_terminal) {  // Se è il terminale ad eseguire il metodo sto eseguendo un unlink. Metto il dispositivo all'inizio della coda per lasciare il controller come ultimo elemento
                 listPushFront(children, &pid, sizeof(int));
             } else {
                 listPushBack(children, &pid, sizeof(int));
@@ -46,7 +46,7 @@ int doLink(list_t children, int to_clone_pid, const char *base_dir, short is_ter
 
 /********************************** Requests **********************************/
 message_t buildRequest(int to_pid, short msg_type) {
-    message_t ret = {.to = to_pid, .sender = getpid(), .session = session, .type = msg_type};
+    message_t ret = {.to = to_pid, .sender = getpid(), .type = msg_type};
     return ret;
 }
 
@@ -93,7 +93,6 @@ message_t buildSwitchRequest(int to_pid, int label_val, int pos_val) {
     to_pid: pid del componente al qual il comando è destinato
     label_val: valore della label da modificare
     pos_val: valore da modificare per la posizione dell' interuttore
-    TODO: Destro le descrizion sono corrette ?
 */
 message_t buildTerminalSwitchRequest(int home_pid, int to_pid, int label_val, int pos_val) {
     message_t ret = buildSwitchRequest(home_pid, label_val, pos_val);
@@ -110,7 +109,7 @@ message_t buildSetRequest(int to_pid, int label_val, int val_val) {
 
 /********************************** Responses **********************************/
 message_t buildResponse(int to_pid, short msg_type) {
-    message_t ret = {.to = to_pid, .sender = getpid(), .session = session, .type = msg_type};
+    message_t ret = {.to = to_pid, .sender = getpid(), .type = msg_type};
     return ret;
 }
 
@@ -190,11 +189,11 @@ message_t buildBusyResponse(const int to) {
 /********************************** Send/Receive **********************************/
 int sendMessage(const message_t *msg) {
     if (msg->to <= 0) return -1;
-    return msgsnd(mqid, msg, sizeof(message_t) - sizeof(int), 0);
+    return msgsnd(mqid, msg, sizeof(message_t) - sizeof(long), 0);
 }
 
 int receiveMessage(message_t *msg) {
-    return msgrcv(mqid, msg, sizeof(message_t) - sizeof(int), getpid(), 0);
+    return msgrcv(mqid, msg, sizeof(message_t) - sizeof(long), getpid(), 0);
 }
 
 /********************************** Signals **********************************/
@@ -207,7 +206,6 @@ int sendGetPidByIdSignal(int to_pid, int id) {
 /********************************** Init **********************************/
 // Inizializza i componenti per comunicare
 void ipcInit(int _mqid) {
-    session = time(NULL);
     mqid = _mqid;
 }
 
@@ -221,8 +219,8 @@ int getMq(int pid) {
     return ret;
 }
 
-void closeMq(int id) {
-    if (msgctl(id, IPC_RMID, NULL) == -1) {
+void closeMq() {
+    if (msgctl(mqid, IPC_RMID, NULL) == -1) {
         perror("Errore chiusura mq");
         exit(1);
     }
@@ -253,29 +251,4 @@ int getPidByIdSingle(int to_pid, int id) {
         return response.vals[TRANSLATE_VAL_ID];  // Id trovato
     }
     return -1;
-}
-
-// stampa nel file con nome della session il messaggio
-int printLog(const message_t *msg) {
-    char f_name[30];
-    int ret = -1;
-    /*// copio in f_name la msg.session come stringa
-    if (snprintf(f_name, sizeof(msg.session), "../log/%s", msg.session) != -1) {
-        strcat(f_name, ".txt");
-        FILE *log = fopen(f_name, "a");  // crea se non esiste
-        if (log != NULL) {
-            fprintf(log, "TYPE:%s | FROM:%d | TO:%d | VALUES:%d, %d, %d, %d, %d, %d\n", msg.text, msg.sender, msg.to, msg.vals[0], msg.vals[1], msg.vals[2], msg.vals[3], msg.vals[4], msg.vals[5]);
-            // chiudo subito per evitare conflitti di apertura
-            fclose(log);
-            ret = 0;
-        } else {
-            // error opening file
-            printf("Errore nell'apertura del log");
-        }
-    }*/
-    return ret;
-}
-
-void printMsg(const message_t *msg) {
-    printf("to: %ld, sender: %d, type: %d, text: %s, v0: %d, v1: %d, v2: %d, v3: %d, v4: %d, v5: %d, session: %ld\n", msg->to, msg->sender, msg->type, msg->text, msg->vals[0], msg->vals[1], msg->vals[2], msg->vals[3], msg->vals[4], msg->vals[5], msg->session);
 }

@@ -23,7 +23,10 @@ OBJ = $(patsubst %,$(OBJ_DIR)/%.o,$(LIB))
 #################### RULES ####################
 # Stampa una guida sull'utilizzo del programma
 help:
-	@echo "TODO HELP"
+	@echo Per compilare eseguire "make build"
+	@echo Per eliminare i file generati dalla compilazione eseguire "make clean"
+	@echo Per eseguire il progetto, spostarsi nella cartella "bin" ed eseguire il file "terminal"
+	@echo Per eseguire dei comandi manuali, spostarsi nella cartella "bin" ed eseguire il file "manual"
 
 # Compilazione terminal e manual
 terminal_manual:
@@ -44,7 +47,7 @@ prepare:
 	@mkdir -p $(OBJ_DIR)
 
 # Compila le librerie e gli eseguibili utilizzando le macro
-build: prepare terminal_manual $(LIB) $(DEVICES)
+build: prepare $(LIB) terminal_manual $(DEVICES)
 
 
 # Rimuove i file compilati

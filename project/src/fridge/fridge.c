@@ -1,16 +1,17 @@
 #include "../base/device.c"
 #include "../include/ipc.h"
 
-short state;                // 0 = chiusa, 1 = aperta
-short interruttore;         // 0 = fermo, 1 = apertura/chiusura (torna subito ad off, ma se azionato apre la porta o la chiude
-int delay;                  // Tempo di chiusura automatica porta
-int temp;                   // Temperatura interna
-int perc;                   // Percentuale riempimento (0-100%)
-int open_time;              // Tempo apertura porta
-int last_open_time;         // Tempo ultima apertura
-int last_general_stop;      // Ultimo tempo di stop, per calcolare il tempo di apertura in caso sia stoppato mentre la porta è aperta
+short state;            // 0 = chiusa, 1 = aperta
+short interruttore;     // 0 = fermo, 1 = apertura/chiusura (torna subito ad off, ma se azionato apre la porta o la chiude
+int delay;              // Tempo di chiusura automatica porta
+int temp;               // Temperatura interna
+int perc;               // Percentuale riempimento (0-100%)
+int open_time;          // Tempo apertura porta
+int last_open_time;     // Tempo ultima apertura
+int last_general_stop;  // Ultimo tempo di stop, per calcolare il tempo di apertura in caso sia stoppato mentre la porta è aperta
 
 void closeDoor();
+// metodi richiamati quando si riceve un segnale di "switch <id> general <val>"
 void generalStart();
 void generalStop();
 
@@ -39,37 +40,37 @@ void cloneData(char **vals) {
     last_open_time = atoi(vals[6]);
     last_general_stop = atoi(vals[7]);
     // riaccendo il timer di chiusura automatica se era aperto
-    if (state == SWITCH_POS_ON_LABEL_VALUE && delay > 0){
+    if (state == SWITCH_POS_ON_LABEL_VALUE && delay > 0) {
         alarm((time(NULL) - last_open_time) < delay ? delay - (time(NULL) - last_open_time) : delay);
     }
 }
 
 int handleSwitchDevice(message_t *msg) {
     int success = SWITCH_ERROR_INVALID_VALUE;
-    
-    if (msg->vals[SWITCH_VAL_LABEL] == LABEL_GENERAL_VALUE) {  // general
-        if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_LABEL_VALUE) {  // spengo
+
+    if (msg->vals[SWITCH_VAL_LABEL] == LABEL_GENERAL_VALUE) {           // General (da controller)
+        if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_LABEL_VALUE) {  // Spengo controller
             generalStop();
             success = 1;
-        } else if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_ON_LABEL_VALUE) {  // accendo
+        } else if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_ON_LABEL_VALUE) {  // Accendo controller
             generalStart();
             success = 1;
         }
     } else {
-        if (msg->vals[SWITCH_VAL_LABEL] == LABEL_OPEN_VALUE || msg->vals[SWITCH_VAL_LABEL] == LABEL_ALL_VALUE) {
+        if (msg->vals[SWITCH_VAL_LABEL] == LABEL_FRIDGE_DOOR_VALUE || msg->vals[SWITCH_VAL_LABEL] == LABEL_ALL_VALUE) {
             if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_LABEL_VALUE) {  // Chiudo
-            // Controllo se il tempo di chiusura automatica NON è superato
-            if (state == SWITCH_POS_ON_LABEL_VALUE && last_open_time + delay > time(NULL)) {
-                // Se non lo è (quindi deve ancora chiudersi automaticamente), sommo la differenza di tempo attuale al tempo di apertura...
-                open_time += time(NULL) - last_open_time;
-                // ...e chiudo la porta
-                state = SWITCH_POS_OFF_LABEL_VALUE;
-                interruttore = SWITCH_POS_OFF_LABEL_VALUE;
-                // disabilito il timer di chiusura automatica
-                alarm(0);
-            }
-            // Altrimenti è gia su "off"
-            success = 1;
+                // Controllo se il tempo di chiusura automatica NON è superato
+                if (state == SWITCH_POS_ON_LABEL_VALUE && last_open_time + delay > time(NULL)) {
+                    // Se non lo è (quindi deve ancora chiudersi automaticamente), sommo la differenza di tempo attuale al tempo di apertura...
+                    open_time += time(NULL) - last_open_time;
+                    // ...e chiudo la porta
+                    state = SWITCH_POS_OFF_LABEL_VALUE;
+                    interruttore = SWITCH_POS_OFF_LABEL_VALUE;
+                    // disabilito il timer di chiusura automatica
+                    alarm(0);
+                }
+                // Altrimenti è gia su "off"
+                success = 1;
             } else if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_ON_LABEL_VALUE) {  // Apro
                 // Se è chiuso
                 if (state == SWITCH_POS_OFF_LABEL_VALUE) {
@@ -83,10 +84,10 @@ int handleSwitchDevice(message_t *msg) {
                 }
                 // Altrimenti è gia su "on"
                 success = 1;
-            } else if (msg->vals[SWITCH_VAL_LABEL] == LABEL_THERM_VALUE) {  // Valore Termostato
-                temp = msg->vals[SWITCH_VAL_POS];
-                success = 1;
             }
+        } else if (msg->vals[SWITCH_VAL_LABEL] == LABEL_FRIDGE_THERM_VALUE) {  // Valore Termostato
+            temp = msg->vals[SWITCH_VAL_POS];
+            success = 1;
         }
     }
     return success;
@@ -108,20 +109,22 @@ message_t buildInfoResponseDevice(int to_pid, int id, int lv) {
     message_t ret = buildInfoResponse(to_pid, id, lv, 1);
     time_t now = time(NULL);
     int tot_time = open_time + (now - ((state == 0) ? now : (last_general_stop == 0 ? last_open_time : now)));  //se è chiusa ritorno solo "tempo", altrimenti tempo+differenza da quanto accesa
-    sprintf(ret.text, CB_CYAN "%s" C_WHITE ", " CB_WHITE "state: %s " C_WHITE ", " CB_WHITE "labels: b" C_WHITE "%s %s, " CB_WHITE "registers:" C_WHITE " time=%ds delay=%ds perc=%d%% temp=%d°C", FRIDGE, state == 1 ? CB_GREEN "open" : CB_RED "closed", LABEL_OPEN, LABEL_THERM, tot_time, delay, perc, temp);
+    sprintf(ret.text, CB_CYAN "%s" C_WHITE ", " CB_WHITE "state: %s " C_WHITE ", " CB_WHITE "labels: " C_WHITE "%s %s, " CB_WHITE "registers:" C_WHITE " time=%ds delay=%ds perc=%d%% temp=%d°C", FRIDGE, state ? CB_GREEN "open" : CB_RED "closed", LABEL_FRIDGE_DOOR, LABEL_FRIDGE_THERM, tot_time, delay, perc, temp);
     ret.vals[INFO_VAL_STATE] = state;
-    ret.vals[INFO_VAL_LABELS] = LABEL_OPEN_VALUE | LABEL_THERM_VALUE;
+    ret.vals[INFO_VAL_LABELS] = LABEL_FRIDGE_DOOR_VALUE | LABEL_FRIDGE_THERM_VALUE;
     ret.vals[INFO_VAL_REG_TIME] = tot_time;
     ret.vals[INFO_VAL_REG_DELAY] = delay;
     ret.vals[INFO_VAL_REG_PERC] = perc;
     ret.vals[INFO_VAL_REG_TEMP] = temp;
+    ret.vals[INFO_VAL_REG_PROB] = INVALID_VALUE;
     return ret;
 }
 
 message_t buildListResponseDevice(int to_pid, int id, int lv) {
     message_t ret = buildListResponse(to_pid, id, lv, 1);
-    sprintf(ret.text, CB_WHITE "%s %s" C_WHITE, FRIDGE, state == 1 ? CB_GREEN "open" : CB_RED "closed");
+    sprintf(ret.text, CB_CYAN "%s %s" C_WHITE, FRIDGE, state ? CB_GREEN "open" : CB_RED "closed");
     ret.vals[INFO_VAL_STATE] = state;
+    ret.vals[INFO_VAL_LABELS] = LABEL_FRIDGE_DOOR_VALUE | LABEL_FRIDGE_THERM_VALUE;
     return ret;
 }
 
@@ -142,10 +145,10 @@ void closeDoor() {
     // Altrimenti è gia su "off"
 }
 
-void generalStart(){
-    if (last_general_stop > 0){
+void generalStart() {
+    if (last_general_stop > 0) {
         // riaccendo il timer di chiusura automatica se era aperta la porta
-        if (state == SWITCH_POS_ON_LABEL_VALUE && delay > 0){
+        if (state == SWITCH_POS_ON_LABEL_VALUE && delay > 0) {
             alarm(delay - (last_general_stop - last_open_time));
             last_open_time = time(NULL);
         }
@@ -153,8 +156,8 @@ void generalStart(){
     last_general_stop = 0;
 }
 
-void generalStop(){
-    if (last_general_stop == 0){
+void generalStop() {
+    if (last_general_stop == 0) {
         // spengo il timer di chiusura automatica e salvo quanto tempo mancava
         open_time += alarm(0);
         last_general_stop = time(NULL);

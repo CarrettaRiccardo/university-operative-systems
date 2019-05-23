@@ -15,6 +15,16 @@
 int next_id;
 list_t children;  // Lista che contiene i pid del controller e di tutti i componenti aggiunti ma non attivi
 char *base_dir;
+FILE * fp;  //messa come variabile globale per facilitare la gestione tra MANUAL e TERMINAL, in modo da evitare #ifndef ogni volta che eseguirò il comando saveCommand() {funzione che salva su file il comando appena eseguito }
+char file_tmp [32];  //dichiarazione comune a a tutti, ma usato solo da TERMINAL per evitare controlli verbosi sul resto del codice, ma solo nei punti fondamentali
+
+/* Gestore del segnale per eliminare i file temporanei. Solo per TERMINAL */
+void sighandleInt(int sig) {
+  if (remove(file_tmp) < 0)
+    perror("Error while deleting tmp command file");
+  printf(CB_WHITE "System disconnected\n" C_WHITE);
+  exit(0);
+}
 
 /* Handler segnale eliminazione figli */
 void sigchldHandler(int signum) {
@@ -100,6 +110,7 @@ void terminalInit(char *file) {
 #ifndef MANUAL
     // Registrazione handler per signal terminazione figli
     signal(SIGCHLD, sigchldHandler);
+    signal(SIGINT, sighandleInt);  //gestisco il segnle SIGINT per cancellare il file temporaneo dei comandi anche se si chiude in modo anomalo da tastiera il processo (e non dal normale quit)
     children = listIntInit();
     next_id = 0;  //il primo componetne avrà id = 0 (ovvero il controller)
 
@@ -110,6 +121,9 @@ void terminalInit(char *file) {
         printf(CB_RED "Error: cannot create the controller, aborting...\n" C_WHITE);
         exit(1);
     }
+
+    snprintf(file_tmp, 32, "%stmp_file%d.txt", base_dir, getpid());  // genero la stringa che rappresenta il file temporaneo dei comandi nel path di ./bin
+    fp = fopen ( file_tmp ,"w");  // apro il file in cui andrò a salvare i comandi che verranno eseguiti (per implementare comando export)
 #else
     // Nella shell manuale non devo aggiungere il controller come figlio o settare l'handler per i segnali di kill dei figli
     solved_pid = -1;
@@ -119,6 +133,7 @@ void terminalInit(char *file) {
 /*  Dealloca il terminal  */
 void terminalDestroy() {
 #ifndef MANUAL
+    // Eliminazione di tutti i figli per evitare processi zombie
     node_t *p = children->head;
     while (p != NULL) {
         message_t request = buildDeleteRequest(*(int *)p->value);
@@ -131,10 +146,14 @@ void terminalDestroy() {
     }
     listDestroy(children);
     free(base_dir);
+
+    fclose(fp);
+    if (remove(file_tmp) < 0) perror("Error while deleting tmp command file");
+    closeMq();  // Chiudo la message queue
 #endif
 }
 
-#ifndef MANUAL
+#ifndef MANUAL // I seguenti comandi non sono supportati dalla shell manuale
 /**************************************** LIST ********************************************/
 /* Stampa l'albero dei dispositivi con l'id e lo stato                                     */
 /******************************************************************************************/
@@ -149,7 +168,7 @@ void listDevices() {
             do {
                 if (receiveMessage(&response) == -1) {
                     perror("Error list response");
-                } else if(response.type == LIST_MSG_TYPE){ //controllo che non sia stato un mix di messaggi, in tal caso ignoro il messaggio
+                } else if (response.type == LIST_MSG_TYPE) {  //controllo che non sia stato un mix di messaggi, in tal caso ignoro il messaggio
                     int i;
                     for (i = 0; i < response.vals[INFO_VAL_LEVEL] - 1; i++) printf("    ");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
                     if (response.vals[INFO_VAL_LEVEL] > 0) printf(C_CYAN " └──" C_WHITE);
@@ -189,34 +208,35 @@ int addDevice(char *device) {
 /* Operazione ammessa solamente da terminal e non comando manuale (il quale può al          */
 /* più fare un DELETE)                                                                      */
 /********************************************************************************************/
-int unlinkDevices(int id) {
+void unlinkDevice(int id) {
     int to_pid = solveId(id);
     if (to_pid == -1) {
         printf(CB_RED "Error: device with id %d not found\n" C_WHITE, id);
-        return -9;
+        return;
     }
 
     if (listContains(children, &to_pid)) {  // è già presente nella lista dei figli del terminal, quindi è già disabilitato
         printf(CB_YELLOW "Device already disconnected\n" C_WHITE);
-        return -7;
+        return;
     }
 
     int res = doLink(children, to_pid, base_dir, 1);
-    message_t ack;
+    message_t ack;  // Aspetto la conferma di avvenuta link dal dispositivo
     receiveMessage(&ack);
-    if (res <= 0) return res;
+    if (res <= 0) return;
 
     //  Killo il processo disabilitato
     message_t request, response;
     request = buildDeleteRequest(to_pid);
     if (sendMessage(&request) == -1) {
         perror("Error deleting device request");
-        return 0;
+        return;
     } else if (receiveMessage(&response) == -1) {
         perror("Error deleting device response");
-        return -1;
+        return;
+    } else {
+        printf(CB_GREEN "Device %d disconnected\n" C_WHITE, id);
     }
-    return 1;
 }
 #endif
 
@@ -336,14 +356,18 @@ void switchDevice(int id, char *label, char *pos) {
     int label_val = INVALID_VALUE;
     int pos_val = INVALID_VALUE;  // 0 = spento, 1 = acceso; x = valore termostato (°C)
     // Map delle label (char*) in valori (int) per poterli inserire in un messaggio
-    if (strcmp(label, LABEL_LIGHT) == 0) {
-        label_val = LABEL_LIGHT_VALUE;
-    } else if (strcmp(label, LABEL_OPEN) == 0) {
-        label_val = LABEL_OPEN_VALUE;
-    } else if (strcmp(label, LABEL_CLOSE) == 0) {
-        label_val = LABEL_CLOSE_VALUE;
-    } else if (strcmp(label, LABEL_THERM) == 0) {
-        label_val = LABEL_THERM_VALUE;
+    if (strcmp(label, LABEL_BULB_LIGHT) == 0) {
+        label_val = LABEL_BULB_LIGHT_VALUE;
+    } else if (strcmp(label, LABEL_WINDOW_OPEN) == 0) {
+        label_val = LABEL_WINDOW_OPEN_VALUE;
+    } else if (strcmp(label, LABEL_WINDOW_CLOSE) == 0) {
+        label_val = LABEL_WINDOW_CLOSE_VALUE;
+    } else if (strcmp(label, LABEL_FRIDGE_DOOR) == 0) {
+        label_val = LABEL_FRIDGE_DOOR_VALUE;
+    } else if (strcmp(label, LABEL_FRIDGE_THERM) == 0) {
+        label_val = LABEL_FRIDGE_THERM_VALUE;
+    } else if (strcmp(label, LABEL_ALARM_ENABLE) == 0) {
+        label_val = LABEL_ALARM_ENABLE_VALUE;
     } else if (strcmp(label, LABEL_ALL) == 0) {
         label_val = LABEL_ALL_VALUE;
     } else if (strcmp(label, LABEL_GENERAL) == 0) {
@@ -351,14 +375,14 @@ void switchDevice(int id, char *label, char *pos) {
     }
 
     // Map valore pos (char*) in valori (int) per poterli inserire in un messaggio
-    if (label_val == LABEL_LIGHT_VALUE || label_val == LABEL_OPEN_VALUE || label_val == LABEL_CLOSE_VALUE || label_val == LABEL_ALL_VALUE || label_val == LABEL_GENERAL_VALUE) {
+    if (label_val == LABEL_BULB_LIGHT_VALUE || label_val == LABEL_WINDOW_OPEN_VALUE || label_val == LABEL_WINDOW_CLOSE_VALUE || label_val == LABEL_FRIDGE_DOOR_VALUE || label_val == LABEL_ALARM_ENABLE_VALUE || label_val == LABEL_ALL_VALUE || label_val == LABEL_GENERAL_VALUE) {
         // Se è un interrutore on/off
         if (strcmp(pos, SWITCH_POS_OFF_LABEL) == 0) {
             pos_val = SWITCH_POS_OFF_LABEL_VALUE;  // 0 = spento/chiuso
         } else if (strcmp(pos, SWITCH_POS_ON_LABEL) == 0) {
             pos_val = SWITCH_POS_ON_LABEL_VALUE;  // 1 = acceso/aperto
         }
-    } else if (label_val == LABEL_THERM_VALUE) {
+    } else if (label_val == LABEL_FRIDGE_THERM_VALUE) {
         if (isInt(pos) && atoi(pos) >= -20 && atoi(pos) <= 15) {
             pos_val = atoi(pos);
         }
@@ -369,13 +393,17 @@ void switchDevice(int id, char *label, char *pos) {
         printf(CB_RED "Error: invalid label \"%s\"\n" C_WHITE, label);
         return;
     } else if (pos_val == INVALID_VALUE) {
-        if (label_val == LABEL_THERM_VALUE) {
+        if (label_val == LABEL_FRIDGE_THERM_VALUE) {
             printf(CB_RED "Error: invalid pos value %s°C for label \"%s\". It must be a number between -20°C and 15°C \n" C_WHITE, pos, label);
         } else {
             printf(CB_RED "Error: invalid pos value \"%s\" for label \"%s\"\n" C_WHITE, pos, label);
         }
         return;
     } else {
+        if (label_val == LABEL_GENERAL_VALUE && id != 0) {  // L'interrruttore GENERAL è utilizzabile solo nel controller
+            printf(CB_RED "Error: the label \"%s\" is not supported by the device %d\n" C_WHITE, label, id);
+            return;
+        }
         message_t request = buildSwitchRequest(pid, label_val, pos_val);
         message_t response;
         if (sendMessage(&request) == -1) {
@@ -431,6 +459,8 @@ void setDevice(int id, char *label, char *val) {
         label_val = REGISTER_END_VALUE;  // 4 = end (timer)
     } else if (strcmp(label, REGISTER_PERC) == 0) {
         label_val = REGISTER_PERC_VALUE;  // 8 = perc (fridge)
+    } else if (strcmp(label, REGISTER_PROB) == 0) {
+        label_val = REGISTER_PROB_VALUE;  // 16 = prob (alarm)
     }
 
     // valore del delay, di inizio o fine timer
@@ -449,7 +479,7 @@ void setDevice(int id, char *label, char *val) {
             sec -= now.tm_sec;
             pos_val = time(NULL) + (hr * 3600) + (min * 60) + sec;
         }
-    } else if (label_val == REGISTER_PERC_VALUE && isInt(val) && atoi(val) >= 0 && atoi(val) <= 100) {
+    } else if ((label_val == REGISTER_PERC_VALUE || label_val == REGISTER_PROB_VALUE) && isInt(val) && atoi(val) >= 0 && atoi(val) <= 100) {
         pos_val = atoi(val);
     }
 
@@ -513,3 +543,41 @@ void infoDevice(int id) {
         } while (response.vals[INFO_VAL_STOP] != 1);
     }
 }
+
+/**************************************** EXPORT ************************************************/
+/* Esporta la struttura del sistema corrente per ripristinarlo successivamente                  */
+/************************************************************************************************/
+void saveCommand(char* command, int argc, char **argv){
+  #ifndef MANUAL
+  if(fp != NULL){
+    int i;
+    for(i=0; i < argc; i++){
+        fprintf (fp,"%s ", argv[i]);  //salvo su un file temporaneo tutti i comandi eseguiti, così per fare il comando export copio semplicemente tutti i comandi eseguti in sequenza
+    }
+    fprintf(fp, "\n");
+  }
+  #endif
+}
+
+#ifndef MANUAL
+void doExport(char* file_name){
+  FILE *new, *old;
+  char c;
+  new = fopen (file_name,"w");
+  old = fopen (file_tmp,"r");
+  if(new == NULL || old == NULL){
+    printf(CB_RED "Error while exporting configuration to \"%s\": %s\n" C_WHITE, file_name, strerror(errno));
+    return;
+  }
+
+  // copio il contenuto del primo file nel secondo
+  c = fgetc(old);
+  while (c != EOF){
+    fputc(c, new);
+    c = fgetc(old);
+  }
+  fclose (new);
+  fclose (old);
+  printf(CB_GREEN "Current configuration saved in \"%s\"\n" C_WHITE, file_name);
+}
+#endif
