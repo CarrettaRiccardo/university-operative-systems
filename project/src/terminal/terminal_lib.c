@@ -470,14 +470,17 @@ void setDevice(int id, char *label, char *val) {
         int hr = 0;
         int min = 0;
         int sec = 0;
-        printf("AAA - %d\n", sscanf(val, "%d:%d:%d", &hr, &min, &sec));
-        if (hr >= 0 && hr < 24 && min >= 0 && min < 60 && sec >= 0 && sec < 60) {
-            time_t time_now = time(NULL);
-            struct tm now = *localtime(&time_now);
-            hr -= now.tm_hour;
-            min -= now.tm_min;
-            sec -= now.tm_sec;
-            pos_val = time(NULL) + (hr * 3600) + (min * 60) + sec;
+        if (sscanf(val, "%d:%d:%d", &hr, &min, &sec) == 0)// 0 = nessun parametro è stato salvato (quindi hr passato non era un intero)
+            pos_val = INVALID_VALUE;
+        else {
+            if (hr >= 0 && hr < 24 && min >= 0 && min < 60 && sec >= 0 && sec < 60) {
+                time_t time_now = time(NULL);
+                struct tm now = *localtime(&time_now);
+                hr -= now.tm_hour;
+                min -= now.tm_min;
+                sec -= now.tm_sec;
+                pos_val = time(NULL) + (hr * 3600) + (min * 60) + sec;
+            }
         }
     } else if ((label_val == REGISTER_PERC_VALUE || label_val == REGISTER_PROB_VALUE) && isInt(val) && atoi(val) >= 0 && atoi(val) <= 100) {
         pos_val = atoi(val);
