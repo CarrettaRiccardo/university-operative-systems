@@ -25,7 +25,7 @@
  **/
 
 /*  Lettura e parse parametri */
-int getArgs(char *line, int *argc, char **argv, FILE* from);
+int getArgs(char *line, int *argc, char **argv, FILE *from);
 /*  Print con identazione   */
 void printHelp(char *cmd, char *desc);
 
@@ -35,26 +35,26 @@ void terminalDestroy();
 #ifndef MANUAL
 void listDevices();
 int addDevice(char *device);
-void unlinkDevice(int id);
+int unlinkDevice(int id);
 #endif
-void delDevice(int id);
-void linkDevices(int id1, int id2);
-void switchDevice(int id, char *label, char *pos);
-void setDevice(int id, char *label, char *val);
+int delDevice(int id);
+int linkDevices(int id1, int id2);
+int switchDevice(int id, char *label, char *pos);
+int setDevice(int id, char *label, char *val);
 void infoDevice(int id);
-void doExport(char* file_name);
+void doExport(char *file_name);
 void saveCommand(char *line, int argc, char **argv);
 
 /* Main */
 int main(int sargc, char **sargv) {
-    FILE* import =  NULL;
+    FILE *import = NULL;
 #ifndef MANUAL
     ipcInit(getMq(getpid()));  // Inizializzo componenti comunicazione
-    if (sargc == 2) {
-      import = fopen(sargv[1], "r");
-      if(import == NULL){
-           printf(CB_RED "Error while importing configuration from \"%s\": %s.\nSkipping import...\n\n" C_WHITE, sargv[1], strerror(errno));
-      }
+    if (sargc == 2) {          // Lettura file da paramtro per importazione configurazione
+        import = fopen(sargv[1], "r");
+        if (import == NULL) {
+            printf(CB_RED "Error while importing configuration from \"%s\": %s.\nSkipping import...\n\n" C_WHITE, sargv[1], strerror(errno));
+        }
     }
 #else
     if (sargc <= 1 || !isInt(sargv[1])) {
@@ -91,13 +91,12 @@ int main(int sargc, char **sargv) {
         else
             print_sign = 1;
 
-        if (getArgs(line, &argc, argv, (import == NULL) ? stdin : import ) == -1) {
+        if (getArgs(line, &argc, argv, (import == NULL) ? stdin : import) == -1) {
             print_sign = 0;
             fclose(import);
             import = NULL;
             continue;
         }
-
 
         /**************************************** HELP ********************************************/
         if (strcmp(argv[0], "help") == 0) {
@@ -149,7 +148,7 @@ int main(int sargc, char **sargv) {
 
                 if (result == -1)
                     perror(CB_RED "Error while adding device" C_WHITE);
-                else if (result != 0) {  //  Se ho aggiunto un device supportato
+                else if (result != 0) {  //  Se ho aggiunto un device supportato mi ritorna l'id del device appena aggiunto
                     printf(CB_GREEN "Device added with id %d" C_WHITE "\nNow it's disconnected from the system. To connect the device run " CB_WHITE "link %d to 0\n" C_WHITE, result, result);
                     saveCommand(line, argc, argv);
                 }
@@ -162,19 +161,20 @@ int main(int sargc, char **sargv) {
             } else if (!isInt(argv[1]) || atoi(argv[1]) < 0) {
                 printf(CB_RED "Error: <id> must be a positive number\n" C_WHITE);
             } else {
-                unlinkDevice(atoi(argv[1]));
-                saveCommand(line, argc, argv);
+                if (unlinkDevice(atoi(argv[1])) != -1) {
+                    saveCommand(line, argc, argv);
+                }
             }
         }
         /**************************************** EXPORT ********************************************/
         else if (strcmp(argv[0], "export") == 0) {
-          if (argc != ARGC_EXPORT != 0) {
-              printf(CB_RED "Unknown parameters, usage: export <file_name>\n" C_WHITE);
-          } else {
-            fclose(fp); //chiudo per rendere effettivi i cambiamenti al file
-            doExport(argv[1]);
-            fp = fopen ( file_tmp ,"a");  //riapro in append per non sovrascrivere i comandi di questa stessa sessione
-          }
+            if (argc != ARGC_EXPORT != 0) {
+                printf(CB_RED "Unknown parameters, usage: export <file_name>\n" C_WHITE);
+            } else {
+                fclose(fp);  //chiudo per rendere effettivi i cambiamenti al file
+                doExport(argv[1]);
+                fp = fopen(file_tmp, "a");  //riapro in append per non sovrascrivere i comandi di questa stessa sessione
+            }
         }
 #endif
         /**************************************** DEL ********************************************/
@@ -184,8 +184,9 @@ int main(int sargc, char **sargv) {
             } else if (!isInt(argv[1]) || atoi(argv[1]) < 0) {
                 printf(CB_RED "Error: <id> must be a positive number\n" C_WHITE);
             } else {
-                delDevice(atoi(argv[1]));
-                saveCommand(line, argc, argv);
+                if (delDevice(atoi(argv[1])) != -1) {
+                    saveCommand(line, argc, argv);
+                }
             }
         }
         /**************************************** LINK ********************************************/
@@ -197,8 +198,9 @@ int main(int sargc, char **sargv) {
             } else if (strcmp(argv[1], argv[3]) == 0) {
                 printf(CB_RED "Error: cannot link a device to itself\n" C_WHITE);
             } else {
-                linkDevices(atoi(argv[1]), atoi(argv[3]));
-                saveCommand(line, argc, argv);
+                if (linkDevices(atoi(argv[1]), atoi(argv[3])) != -1) {
+                    saveCommand(line, argc, argv);
+                }
             }
         }
         /**************************************** SWITCH ********************************************/
@@ -208,8 +210,9 @@ int main(int sargc, char **sargv) {
             } else if (!isInt(argv[1]) || atoi(argv[1]) < 0) {
                 printf(CB_RED "Error: <id> must be a positive number\n" C_WHITE);
             } else {
-                switchDevice(atoi(argv[1]), argv[2], argv[3]);
-                saveCommand(line, argc, argv);
+                if (switchDevice(atoi(argv[1]), argv[2], argv[3]) != -1) {
+                    saveCommand(line, argc, argv);
+                }
             }
         }
         /**************************************** SET ********************************************/
@@ -219,8 +222,9 @@ int main(int sargc, char **sargv) {
             } else if (!isInt(argv[1]) || atoi(argv[1]) < 0) {
                 printf(CB_RED "Error: <id> must be a positive number\n" C_WHITE);
             } else {
-                setDevice(atoi(argv[1]), argv[2], argv[3]);
-                saveCommand(line, argc, argv);
+                if (setDevice(atoi(argv[1]), argv[2], argv[3]) != -1) {
+                    saveCommand(line, argc, argv);
+                }
             }
         }
         /**************************************** INFO ********************************************/
@@ -245,10 +249,10 @@ int main(int sargc, char **sargv) {
     return 0;
 }
 
-int getArgs(char *line, int *argc, char **argv, FILE* from) {
+int getArgs(char *line, int *argc, char **argv, FILE *from) {
     // Lettura stringa
     if (fgets(line, MAX_LEN, from) == NULL) return -1;  // Per evitare la ripetizione di comandi in caso venga ricevuto un segnale
-    line[strcspn(line, "\n")] = '\0';                    //  Rimuovo eventuali \n dalla fine della stringa per evitare problemi nel parse
+    line[strcspn(line, "\n")] = '\0';                   //  Rimuovo eventuali \n dalla fine della stringa per evitare problemi nel parse
     // Parse argomenti
     int pos = 0;
     char *arg = strtok(line, " ");  //  Parse primo parametro
@@ -257,7 +261,7 @@ int getArgs(char *line, int *argc, char **argv, FILE* from) {
         arg = strtok(NULL, " ");  //  Parse parametro successivo
     }
     *argc = pos;
-    if(from != stdin) usleep(255); // Per evitare problemi di importazione del file data la lettura veloce. Per maggiori info fare riferimento alla documentazione
+    if (from != stdin) usleep(255);  // Per evitare problemi di importazione del file data la lettura veloce. Per maggiori info fare riferimento alla documentazione
     return 0;
 }
 

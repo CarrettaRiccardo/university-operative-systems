@@ -1,7 +1,7 @@
 #include "../base/device.c"
 #include "../include/ipc.h"
 
-#define PROBABILITY_SECONDS 5 // tempo di richiamo della funzione che con probabilità 'prob' accende l'allarme
+#define PROBABILITY_SECONDS 5  // tempo di richiamo della funzione che con probabilità 'prob' accende l'allarme
 
 short state;
 short interruttore;     // valore interruttore che è 1 a 1 con lo stato
@@ -20,8 +20,8 @@ void initData() {
     signal(SIGALRM, ringAlarm);
     state = SWITCH_POS_OFF_LABEL_VALUE;
     interruttore = state;
-    delay = 10;         // tempo di spegnimento allarme se attivato
-    prob = 5;          // Probabilità che l'allarme suoni
+    delay = 30;  // tempo di spegnimento allarme se attivato
+    prob = 5;    // Probabilità che l'allarme suoni
     missing_time = 0;
     last_general_stop = 0;
     alarm(PROBABILITY_SECONDS);  // lancio la funzione che potrebbe attivare l'allarme ogni x
@@ -37,7 +37,7 @@ void cloneData(char **vals) {
     missing_time = atoi(vals[3]);
     last_general_stop = atoi(vals[4]);
     // riaccendo il timer di chiusura automatica se era aperto e se l'interruttore generale è on (last_general_stop = 0; ovvero non è disabilitato)
-    if (last_general_stop == 0){
+    if (last_general_stop == 0) {
         if (state == SWITCH_POS_ON_LABEL_VALUE && missing_time > 0) {
             alarm(missing_time);
         } else {
@@ -76,8 +76,7 @@ int handleSwitchDevice(message_t *msg) {
                 success = 1;
             }
         }
-    }
-    else {
+    } else {
         if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_LABEL_VALUE) {  // Stoppo temporaneamente
             generalStop();
             success = 1;
@@ -130,7 +129,7 @@ message_t buildCloneResponseDevice(int to_pid, int id) {
 }
 
 void ringAlarm() {
-    if (missing_time == 0){// se è richiamato perchè deve calcolare la probabilità per accendersi...
+    if (missing_time == 0) {  // se è richiamato perchè deve calcolare la probabilità per accendersi...
         // Con una probabilità 'prob' si accende
         srand(time(NULL));
         int r = rand() % 100 + 1;  // 1 - 100
@@ -151,24 +150,22 @@ void ringAlarm() {
             // Faccio un altro ciclo ogni secondo
             alarm(PROBABILITY_SECONDS);
         }
-    }
-    else{// ...altrimenti è stato richiamato per chiudersi automaticamente
+    } else {  // ...altrimenti è stato richiamato per chiudersi automaticamente
         if (state == SWITCH_POS_ON_LABEL_VALUE) {
             state = SWITCH_POS_OFF_LABEL_VALUE;
             interruttore = SWITCH_POS_OFF_LABEL_VALUE;
-            alarm(PROBABILITY_SECONDS);// riprendo nel richiamare il ciclo ogni secondo
+            alarm(PROBABILITY_SECONDS);  // riprendo nel richiamare il ciclo ogni secondo
         }
         missing_time = 0;
     }
 }
 
 void generalStart() {
-    if (last_general_stop > 0) {// se era spento (quindi era stata salvato il tempo mancante di spegnimento del delay...)
+    if (last_general_stop > 0) {  // se era spento (quindi era stata salvato il tempo mancante di spegnimento del delay...)
         // riaccendo il timer di chiusura automatica se era aperta la porta
         if (state == SWITCH_POS_ON_LABEL_VALUE && missing_time > 0) {
             alarm(missing_time);
-        }
-        else{
+        } else {
             missing_time = 0;
             alarm(PROBABILITY_SECONDS);
         }
@@ -177,7 +174,7 @@ void generalStart() {
 }
 
 void generalStop() {
-    if (last_general_stop == 0) {// se era acceso
+    if (last_general_stop == 0) {  // se era acceso
         // spengo il timer di chiusura automatica e salvo quanto tempo mancava
         missing_time = alarm(0);
         last_general_stop = time(NULL);
