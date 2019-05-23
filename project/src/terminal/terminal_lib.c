@@ -464,13 +464,13 @@ void setDevice(int id, char *label, char *val) {
     }
 
     // valore del delay, di inizio o fine timer
-    if (label_val == REGISTER_DELAY_VALUE && isInt(val)) {  // E' un valore valido solo se è un numero (i register sono delay, begin o end)
+    if (label_val == REGISTER_DELAY_VALUE && isInt(val) && atoi(val) > 0) {  // E' un valore valido solo se è un numero (i register sono delay, begin o end)
         pos_val = atoi(val);
     } else if (label_val == REGISTER_BEGIN_VALUE || label_val == REGISTER_END_VALUE) {  // se è begin/end, il numero inserito indica quanti seconda da ORA
         int hr = 0;
         int min = 0;
         int sec = 0;
-        sscanf(val, "%d:%d:%d", &hr, &min, &sec);
+        printf("AAA - %d\n", sscanf(val, "%d:%d:%d", &hr, &min, &sec));
         if (hr >= 0 && hr < 24 && min >= 0 && min < 60 && sec >= 0 && sec < 60) {
             time_t time_now = time(NULL);
             struct tm now = *localtime(&time_now);
