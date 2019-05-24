@@ -310,23 +310,23 @@ void doInfoList(message_t *msg, short type) {
     char state_str[256] = "\0";
     // In base alla presenza o meno degli interruttori capisco se un hub ha cllegato un determianto tipo di dispositivi.
     // Per i device con più interruttori mi basta fare il controllo sulla presenza di uno visto che gli altri saranno sempre presenti in ogni caso
-    if (label_values & LABEL_BULB_LIGHT_VALUE) strcat(strcat(strcat(state_str, CB_WHITE " " BULB "s" C_WHITE "="), (state & BULB_STATE) ? CB_GREEN "on" : CB_RED "off"), (override & BULB_STATE) ? "(override)" : "");
-    if (label_values & LABEL_WINDOW_OPEN_VALUE) strcat(strcat(strcat(state_str, CB_WHITE " " WINDOW "s" C_WHITE "="), (state & WINDOW_STATE) ? CB_GREEN "open" : CB_RED "closed"), (override & WINDOW_STATE) ? "(override)" : "");
-    if (label_values & LABEL_FRIDGE_DOOR_VALUE) strcat(strcat(strcat(state_str, CB_WHITE " " FRIDGE "s" C_WHITE "="), (state & FRIDGE_STATE) ? CB_GREEN "open" : CB_RED "closed"), (override & FRIDGE_STATE) ? "(override)" : "");
-    if (label_values & LABEL_ALARM_ENABLE_VALUE) strcat(strcat(strcat(state_str, CB_WHITE " " ALARM "s" C_WHITE "="), (state & ALARM_STATE) ? CB_GREEN "ringing" : CB_RED "off"), (override & ALARM_STATE) ? "(override)" : "");
-    if (strlen(state_str) == 0) strcat(state_str, CB_YELLOW " (no connected devices)");
+    if (label_values & LABEL_BULB_LIGHT_VALUE) strncat(strcat(strcat(state_str, CB_WHITE " " BULB "s" C_WHITE "="), (state & BULB_STATE) ? CB_GREEN "on" : CB_RED "off"), (override & BULB_STATE) ? "(override)" : "", 255);
+    if (label_values & LABEL_WINDOW_OPEN_VALUE) strncat(strcat(strcat(state_str, CB_WHITE " " WINDOW "s" C_WHITE "="), (state & WINDOW_STATE) ? CB_GREEN "open" : CB_RED "closed"), (override & WINDOW_STATE) ? "(override)" : "", 255);
+    if (label_values & LABEL_FRIDGE_DOOR_VALUE) strncat(strcat(strcat(state_str, CB_WHITE " " FRIDGE "s" C_WHITE "="), (state & FRIDGE_STATE) ? CB_GREEN "open" : CB_RED "closed"), (override & FRIDGE_STATE) ? "(override)" : "", 255);
+    if (label_values & LABEL_ALARM_ENABLE_VALUE) strncat(strcat(strcat(state_str, CB_WHITE " " ALARM "s" C_WHITE "="), (state & ALARM_STATE) ? CB_GREEN "ringing" : CB_RED "off"), (override & ALARM_STATE) ? "(override)" : "", 255);
+    if (strlen(state_str) == 0) strncat(state_str, CB_YELLOW " (no connected devices)", 255);
 
     // Costruisco la stringa delle label disponibili nel dispositivo di controllo
     char labels_str[128] = "";
     if (label_values != 0) label_values |= LABEL_ALL_VALUE;  // Se ho dei figli mostro anche l'interruttore all
-    if (label_values & LABEL_ALL_VALUE) strcat(labels_str, " " LABEL_ALL);
-    if (label_values & LABEL_BULB_LIGHT_VALUE) strcat(labels_str, " " LABEL_BULB_LIGHT);
-    if (label_values & LABEL_WINDOW_OPEN_VALUE) strcat(labels_str, " " LABEL_WINDOW_OPEN);
-    if (label_values & LABEL_WINDOW_CLOSE_VALUE) strcat(labels_str, " " LABEL_WINDOW_CLOSE);
-    if (label_values & LABEL_FRIDGE_DOOR_VALUE) strcat(labels_str, " " LABEL_FRIDGE_DOOR);
-    if (label_values & LABEL_FRIDGE_THERM_VALUE) strcat(labels_str, " " LABEL_FRIDGE_THERM);
-    if (label_values & LABEL_ALARM_ENABLE_VALUE) strcat(labels_str, " " LABEL_ALARM_ENABLE);
-    if (strlen(labels_str) == 0) strcat(labels_str, " (empty)");  // Nel caso non avessi nessun interruttore
+    if (label_values & LABEL_ALL_VALUE) strncat(labels_str, " " LABEL_ALL, 127);
+    if (label_values & LABEL_BULB_LIGHT_VALUE) strncat(labels_str, " " LABEL_BULB_LIGHT, 127);
+    if (label_values & LABEL_WINDOW_OPEN_VALUE) strncat(labels_str, " " LABEL_WINDOW_OPEN, 127);
+    if (label_values & LABEL_WINDOW_CLOSE_VALUE) strncat(labels_str, " " LABEL_WINDOW_CLOSE, 127);
+    if (label_values & LABEL_FRIDGE_DOOR_VALUE) strncat(labels_str, " " LABEL_FRIDGE_DOOR, 127);
+    if (label_values & LABEL_FRIDGE_THERM_VALUE) strncat(labels_str, " " LABEL_FRIDGE_THERM, 127);
+    if (label_values & LABEL_ALARM_ENABLE_VALUE) strncat(labels_str, " " LABEL_ALARM_ENABLE, 127);
+    if (strlen(labels_str) == 0) strncat(labels_str, " (empty)", 127);  // Nel caso non avessi nessun interruttore
 
     // Calcolo i valori dei registri disponibili e lo setto
     char registers_str[128] = "";
@@ -340,10 +340,10 @@ void doInfoList(message_t *msg, short type) {
             if (i == INFO_VAL_REG_PERC) snprintf(reg_str, 16, " " REGISTER_PERC "=%d%%", value);
             if (i == INFO_VAL_REG_TEMP) snprintf(reg_str, 16, " " REGISTER_TEMP "=%d°C", value);
             if (i == INFO_VAL_REG_PROB) snprintf(reg_str, 16, " " REGISTER_PROB "=%d%%", value);
-            strcat(registers_str, reg_str);
+            strncat(registers_str, reg_str, 127);
         }
     }
-    if (strlen(registers_str) == 0) strcat(registers_str, " (empty)");  // Nel caso non avessi nessun registro
+    if (strlen(registers_str) == 0) strncat(registers_str, " (empty)", 127);  // Nel caso non avessi nessun registro
 
     message_t m;
     if (type == INFO_MSG_TYPE) {

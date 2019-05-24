@@ -15,7 +15,7 @@ int isInt(char *str) {
 
 char *extractBaseDir(char *path) {
     char *base_dir = malloc(sizeof(path) + MAX_DEVICE_NAME_LENGTH);
-    strcpy(base_dir, path);
+    strncpy(base_dir, path, strlen(path) + MAX_DEVICE_NAME_LENGTH);
     char *last_slash = strrchr(base_dir, '/');
     if (last_slash) *(last_slash + 1) = '\0';
     return base_dir;
