@@ -161,6 +161,7 @@ void terminalDestroy() {
 void listDevices() {
     node_t *p = children->head;
     while (p != NULL) {
+        printf("\n");
         message_t request = buildListRequest(*(int *)p->value);
         message_t response;
         if (sendMessage(&request) == -1) {

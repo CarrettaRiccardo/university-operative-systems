@@ -275,7 +275,7 @@ void doInfoList(message_t *msg, short type) {
 
             // Sommo i valori dei registri dei figli, in modo da poter calcolare i registri dell'HUB
             int i;
-            for (i = INFO_VAL_REG_TIME; i <= INFO_VAL_REG_TEMP; i++) {
+            for (i = INFO_VAL_REG_TIME; i <= INFO_VAL_REG_PROB; i++) {
                 if (response.vals[i] != INVALID_VALUE) {                                  // Se è un valore valido
                     if (registers_count[i] == 0) registers_values[i] = response.vals[i];  // Se è il primo registro con questo valore
                     if (response.vals[i] > registers_values[i])                           // Salvo il valore massimo tra i registri dei figli
@@ -331,7 +331,7 @@ void doInfoList(message_t *msg, short type) {
     // Calcolo i valori dei registri disponibili e lo setto
     char registers_str[128] = "";
     int i;
-    for (i = INFO_VAL_REG_TIME; i <= INFO_VAL_REG_TEMP; i++) {
+    for (i = INFO_VAL_REG_TIME; i <= INFO_VAL_REG_PROB; i++) {
         if (registers_count[i] > 0) {
             int value = registers_values[i];
             char reg_str[16] = "";
@@ -353,7 +353,7 @@ void doInfoList(message_t *msg, short type) {
     }
     m.vals[INFO_VAL_STATE] = count > 0 ? state : -1;
     m.vals[INFO_VAL_LABELS] = label_values;
-    for (i = INFO_VAL_REG_TIME; i <= INFO_VAL_REG_TEMP; i++) m.vals[i] = registers_count[i] > 0 ? registers_values[i] : INVALID_VALUE;
+    for (i = INFO_VAL_REG_TIME; i <= INFO_VAL_REG_PROB; i++) m.vals[i] = registers_count[i] > 0 ? registers_values[i] : INVALID_VALUE;
     sendMessage(&m);
 
     // Invio messaggi ricevuti dai figli al mittente

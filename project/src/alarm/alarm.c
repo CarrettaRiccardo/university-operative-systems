@@ -18,6 +18,7 @@ void generalStart();
 void generalStop();
 
 void initData() {
+    srand(time(NULL));
     // Associo il metodo ringAlarm al segnale alarm (con probabilità dell'attivazione dell'allarme dopo ogni x)
     signal(SIGALRM, ringAlarm);
     state = SWITCH_POS_OFF_LABEL_VALUE;
@@ -32,6 +33,7 @@ void initData() {
 }
 
 void cloneData(char **vals) {
+    srand(time(NULL));
     // Associo il metodo switch al segnare alarm per l'allarme automatico dopo il delay
     signal(SIGALRM, ringAlarm);
     state = atoi(vals[0]);
@@ -114,7 +116,7 @@ message_t buildInfoResponseDevice(int to_pid, int id, int lv) {
     message_t ret = buildInfoResponse(to_pid, id, lv, 1);
     time_t now = time(NULL);
     int tot_time = on_time + (now - ((state == SWITCH_POS_OFF_LABEL_VALUE) ? now : last_on_time));  // Se è spento ritorno solo "on_time", altrimenti on_time+differenza da quanto acceso
-    sprintf(ret.text, CB_CYAN "%s" C_WHITE ", " CB_WHITE "state: %s" C_WHITE ", " CB_WHITE "labels:" C_WHITE " %s, " CB_WHITE "registers:" C_WHITE " time%ds delay=%ds prob=%d%%", ALARM, state ? CB_GREEN "ringing" : CB_RED "off", LABEL_ALARM_ENABLE, tot_time, delay, prob);
+    sprintf(ret.text, CB_CYAN "%s" C_WHITE ", " CB_WHITE "state: %s" C_WHITE ", " CB_WHITE "labels:" C_WHITE " %s, " CB_WHITE "registers:" C_WHITE " time=%ds delay=%ds prob=%d%%", ALARM, state ? CB_GREEN "ringing" : CB_RED "off", LABEL_ALARM_ENABLE, tot_time, delay, prob);
     ret.vals[INFO_VAL_STATE] = state;
     ret.vals[INFO_VAL_LABELS] = LABEL_ALARM_ENABLE_VALUE;
     ret.vals[INFO_VAL_REG_TIME] = tot_time;
@@ -141,7 +143,6 @@ message_t buildCloneResponseDevice(int to_pid, int id) {
 void ringAlarm() {
     if (missing_time == 0) {  // se è richiamato perchè deve calcolare la probabilità per accendersi...
         // Con una probabilità 'prob' si accende
-        srand(time(NULL));
         int r = rand() % 100 + 1;  // 1 - 100
         if (r <= prob) {
             // Se è spento accendo l'allarme
