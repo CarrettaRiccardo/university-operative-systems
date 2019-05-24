@@ -1,7 +1,7 @@
 #include "../base/device.c"
 #include "../include/ipc.h"
 
-#define PROBABILITY_SECONDS 5  // tempo di richiamo della funzione che con probabilità 'prob' accende l'allarme
+#define PROBABILITY_SECONDS 10  // tempo di richiamo della funzione che con probabilità 'prob' accende l'allarme
 
 short state;
 short interruttore;     // valore interruttore che è 1 a 1 con lo stato
@@ -21,7 +21,7 @@ void initData() {
     state = SWITCH_POS_OFF_LABEL_VALUE;
     interruttore = state;
     delay = 30;  // tempo di spegnimento allarme se attivato
-    prob = 5;    // Probabilità che l'allarme suoni
+    prob = 5;    // Probabilità che l'allarme suoni, all'inizio = 5%
     missing_time = 0;
     last_general_stop = 0;
     alarm(PROBABILITY_SECONDS);  // lancio la funzione che potrebbe attivare l'allarme ogni x

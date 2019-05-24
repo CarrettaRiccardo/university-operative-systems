@@ -334,10 +334,6 @@ int linkDevices(int id1, int id2) {
 int switchDevice(int id, char *label, char *pos) {
 #ifndef MANUAL
     int controller_pid = getControllerPid();
-    if (id != 0 && isControllerEnabled(controller_pid) == 0) {
-        printf(CB_RED "Error: the controller is disabled. Run " CB_WHITE "switch 0 general on" CB_RED " to enable it\n" C_WHITE);
-        return -1;
-    }
 
     int pid = getPidByIdSingle(controller_pid, id);
     if (pid == -1) {
@@ -346,6 +342,11 @@ int switchDevice(int id, char *label, char *pos) {
         } else {
             printf(CB_RED "Error: device with id %d not found\n" C_WHITE, id);
         }
+        return -1;
+    }
+
+    if (id != 0 && isControllerEnabled(controller_pid) == 0) {
+        printf(CB_RED "Error: the controller is disabled. Run " CB_WHITE "switch 0 general on" CB_RED " to enable it\n" C_WHITE);
         return -1;
     }
 
@@ -431,11 +432,6 @@ int switchDevice(int id, char *label, char *pos) {
 int setDevice(int id, char *label, char *val) {
 #ifndef MANUAL
     int controller_pid = getControllerPid();
-    if (id != 0 && isControllerEnabled(controller_pid) == 0) {
-        printf(CB_RED "Error: the controller is disabled. Run " CB_WHITE "switch 0 general on" CB_RED " to enable it\n" C_WHITE);
-        return -1;
-    }
-
     int pid = getPidByIdSingle(controller_pid, id);
     if (pid == -1) {
         if (getPidById(children, id) != -1) {
@@ -443,6 +439,11 @@ int setDevice(int id, char *label, char *val) {
         } else {
             printf(CB_RED "Error: device with id %d not found\n" C_WHITE, id);
         }
+        return -1;
+    }
+
+    if (id != 0 && isControllerEnabled(controller_pid) == 0) {
+        printf(CB_RED "Error: the controller is disabled. Run " CB_WHITE "switch 0 general on" CB_RED " to enable it\n" C_WHITE);
         return -1;
     }
 #else
