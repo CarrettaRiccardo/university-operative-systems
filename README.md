@@ -39,7 +39,7 @@ Manual può eseguire qualsiasi comando eccetto i comandi di LIST, UNLINK, ADD ed
    _ Ubuntu 16.04 (virtual machine)
    _ Ubuntu BOH (pc laboratorio)
    _ Xubuntu 18.04 (virtual machine)
-   _ Centos 6 
+   _ Centos 6.1 
 
 
 ##Aggiunte
@@ -64,3 +64,20 @@ Manual può eseguire qualsiasi comando eccetto i comandi di LIST, UNLINK, ADD ed
 5. __COMANDO UNLINK__:
      _ E' supportato il comando __unlink__ che permette di scollegare un componente dalla centralina, disattivandolo. E' comunque possibile interagire con esso tramite la shell manuale. Per rispettare la struttura gerarchica del sistema, il componente viene effettivamente rimosso dall' albero dei figli della **centralina**, diventando figlio di **terminal**
 
+
+
+##ALCUNI COMANDI UTILI
+
+1. add bulb/timer/alarm/fridge/window/hub
+2. del <id_device>
+3. unlink <id_device>
+4. switch <id_bulb> light on/off
+5. switch <id_window> open on/off
+6. switch <hub> light on/off  (accende/spegne tutte le lampadine ad esso connesse)
+7. switch <hub> open on/off  (apre/chiude tutte le finestre ad esso connesse)
+8. switch <hub> all on/off  (accende/spegne o apre/chiude tutti i componenti ad esso connessi)
+9. switch 0 general on/off  (accende/spegne la centralina)
+10. set <id_fridge> delay 15 (setta il tempo di chiusura a 15s per il frigorifero)
+11.
+12.
+13.
