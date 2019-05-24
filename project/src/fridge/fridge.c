@@ -20,7 +20,7 @@ void initData() {
     signal(SIGALRM, closeDoor);
     state = SWITCH_POS_OFF_LABEL_VALUE;
     interruttore = SWITCH_POS_OFF_LABEL_VALUE;
-    delay = 10;
+    delay = 30;
     temp = 4;
     perc = 0;
     open_time = 0;
