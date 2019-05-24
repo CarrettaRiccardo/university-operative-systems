@@ -172,7 +172,9 @@ void listDevices() {
                 } else if (response.type == LIST_MSG_TYPE) {  //controllo che non sia stato un mix di messaggi, in tal caso ignoro il messaggio
                     int i;
                     for (i = 0; i < response.vals[INFO_VAL_LEVEL] - 1; i++) printf("    ");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
-                    if (response.vals[INFO_VAL_LEVEL] > 0) printf(C_CYAN " └──" C_WHITE);
+                    if (response.vals[INFO_VAL_LEVEL] > 0) printf(CB_CYAN " │  \n" C_WHITE);
+                    for (i = 0; i < response.vals[INFO_VAL_LEVEL] - 1; i++) printf("    ");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
+                    if (response.vals[INFO_VAL_LEVEL] > 0) printf(CB_CYAN " └──" C_WHITE);
                     printf(CB_CYAN "(%d)" C_WHITE " %s\n", response.vals[INFO_VAL_ID], response.text);
                 }
             } while (response.vals[INFO_VAL_STOP] != 1);
@@ -542,9 +544,11 @@ void infoDevice(int id) {
                 perror("Error info response");
             } else {
                 int i;
+                for (i = 0; i < response.vals[INFO_VAL_LEVEL] - 1; i++) printf("    ");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
+                if (response.vals[INFO_VAL_LEVEL] > 0) printf(CB_CYAN " │  \n" C_WHITE);
                 for (i = 0; i < response.vals[INFO_VAL_LEVEL]; i++) {
                     if (i == response.vals[INFO_VAL_LEVEL] - 1)
-                        printf(C_CYAN " └──" C_WHITE);
+                        printf(CB_CYAN " └──" C_WHITE);
                     else
                         printf("    ");  // Stampa x \t, dove x = lv (profondità componente, per indentazione)
                 }
