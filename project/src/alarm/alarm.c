@@ -7,6 +7,8 @@ short state;
 short interruttore;     // valore interruttore che è 1 a 1 con lo stato
 int delay;              // Tempo in cui si ricalcola una probabilità di accendersi
 int prob;               // Probabilità di accensione automatica ad ogni 'delay'
+int on_time;            // Tempo di accensione totale dell'allarme
+int last_on_time;       // Tempo di ultima accensione per calcolare la differenza
 int missing_time;       // Tempo rimanente di chisura automatica se viene spento l'interruttore generale
 int last_general_stop;  // Ultimo tempo di stop, per calcolare il tempo di apertura in caso sia stoppato mentre la porta è aperta
 
@@ -22,6 +24,8 @@ void initData() {
     interruttore = state;
     delay = 30;  // tempo di spegnimento allarme se attivato
     prob = 5;    // Probabilità che l'allarme suoni, all'inizio = 5%
+    on_time = 0;
+    last_on_time = 0;
     missing_time = 0;
     last_general_stop = 0;
     alarm(PROBABILITY_SECONDS);  // lancio la funzione che potrebbe attivare l'allarme ogni x
@@ -34,8 +38,10 @@ void cloneData(char **vals) {
     interruttore = state;
     delay = atoi(vals[1]);
     prob = atoi(vals[2]);
-    missing_time = atoi(vals[3]);
-    last_general_stop = atoi(vals[4]);
+    on_time = atoi(vals[3]);
+    last_on_time = atoi(vals[4]);
+    missing_time = atoi(vals[5]);
+    last_general_stop = atoi(vals[6]);
     // riaccendo il timer di chiusura automatica se era aperto e se l'interruttore generale è on (last_general_stop = 0; ovvero non è disabilitato)
     if (last_general_stop == 0) {
         if (state == SWITCH_POS_ON_LABEL_VALUE && missing_time > 0) {
@@ -55,6 +61,7 @@ int handleSwitchDevice(message_t *msg) {
                 // Se è acceso, spengo
                 if (interruttore == SWITCH_POS_ON_LABEL_VALUE) {
                     interruttore = SWITCH_POS_OFF_LABEL_VALUE;
+                    on_time += time(NULL) - last_on_time;
                     state = interruttore;
                     missing_time = 0;
                     alarm(PROBABILITY_SECONDS);  // riparto col ciclo di probabilità
@@ -65,6 +72,7 @@ int handleSwitchDevice(message_t *msg) {
                 // Se è spento, accendo
                 if (interruttore == SWITCH_POS_OFF_LABEL_VALUE) {
                     interruttore = SWITCH_POS_ON_LABEL_VALUE;
+                    last_on_time = time(NULL);
                     state = interruttore;
                     missing_time = delay;
                     // attendo il 'delay' per lo spegnimento automatico
@@ -104,10 +112,12 @@ int handleSetDevice(message_t *msg) {
 
 message_t buildInfoResponseDevice(int to_pid, int id, int lv) {
     message_t ret = buildInfoResponse(to_pid, id, lv, 1);
-    sprintf(ret.text, CB_CYAN "%s" C_WHITE ", " CB_WHITE "state: %s" C_WHITE ", " CB_WHITE "labels:" C_WHITE " %s, " CB_WHITE "registers:" C_WHITE " delay=%ds prob=%d%%", ALARM, state ? CB_GREEN "ringing" : CB_RED "off", LABEL_ALARM_ENABLE, delay, prob);
+    time_t now = time(NULL);
+    int tot_time = on_time + (now - ((state == SWITCH_POS_OFF_LABEL_VALUE) ? now : last_on_time));  // Se è spento ritorno solo "on_time", altrimenti on_time+differenza da quanto acceso
+    sprintf(ret.text, CB_CYAN "%s" C_WHITE ", " CB_WHITE "state: %s" C_WHITE ", " CB_WHITE "labels:" C_WHITE " %s, " CB_WHITE "registers:" C_WHITE " time%ds delay=%ds prob=%d%%", ALARM, state ? CB_GREEN "ringing" : CB_RED "off", LABEL_ALARM_ENABLE, tot_time, delay, prob);
     ret.vals[INFO_VAL_STATE] = state;
     ret.vals[INFO_VAL_LABELS] = LABEL_ALARM_ENABLE_VALUE;
-    ret.vals[INFO_VAL_REG_TIME] = INVALID_VALUE;
+    ret.vals[INFO_VAL_REG_TIME] = tot_time;
     ret.vals[INFO_VAL_REG_DELAY] = delay;
     ret.vals[INFO_VAL_REG_PERC] = INVALID_VALUE;
     ret.vals[INFO_VAL_REG_TEMP] = INVALID_VALUE;
@@ -124,7 +134,7 @@ message_t buildListResponseDevice(int to_pid, int id, int lv) {
 }
 
 message_t buildCloneResponseDevice(int to_pid, int id) {
-    int vals[] = {state, delay, prob, missing_time, last_general_stop};
+    int vals[] = {state, delay, prob, on_time, last_on_time, missing_time, last_general_stop};
     return buildCloneResponse(to_pid, ALARM, id, vals, 0);
 }
 
@@ -138,6 +148,7 @@ void ringAlarm() {
             if (state == SWITCH_POS_OFF_LABEL_VALUE) {
                 state = SWITCH_POS_ON_LABEL_VALUE;
                 interruttore = SWITCH_POS_ON_LABEL_VALUE;
+                last_on_time = time(NULL);
                 missing_time = delay;
                 // attendo il 'delay' per lo spegnimento automatico
                 if (delay > 0)
@@ -154,6 +165,7 @@ void ringAlarm() {
         if (state == SWITCH_POS_ON_LABEL_VALUE) {
             state = SWITCH_POS_OFF_LABEL_VALUE;
             interruttore = SWITCH_POS_OFF_LABEL_VALUE;
+            on_time += time(NULL) - last_on_time;
             alarm(PROBABILITY_SECONDS);  // riprendo nel richiamare il ciclo ogni secondo
         }
         missing_time = 0;
