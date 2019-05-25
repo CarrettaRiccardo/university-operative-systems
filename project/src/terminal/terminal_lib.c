@@ -21,9 +21,10 @@ char file_tmp[32];  // Dichiarazione comune a a tutti, ma usato solo da TERMINAL
 
 /* Gestore del segnale per eliminare i file temporanei. Usato solo per TERMINAL */
 void sighandleInt(int sig) {
-    if (remove(file_tmp) < 0)
-        perror("Error while deleting tmp command file");
+    fclose(fp);  // Chiudo il file temporaneo usato per salvare la cronologia dei messaggi e lo elimino
+    if (remove(file_tmp) < 0) perror("Error while deleting tmp command file");
     printf(CB_WHITE "System disconnected\n" C_WHITE);
+    closeMq();  // Chiudo la message queue
     exit(0);
 }
 

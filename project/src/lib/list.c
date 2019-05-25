@@ -30,7 +30,7 @@ void listDestroy(list_t l) {
     node_t *p = l->head;
     while (p != NULL) {
         node_t *tmp = p->next;
-        free(p->value);
+        if (p->value != NULL) free(p->value);
         free(p);
         p = tmp;
     }
@@ -70,7 +70,7 @@ int listRemove(list_t l, void *value) {
     //  Se il valore da eliminare è il primo
     if (l->equal(p->value, value)) {
         l->head = p->next;
-        free(p->value);
+        if (p->value != NULL) free(p->value);
         free(p);
         return 1;
     }
@@ -78,7 +78,7 @@ int listRemove(list_t l, void *value) {
         if (l->equal(p->next->value, value)) {
             node_t *tmp = p->next;
             p->next = p->next->next;
-            free(tmp->value);
+            if (tmp->value != NULL) free(tmp->value);
             free(tmp);
             return 1;
         }
