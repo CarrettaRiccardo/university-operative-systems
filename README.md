@@ -21,21 +21,22 @@ Usare __./terminal__ per la shell normale e __./manual__ per quella manuale.
 
 
 ## Shell per override manuali
-L'eseguibile __./manual__ deve essere lanciato passando come parametro l'id relativo alla centralina (stampato come prima linea all' avvio della stessa) così da consentire una comunicazione diretta per risolvere id in pid.
-Una volta risolto la comunicazione tra __manual__ e device finale avviene con le stesse metodologie usate per la normale comunicazione tra processi.
+L'eseguibile __./manual__ deve essere lanciato passando come parametro l'id relativo alla centralina (stampato come prima linea all' avvio della stessa o visualizzabile con il comando `help`) così da consentire una comunicazione diretta per risolvere id in pid.
+Una volta risolto la comunicazione tra __manual__ e device finale avviene direttamente con le stesse metodologie usate per la normale comunicazione tra processi.
 
-Manual può eseguire qualsiasi comando eccetto i comandi di LIST, UNLINK, ADD ed EXPORT sia su dispositivi abilitati che non abilitati.
+Manual può eseguire qualsiasi comando eccetto i comandi `list`, `unlink`, `add` ed `export` sia su dispositivi abilitati che non abilitati.
+
 
 
 ## Peculiarità
-1. Quando la centralina (che ha sempre *id*=0) viene spenta tramite il comando __switch 0 off__ i timer si sospendono (perchè sono ipoteticamente gestiti direttamente da essa), mentre i fridge e alarm funzionano normalmente (rispettivamente chiusura automatica e "rilevazione intrusi"). Ciò può essere inteso come un *mini sistema di sicurezza* per la casa, così facendo in un ipotetico impianto domotico non c'è il richio di avere alimenti avariati o un allarme non funzionante in caso di guasto della centralina (o di mancanza della corrente ecc...).   
-Da **terminal** non è possibile eseguire comandi __SWITCH__ e __SET__.
+- Il controller (ossia la centralina, che ha sempre *id*=0) può essere  spenta tramite il comando __switch 0 off__.
+Quando ciò avviene, da **terminal** non è possibile eseguire i comandi `switch` e `set`, mentre tramite **manual** sono ancora utilizzabili.   
+ I timer si sospendono (perchè sono ipoteticamente gestiti direttamente da essa), mentre i fridge e alarm funzionano normalmente (rispettivamente chiusura automatica e "rilevazione intrusi"). Ciò può essere inteso come un *mini sistema di sicurezza* per la casa, così facendo in un ipotetico impianto domotico non c'è il richio di avere alimenti avariati o un allarme non funzionante in caso di guasto della centralina (o di mancanza della corrente ecc...).   
 
-2. Gestione dello stato degli __HUB__ (Vedi *Aggiunte* per maggiori info).
 
-3. Gestione diversi file sorgente con codice molto simile attraverso **#ifndef __MANUAL__**.
+- Gestione degli __HUB__ (Vedi *Aggiunte* per maggiori info).
 
-4. Gli eseguibili sono stati testati nei seguenti sistemi operativi :   
+- Gli eseguibili sono stati testati nei seguenti sistemi operativi :   
    - Ubuntu 16.04 (virtual machine)
    - Ubuntu BOH (pc laboratorio)
    - Xubuntu 18.04 (virtual machine)
@@ -43,41 +44,44 @@ Da **terminal** non è possibile eseguire comandi __SWITCH__ e __SET__.
 
 
 ## Aggiunte
-1. __HUB__ supporta dispositivi __eterogenei__:   
-     Nel comando *INFO* vengono elencati tutte le label dei vari interuttori e info di ricapitolazione a seconda dei dispositivi collegati.  
-     Nel caso non ci siano fridge/window collegati ad un __HUB__, il comando *switch <id> open on* restituisce **Command undeined for device <id>**  (TODO: Da verificare).    
-     E' in grado di modificare lo stato di qualsiasi tipo di device collegato (che possono essere eterogenei). Inoltre con la label *all* è possibile modificare lo stato di **tutti** i device ad esso collegati, indipendenetemente dal tipo dello stesso.
+1. __Supporto dispositivi eterogenei HUB e TIMER__:   
+     Lo stato, gli interruttori e i registri di un hub o timer sono un mirroring di quelli dei figli, sia nel caso i figli siano dello stesso tipo che nel caso siano di tipo diverso.  
+     Gli hub supportano tutte le operazioni eseguibili sui figli, compresi `switch` e `set`. Ad esempio uno switch su un interruttore specifico agirà sugli interruttori corrispondenti di tutti i figli, comportamento analogo peri registri.   
+     Nel caso un particolare tipo di dispositivo non sia presente nel sottoalbero dei figli dell'hub, i corrispondenti interruttori e registri non saranno visualizzabili o modificabili.    
+     Se un hub ha come figli (diretti o non) più dispositivi dello stesso tipo, il valore mostrato dai registri sarà il massimo tra i valori dei figli.  
+     E' stato aggiunto un interruttore `all` con il quale è possibile agire sullo stato di **tutti** i device collegati all'hub, indipendentemente dal loro tipo.
 
-2. __ALARM__:  
+
+2. __Nuovo dispositivo ALARM__:  
      Dispositivo che simula un allarme casalingo. Quando rileva una persona/movimento si accende (idealmente emettendo un suono, a livello implementativo viene solo segnalata l'accensione).    
-     Per ragioni implementative l' allarme scatta con una certa probabilità *prob* settabile come registro (la probabilità viene testata ogni *10* secondi).
+     Per ragioni implementative l'allarme scatta con una certa probabilità *prob* settabile come registro (la probabilità viene testata ogni *10* secondi).
+     - _stato_: ​ ringing/off
+     - _interruttori_: enable (on/off per accendere/spegnere)
+     - _registro_: ​ ​ time​ = tempo di utilizzo (di accensione)
 
 3. __IMPORT/EXPORT__:  
-     All' interno del __terminale__ è disponibile un comando __export__ che consente di salvare la struttura della rete costruita fin ora. Per implementare questa funzionalità ci appoggiamo ad un file temporaneo salvato nella cartella *./bin* che viene sempre cancellato alla chiusura di ogni terminale.    
+     All' interno del __terminal__ è disponibile un comando `export` che consente di salvare la struttura della rete costruita fin ora. Per implementare questa funzionalità ci appoggiamo ad un file temporaneo salvato nella cartella *./bin* che viene sempre cancellato alla chiusura di ogni terminale.     
      Il nome di tale file temporaneo è *tmp_file<pid_creatore>* in modo da evitare conflitti con eventuali altri terminal avviati in concorrenza tra di loro.   
-     Per importare una struttura esportata precedentemente va specificato il nome del file da importare come argomento dell' eseguibile __terminal__.   
-     Avendo notato che nella fase di importazione di una struttura si verificano dei problemi per i comandi di **del, unlink e link** abbiamo deciso di utilizzare un semplice **usleep(X)** che consente al sistema di sincronizzarsi internamente con i messaggi/segnali inviati dei figli che sibiscono tali comandi.
+     Per importare una struttura esportata precedentemente va specificato il nome del file da importare come argomento dell'eseguibile __terminal__.   
+     
 
 4. __MULTI-TERMINAL__:   
      Il sistema supporta diversi __terminal__ indipendenti aperti in concorrenza.
 
 5. __COMANDO UNLINK__:  
-     E' supportato il comando __unlink__ che permette di scollegare un componente dalla centralina, disattivandolo. E' comunque possibile interagire con esso tramite la shell manuale. Per rispettare la struttura gerarchica del sistema, il componente viene effettivamente rimosso dall' albero dei figli della **centralina**, diventando figlio di **terminal**.
+     E' supportato il comando `unlink` che permette di scollegare un componente dal controller (centralina). E' comunque possibile interagire con esso tramite la shell manuale. Per rispettare la struttura gerarchica del sistema, il componente viene effettivamente rimosso dall' albero dei processi figli del **controller**, diventando figlio di **terminal**.
 
 
 
-## Alcuni comand utili
-
-1. add bulb/timer/alarm/fridge/window/hub
-2. del <id_device>
-3. unlink <id_device>
-4. switch <id_bulb> light on/off
-5. switch <id_window> open on/off
-6. switch <hub> light on/off  (accende/spegne tutte le lampadine ad esso connesse)
-7. switch <hub> open on/off  (apre/chiude tutte le finestre ad esso connesse)
-8. switch <hub> all on/off  (accende/spegne o apre/chiude tutti i componenti ad esso connessi)
-9. switch 0 general on/off  (accende/spegne la centralina)
-10. set <id_fridge> delay 15 (setta il tempo di chiusura a 15s per il frigorifero)
-11.
-12.
-13.
+## Alcuni esempi di comando
+- `add bulb/timer/alarm/fridge/window/hub`
+- `del <id_device>`
+- `unlink <id_device>`
+- `switch <id_bulb> light on/off`
+- `switch <id_window> open on/off`
+- `switch <id_hub> light on/off`  (accende/spegne tutte le lampadine ad esso connesse)
+- `switch <id_hub> open on/off ` (apre/chiude tutte le finestre ad esso connesse)
+- `switch <id_hub> all on/off`  (accende/spegne o apre/chiude tutti i componenti ad esso connessi)
+- `switch 0 general on/off`  (accende/spegne la centralina)
+- `set <id_fridge> delay 15` (setta il tempo di chiusura a 15s per il frigorifero)
+- `set <id_alarm> prob 20` (setta la probabilità di accensione dell'alarm a 20%)
