@@ -23,7 +23,7 @@ char file_tmp[32];  // Dichiarazione comune a a tutti, ma usato solo da TERMINAL
 void sighandleInt(int sig) {
     fclose(fp);  // Chiudo il file temporaneo usato per salvare la cronologia dei messaggi e lo elimino
     if (remove(file_tmp) < 0) perror("Error while deleting tmp command file");
-    printf(CB_WHITE "System disconnected\n" C_WHITE);
+    printf("\n");
     closeMq();  // Chiudo la message queue
     exit(0);
 }
@@ -136,6 +136,7 @@ void terminalInit(char *file) {
 void terminalDestroy() {
 #ifndef MANUAL
     // Eliminazione di tutti i figli per evitare processi zombie
+    signal(SIGCHLD, SIG_DFL);  // Rimuovo l'handler in modo da non interrompere l'esecuzione mentre elimino ricorsivamente i figli
     node_t *p = children->head;
     while (p != NULL) {
         message_t request = buildDeleteRequest(*(int *)p->value);

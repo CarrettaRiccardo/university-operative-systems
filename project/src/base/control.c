@@ -182,8 +182,9 @@ int main(int argc, char **argv) {
 
                 } break;
 
-                case DELETE_MSG_TYPE: {     //uccido tutti i miei figli e poi me stesso
-                    signal(SIGCHLD, NULL);  // Rimuovo l'handler in modo da non interrompere l'esecuzione mentre elimino ricorsivamente i figli
+                case DELETE_MSG_TYPE: {
+                    // Termina tutti i processi figli ricorsivamente e infine termina l'esecuzione del processo corrente
+                    signal(SIGCHLD, SIG_DFL);  // Rimuovo l'handler in modo da non interrompere l'esecuzione mentre elimino ricorsivamente i figli
                     node_t *p = children->head;
                     message_t kill_req, kill_resp;
                     while (p != NULL) {
