@@ -12,11 +12,11 @@ Per la comunicazione tra shell manuale e controller abbiamo optato per l'utilizz
 
 Quando un processo muore i dispositivi di controllo intercettano il segnale che il dispositivo morto invia al padre, così da liberare le strutture dati informative che il SO tiene in memoria.
 
-Da comando manuale non è possibile eseguire __unlink__, dato che è un comando che rende disponibile al controllo un componente da parte della centralina. Quindi eseguito solo da terminal standard.
-
-Il comando __link__ è possibile effetuarlo anche da __shell manuale__, in quanto rappresenta l'operazione di collegare un componente ad un altro (collegare una lampadina fisicamente ad un HUB).
-
 Usare __./terminal__ per la shell normale e __./manual__ per quella manuale.
+
+Da comando manuale non è possibile eseguire `unlink`, dato che è un comando che rende disponibile al controllo un componente da parte della centralina. Quindi eseguito solo da terminal standard.
+
+Il comando `link` è possibile effetuarlo anche da __manual__, in quanto rappresenta l'operazione di collegare un componente ad un altro (collegare una lampadina fisicamente ad un HUB).
 
 
 
