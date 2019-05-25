@@ -266,7 +266,7 @@ int getArgs(char *line, int *argc, char **argv, FILE *from) {
         arg = strtok(NULL, " ");  //  Parse parametro successivo
     }
     *argc = pos;
-    if (from != stdin) usleep(300);  // Per evitare problemi di importazione del file data la lettura veloce. Per maggiori info fare riferimento alla documentazione
+    if (from != stdin) usleep(10000);  // 10ms, per evitare problemi di importazione del file data la lettura veloce. Per maggiori info fare riferimento alla documentazione
     return 0;
 }
 
