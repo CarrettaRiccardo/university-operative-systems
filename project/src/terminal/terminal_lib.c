@@ -192,7 +192,7 @@ int addDevice(char *device) {
     /*  Processo figlio */
     if (pid == 0) {
         char mqid_str[20], id_str[20];
-        strncat(base_dir, device, MAX_DEVICE_NAME_LENGTH-1);             //  Genero il path dell'eseguibile
+        strcat(base_dir, device);             //  Genero il path dell'eseguibile
         snprintf(mqid_str, 20, "%d", mqid);   //  Converto mqid in stringa
         snprintf(id_str, 20, "%d", next_id);  //  Converto id in stringa
         char *args[] = {base_dir, mqid_str, id_str, NULL};

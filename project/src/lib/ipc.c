@@ -145,7 +145,7 @@ message_t buildListResponse(int to_pid, int id, int lv, short stop) {
 
 message_t buildCloneResponse(int to_pid, const char *component_type, int id, const int vals[], short is_control_device) {
     message_t ret = buildResponse(to_pid, CLONE_MSG_TYPE);
-    strncpy(ret.text, component_type, MAXTEXT-1);
+    strncpy(ret.text, component_type, MAXTEXT + 1;
     ret.vals[0] = mqid;
     ret.vals[1] = id;
     if (is_control_device) ret.vals[2] = getpid();
