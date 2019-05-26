@@ -41,14 +41,13 @@ void handleSwitchControl(int label, int pos) {
             if (time(NULL) < t_end && (t_end < t_begin || t_begin < time(NULL))) {
                 alarm(t_end - time(NULL));  // attendo la differenza da ORA
                 waitForBegin = 1;
-            } else {
-                // Setto il timer di accensione (begin) se è il prossimo evento
-                if (time(NULL) < t_begin && (t_end > t_begin || t_end < time(NULL))) {
-                    alarm(t_begin - time(NULL));  // attendo la differenza da ORA
-                    waitForBegin = 0;
-                } else {  // Altrimenti termino gli alarm automatici
-                    alarm(0);
-                }
+            }
+            // Setto il timer di accensione (begin) se è il prossimo evento
+            else if (time(NULL) < t_begin && (t_end > t_begin || t_end < time(NULL))) {
+                alarm(t_begin - time(NULL));  // attendo la differenza da ORA
+                waitForBegin = 0;
+            } else {  // Altrimenti termino gli alarm automatici
+                alarm(0);
             }
         }
     }
