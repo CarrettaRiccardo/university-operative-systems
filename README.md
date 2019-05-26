@@ -45,7 +45,7 @@ Quando ciò avviene, da **terminal** non è possibile eseguire i comandi `switch
 
 
 ## Aggiunte
-1. __Supporto dispositivi eterogenei HUB e TIMER__:   
+1. __Supporto dispositivi eterogenei in HUB e TIMER__:   
      Lo stato, gli interruttori e i registri di un hub o timer sono un mirroring di quelli dei figli, sia nel caso i figli siano dello stesso tipo che nel caso siano di tipo diverso.  
      Gli hub supportano tutte le operazioni eseguibili sui figli, compresi `switch` e `set`. Ad esempio uno switch su un interruttore specifico agirà sugli interruttori corrispondenti di tutti i figli, comportamento analogo peri registri.   
      Nel caso un particolare tipo di dispositivo non sia presente nel sottoalbero dei figli dell'hub, i corrispondenti interruttori e registri non saranno visualizzabili o modificabili.    
@@ -60,17 +60,18 @@ Quando ciò avviene, da **terminal** non è possibile eseguire i comandi `switch
      - _interruttori_: enable (on/off per accendere/spegnere)
      - _registro_: ​ ​ time​ = tempo di utilizzo (di accensione)
 
-3. __IMPORT/EXPORT__:  
-     All' interno del __terminal__ è disponibile un comando `export` che consente di salvare la struttura della rete costruita fin ora. Per implementare questa funzionalità ci appoggiamo ad un file temporaneo salvato nella cartella *./bin* che viene sempre cancellato alla chiusura di ogni terminale.     
+3. __Gestione IMPORT/EXPORT configurazione__:  
+     All'interno del __terminal__ è disponibile un comando `export` che consente di salvare la struttura della rete costruita fin ora. Per implementare questa funzionalità ci appoggiamo ad un file temporaneo salvato nella cartella *./bin* che viene sempre cancellato alla chiusura di ogni terminale.     
      Il nome di tale file temporaneo è *tmp_file<pid_creatore>* in modo da evitare conflitti con eventuali altri terminal avviati in concorrenza tra di loro.   
-     Per importare una struttura esportata precedentemente va specificato il nome del file da importare come argomento dell'eseguibile __terminal__.   
+     Per importare una struttura esportata precedentemente va specificato il percorso relativo del file da importare come primo argomento dell'eseguibile __terminal__.    
+     E' presente nella cartella "project" un file denominato "sample_net1.txt" importabile con una rete di dispositivi già pronta.
      
 
 4. __MULTI-TERMINAL__:   
      Il sistema supporta diversi __terminal__ indipendenti aperti in concorrenza.
 
-5. __COMANDO UNLINK__:  
-     E' supportato il comando `unlink` che permette di scollegare un componente dal controller (centralina). E' comunque possibile interagire con esso tramite la shell manuale. Per rispettare la struttura gerarchica del sistema, il componente viene effettivamente rimosso dall' albero dei processi figli del **controller**, diventando figlio di **terminal**.
+5. __Comando UNLINK__:  
+     E' supportato il comando `unlink` che permette di scollegare un componente dal controller (centralina). E' comunque possibile interagire con esso tramite la shell manuale. Per rispettare la struttura gerarchica del sistema, il componente viene effettivamente rimosso dall' albero dei processi figli del **controller**, diventando processo figlio di **terminal**.
 
 
 
