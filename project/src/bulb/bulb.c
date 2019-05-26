@@ -22,11 +22,11 @@ void cloneData(char **vals) {
 
 int handleSwitchDevice(message_t *msg) {
     int success = SWITCH_ERROR_INVALID_VALUE;
-    // Interruttore (light) o generico (da dispositivi di controllo)
+    // Interruttore (light) o all (da dispositivi di controllo)
     if (msg->vals[SWITCH_VAL_LABEL] == LABEL_BULB_LIGHT_VALUE || msg->vals[SWITCH_VAL_LABEL] == LABEL_ALL_VALUE) {
         if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_OFF_LABEL_VALUE) {  // Spengo
             // Se è accesa, sommo il tempo di accensione e spengo
-            if (interruttore == SWITCH_POS_ON_LABEL_VALUE) {
+            if (state == SWITCH_POS_ON_LABEL_VALUE) {
                 on_time += time(NULL) - last_on_time;
                 interruttore = SWITCH_POS_OFF_LABEL_VALUE;
                 state = interruttore;
@@ -34,7 +34,7 @@ int handleSwitchDevice(message_t *msg) {
             success = 1;
         } else if (msg->vals[SWITCH_VAL_POS] == SWITCH_POS_ON_LABEL_VALUE) {  // Accendo
             // Se è spenta, accendo e salvo il tempo di accensione
-            if (interruttore == SWITCH_POS_OFF_LABEL_VALUE) {
+            if (state == SWITCH_POS_OFF_LABEL_VALUE) {
                 last_on_time = time(NULL);
                 interruttore = SWITCH_POS_ON_LABEL_VALUE;
                 state = interruttore;

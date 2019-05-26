@@ -335,12 +335,12 @@ void doInfoList(message_t *msg, short type) {
     for (i = INFO_VAL_REG_TIME; i <= INFO_VAL_REG_PROB; i++) {
         if (registers_count[i] > 0) {
             int value = registers_values[i];
-            char reg_str[16] = "";
-            if (i == INFO_VAL_REG_TIME) snprintf(reg_str, 16, " " REGISTER_TIME "=%ds", value);
-            if (i == INFO_VAL_REG_DELAY) snprintf(reg_str, 16, " " REGISTER_DELAY "=%ds", value);
-            if (i == INFO_VAL_REG_PERC) snprintf(reg_str, 16, " " REGISTER_PERC "=%d%%", value);
-            if (i == INFO_VAL_REG_TEMP) snprintf(reg_str, 16, " " REGISTER_TEMP "=%d°C", value);
-            if (i == INFO_VAL_REG_PROB) snprintf(reg_str, 16, " " REGISTER_PROB "=%d%%", value);
+            char reg_str[24] = "";
+            if (i == INFO_VAL_REG_TIME) snprintf(reg_str, sizeof(reg_str), " " REGISTER_TIME "=%ds", value);
+            if (i == INFO_VAL_REG_DELAY) snprintf(reg_str, sizeof(reg_str), " " REGISTER_DELAY "=%ds", value);
+            if (i == INFO_VAL_REG_PERC) snprintf(reg_str, sizeof(reg_str), " " REGISTER_PERC "=%d%%", value);
+            if (i == INFO_VAL_REG_TEMP) snprintf(reg_str, sizeof(reg_str), " " REGISTER_TEMP "=%d°C", value);
+            if (i == INFO_VAL_REG_PROB) snprintf(reg_str, sizeof(reg_str), " " REGISTER_PROB "=%d%%", value);
             strcat(registers_str, reg_str);
         }
     }
