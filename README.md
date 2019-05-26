@@ -6,23 +6,24 @@
 - Steve Azzolin __195365__
 
 ## Caratteristiche implementazione
-Per la comunicazione tra processi abbiamo utilizzato __message queue__.
+Per la comunicazione tra processi abbiamo utilizzato una singola __message queue__.
 
 Per la comunicazione tra shell manuale e controller abbiamo optato per l'utilizzo dei __segnali__.
 
 Quando un processo muore i dispositivi di controllo intercettano il segnale che il dispositivo morto invia al padre, così da liberare le strutture dati informative che il SO tiene in memoria.
 
-Da comando manuale non è possibile eseguire __unlink__, dato che è un comando che rende disponibile al controllo un componente da parte della centralina. Quindi eseguito solo da terminal standard.
-
-Il comando __link__ è possibile effetuarlo anche da __shell manuale__, in quanto rappresenta l'operazione di collegare un componente ad un altro (collegare una lampadina fisicamente ad un HUB).
-
 Usare __./terminal__ per la shell normale e __./manual__ per quella manuale.
+
+Il comando `link` può essere eseguito anche da __shell manuale__, in quanto rappresenta l'operazione di collegare un componente ad un altro (collegare una lampadina fisicamente ad un HUB).
+
+Da comando manuale non è possibile eseguire `unlink`, dato che è un comando che rende disponibile al controllo un componente da parte della centralina. Quindi eseguito solo da terminal standard.
+
 
 
 
 ## Shell per override manuali
-L'eseguibile __./manual__ deve essere lanciato passando come parametro l'id relativo alla centralina (stampato come prima linea all' avvio della stessa o visualizzabile con il comando `help`) così da consentire una comunicazione diretta per risolvere id in pid.
-Una volta risolto la comunicazione tra __manual__ e device finale avviene direttamente con le stesse metodologie usate per la normale comunicazione tra processi.
+L'eseguibile __./manual__ deve essere lanciato passando come parametro l'id relativo alla centralina (stampato come prima linea all' avvio della stessa o visualizzabile con il comando `help`) così da consentire una comunicazione diretta per risolvere *id* in *pid*.
+Una volta che l'*id* è stato risolto, la comunicazione tra __manual__ e device finale avviene direttamente con le stesse metodologie usate per la normale comunicazione tra processi.
 
 Manual può eseguire qualsiasi comando eccetto i comandi `list`, `unlink`, `add` ed `export` sia su dispositivi abilitati che non abilitati.
 
@@ -31,14 +32,14 @@ Manual può eseguire qualsiasi comando eccetto i comandi `list`, `unlink`, `add`
 ## Peculiarità
 - Il controller (ossia la centralina, che ha sempre *id*=0) può essere  spenta tramite il comando __switch 0 off__.
 Quando ciò avviene, da **terminal** non è possibile eseguire i comandi `switch` e `set`, mentre tramite **manual** sono ancora utilizzabili.   
- I timer si sospendono (perchè sono ipoteticamente gestiti direttamente da essa), mentre i fridge e alarm funzionano normalmente (rispettivamente chiusura automatica e "rilevazione intrusi"). Ciò può essere inteso come un *mini sistema di sicurezza* per la casa, così facendo in un ipotetico impianto domotico non c'è il richio di avere alimenti avariati o un allarme non funzionante in caso di guasto della centralina (o di mancanza della corrente ecc...).   
+  - I timer si sospendono (perchè sono ipoteticamente gestiti direttamente da essa), mentre i fridge e alarm funzionano normalmente (rispettivamente chiusura automatica e "rilevazione intrusi"). Ciò può essere inteso come un *mini sistema di sicurezza* per la casa, così facendo in un ipotetico impianto domotico non c'è il richio di avere alimenti avariati o un allarme non funzionante in caso di guasto della centralina (o di mancanza della corrente ecc...).   
 
 
 - Gestione degli __HUB__ (Vedi *Aggiunte* per maggiori info).
 
 - Gli eseguibili sono stati testati nei seguenti sistemi operativi :   
    - Ubuntu 16.04 (virtual machine)
-   - Ubuntu BOH (pc laboratorio)
+   - Ubuntu pc laboratorio
    - Xubuntu 18.04 (virtual machine)
    - Centos 6.1 
 
@@ -73,7 +74,7 @@ Quando ciò avviene, da **terminal** non è possibile eseguire i comandi `switch
 
 
 
-## Alcuni esempi di comando
+## Alcuni esempi di comandi
 - `add bulb/timer/alarm/fridge/window/hub`
 - `del <id_device>`
 - `unlink <id_device>`
