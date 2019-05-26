@@ -23,10 +23,14 @@ OBJ = $(patsubst %,$(OBJ_DIR)/%.o,$(LIB))
 #################### RULES ####################
 # Stampa una guida sull'utilizzo del programma
 help:
-	@echo Per compilare eseguire "make build"
-	@echo Per eliminare i file generati dalla compilazione eseguire "make clean"
-	@echo Per eseguire il progetto, spostarsi nella cartella "bin" ed eseguire il file "terminal"
-	@echo Per eseguire dei comandi manuali, spostarsi nella cartella "bin" ed eseguire il file "manual"
+	@echo Regole disponibili:
+	@echo "  help:		Stampa questo messaggio"
+	@echo "  build:	Compila il progetto"
+	@echo "  clean:	Elimina i file generati dalla compilazione"
+	@echo
+	@echo Per eseguire il progetto, dalla cartella bin lanciare:
+	@echo "  terminal:	Shell di default"
+	@echo "  manual: 	Shell per comandi manuali"
 
 # Compilazione terminal e manual
 terminal_manual:
