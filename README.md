@@ -16,7 +16,7 @@ Usare __./terminal__ per la shell normale e __./manual__ per quella manuale.
 
 Il comando `link` può essere eseguito anche da __shell manuale__, in quanto rappresenta l'operazione di collegare un componente ad un altro (collegare una lampadina fisicamente ad un HUB).
 
-Da comando manuale non è possibile eseguire `unlink`, dato che è un comando che rende disponibile al controllo un componente da parte della centralina. Quindi eseguito solo da terminal standard.
+Da comando manuale non è possibile eseguire `unlink`, dato che è un comando che rimuove un componente dal controller (centralina). Quindi può essere eseguito solo da terminal standard.
 
 
 
