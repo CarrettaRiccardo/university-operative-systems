@@ -194,7 +194,7 @@ int getMq(int pid) {
     const key_t key = pid;                    //creo id per mailbox
     int ret = msgget(key, 0666 | IPC_CREAT);  //mi "collego" alla mq
     if (ret == -1) {
-        perror("Errore connessione mq");
+        perror("Errore connessione message queue");
         exit(1);
     }
     return ret;
@@ -202,7 +202,7 @@ int getMq(int pid) {
 
 void closeMq() {
     if (msgctl(mqid, IPC_RMID, NULL) == -1) {
-        perror("Errore chiusura mq");
+        perror("Errore chiusura message queue");
         exit(1);
     }
 }
